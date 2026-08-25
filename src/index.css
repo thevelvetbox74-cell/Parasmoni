@@ -1,0 +1,108 @@
+@import "tailwindcss";
+
+@theme {
+  /* Premium Showroom Brand Colors (Calibrated to exact vibrant logo red #E31C24) */
+  --color-brand-red-50: #fdf2f2;
+  --color-brand-red-100: #fde2e2;
+  --color-brand-red-200: #fecaca;
+  --color-brand-red-300: #fca5a5;
+  --color-brand-red-400: #f87171;
+  --color-brand-red-500: #ef4444;
+  --color-brand-red-600: #e31c24; /* Exact vibrant brand red from logo */
+  --color-brand-red-700: #b91c1c;
+  --color-brand-red-800: #991b1b;
+  --color-brand-red-900: #7f1d1d;
+  --color-brand-red-950: #e31c24; /* Main signature vibrant red for prominent elements */
+
+  /* Authentic Gold Metallic Accents */
+  --color-gold-50: #faf8f2;
+  --color-gold-100: #f4edd9;
+  --color-gold-200: #e8dbb3;
+  --color-gold-300: #d7c183;
+  --color-gold-400: #c5a456;
+  --color-gold-500: #b58b37; /* Warm antique gold */
+  --color-gold-600: #9e752c;
+  --color-gold-700: #805c23;
+  --color-gold-800: #684a20;
+  --color-gold-900: #553c1c;
+  --color-gold-950: #31210e;
+
+  /* Sophisticated Neutrals (Warm Stone) */
+  --color-stone-50: #fafaf9;
+  --color-stone-100: #f5f5f4;
+  --color-stone-200: #e7e5e4;
+  --color-stone-300: #d6d3d1;
+  --color-stone-400: #a8a29e;
+  --color-stone-500: #78716c;
+  --color-stone-600: #57524d;
+  --color-stone-700: #44403c;
+  --color-stone-800: #292524;
+  --color-stone-900: #1c1917;
+  --color-stone-950: #0c0a09;
+
+  /* Elegant Creams for Premium Backdrop */
+  --color-cream-50: #fdfcf7;
+  --color-cream-100: #fbf9f0;
+  --color-cream-200: #f5f0db;
+  --color-cream-300: #ebe0bc;
+  --color-cream-400: #deca96;
+
+  /* Typography Families */
+  --font-serif: "Playfair Display", Georgia, serif;
+  --font-display: "Cinzel", "Times New Roman", serif;
+  --font-sans: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+  
+  /* Additional customized spacing and layout details */
+  --animate-gold-shimmer: gold-shimmer 3s ease-in-out infinite;
+  --animate-fade-in-up: fade-in-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes gold-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Custom Base Classes & Utility Overrides */
+@layer utilities {
+  .text-shadow-subtle {
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  }
+  .gold-gradient-text {
+    background: linear-gradient(135deg, var(--color-gold-300) 0%, var(--color-gold-500) 50%, var(--color-gold-600) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .border-gold-shimmer {
+    background: linear-gradient(90deg, var(--color-gold-600) 0%, var(--color-gold-400) 50%, var(--color-gold-600) 100%);
+    background-size: 200% auto;
+    animation: gold-shimmer 4s linear infinite;
+  }
+}
+
+/* Custom CSS Scrollbars and Typography Layout details */
+body {
+  background-color: var(--color-cream-50);
+  color: var(--color-stone-800);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, .font-serif {
+  font-family: var(--font-serif);
+}
+
+.font-display {
+  font-family: var(--font-display);
+  letter-spacing: 0.07em;
+}

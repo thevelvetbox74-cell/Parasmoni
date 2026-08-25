@@ -1,0 +1,104 @@
+{
+  "entities": {
+    "Banner": {
+      "title": "Banner",
+      "description": "Showroom hero promotional slider banners",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "description": "Title of the promotional banner" },
+        "subtitle": { "type": "string", "description": "Short secondary copy text" },
+        "imageUrl": { "type": "string", "description": "Full URL of the banner image" },
+        "linkUrl": { "type": "string", "description": "Target redirection link" },
+        "displayOrder": { "type": "integer", "description": "Sorting sequence value" },
+        "status": { "type": "string", "enum": ["active", "inactive"], "description": "Banner publishing state" },
+        "startDate": { "type": "string", "format": "date-time", "description": "Campaign beginning timestamp" },
+        "endDate": { "type": "string", "format": "date-time", "description": "Campaign ending timestamp" }
+      },
+      "required": ["title", "imageUrl", "displayOrder", "status"]
+    },
+    "Product": {
+      "title": "Product",
+      "description": "Showroom jewellery catalog items",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Unique display name of the piece" },
+        "sku": { "type": "string", "description": "Unique Stock Keeping Unit code" },
+        "description": { "type": "string", "description": "Detailed craftsmanship copy" },
+        "category": { "type": "string", "description": "Associated category name" },
+        "collection": { "type": "string", "description": "Associated custom collection name" },
+        "metalType": { "type": "string", "description": "Metal used e.g. 22K Gold, 18K Diamond" },
+        "approxWeight": { "type": "string", "description": "Estimated weight text e.g. 24.50g" },
+        "imageUrl": { "type": "string", "description": "Primary showcase image URL" },
+        "featured": { "type": "boolean", "description": "Flag to showcase in featured grids" },
+        "newArrival": { "type": "boolean", "description": "Flag to showcase in new arrivals" },
+        "status": { "type": "string", "enum": ["published", "draft"], "description": "Inventory visibility" }
+      },
+      "required": ["name", "sku", "category", "metalType", "approxWeight", "imageUrl", "status"]
+    },
+    "Collection": {
+      "title": "Collection",
+      "description": "Showroom curated design collections",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Collection identifier e.g. Royal Kundan" },
+        "description": { "type": "string", "description": "Curator aesthetic description" },
+        "imageUrl": { "type": "string", "description": "Cover asset URL" },
+        "slug": { "type": "string", "description": "Web slug pattern" },
+        "displayOrder": { "type": "integer", "description": "Custom listing index" },
+        "status": { "type": "string", "enum": ["active", "inactive"], "description": "Availability state" }
+      },
+      "required": ["name", "imageUrl", "slug", "displayOrder", "status"]
+    },
+    "Store": {
+      "title": "Store",
+      "description": "Physical retail showroom branches",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Branch location name" },
+        "address": { "type": "string", "description": "Full postal address string" },
+        "phone": { "type": "string", "description": "Landline contact phone number" },
+        "whatsapp": { "type": "string", "description": "Direct WhatsApp booking line" },
+        "hours": { "type": "string", "description": "Weekly operational hours detail" },
+        "mapUrl": { "type": "string", "description": "Google Maps coordinates URL" },
+        "imageUrl": { "type": "string", "description": "Storefront display photo" },
+        "status": { "type": "string", "enum": ["active", "inactive"], "description": "Active branch state" }
+      },
+      "required": ["name", "address", "phone", "whatsapp", "hours", "mapUrl", "imageUrl", "status"]
+    },
+    "MetalPrice": {
+      "title": "MetalPrice",
+      "description": "Live bullion exchange rate per gram in Kolkata",
+      "type": "object",
+      "properties": {
+        "metal": { "type": "string", "description": "Metal tier label e.g. Gold (22K)" },
+        "pricePerGram": { "type": "number", "description": "Indicative base rate per gram" },
+        "change": { "type": "number", "description": "Direct indicator rate fluctuation" },
+        "unit": { "type": "string", "description": "Weight measurement unit e.g. 1g" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Market sync timestamp" }
+      },
+      "required": ["metal", "pricePerGram", "change", "unit"]
+    }
+  },
+  "firestore": {
+    "/banners/{bannerId}": {
+      "schema": "#/entities/Banner",
+      "description": "Hero promotional slider cards"
+    },
+    "/products/{productId}": {
+      "schema": "#/entities/Product",
+      "description": "Handcrafted catalogue assets"
+    },
+    "/collections/{collectionId}": {
+      "schema": "#/entities/Collection",
+      "description": "Curated design series"
+    },
+    "/stores/{storeId}": {
+      "schema": "#/entities/Store",
+      "description": "Physical retail locations"
+    },
+    "/metalPrices/{priceId}": {
+      "schema": "#/entities/MetalPrice",
+      "description": "Live bullion pricing index"
+    }
+  }
+}
