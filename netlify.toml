@@ -1,0 +1,33 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
+# CORS Headers & Caching optimization for assets
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Proxy secure ImageKit signatures to Netlify Serverless Functions
+[[redirects]]
+  force = true
+  from = "/api/imagekit-auth"
+  status = 200
+  to = "/.netlify/functions/imagekit-auth"
+
+# Proxy secure ImageKit asset deletion to Netlify Serverless Functions
+[[redirects]]
+  force = true
+  from = "/api/imagekit-delete/*"
+  status = 200
+  to = "/.netlify/functions/imagekit-delete"
+
+# Fallback all other client-side paths to index.html for React Router SPA smoothness
+[[redirects]]
+  from = "/*"
+  status = 200
+  to = "/index.html"
