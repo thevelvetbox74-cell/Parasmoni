@@ -42,14 +42,23 @@ export async function uploadToImageKit(
     });
 
     if (!authResponse.ok) {
-      throw new Error(`Authentication server returned status ${authResponse.status}`);
+      let serverErrorMsg = '';
+      try {
+        const errJson = await authResponse.json();
+        serverErrorMsg = errJson.error || errJson.message || '';
+      } catch (e) {
+        try {
+          serverErrorMsg = await authResponse.text();
+        } catch (t) {}
+      }
+      throw new Error(serverErrorMsg || `Authentication server returned status ${authResponse.status}`);
     }
 
     authParams = await authResponse.json();
-  } catch (error) {
+  } catch (error: any) {
     console.error('Failed to obtain ImageKit signature from auth server:', error);
     throw new Error(
-      'Image upload is disabled: Failed to retrieve secure upload signature from the server.'
+      `Image upload is disabled: ${error.message || 'Failed to retrieve secure upload signature from the server.'}`
     );
   }
 

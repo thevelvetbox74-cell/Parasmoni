@@ -1,6 +1,4 @@
-import { Handler } from '@netlify/functions';
-
-export const handler: Handler = async (event, context) => {
+export const handler = async (event, context) => {
   const headers = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
@@ -27,16 +25,14 @@ export const handler: Handler = async (event, context) => {
   try {
     const privateKey = process.env.IMAGEKIT_PRIVATE_KEY;
     if (!privateKey) {
-      console.error('[IMAGEKIT CONFIG ERROR] IMAGEKIT_PRIVATE_KEY is missing.');
+      console.error('[IMAGEKIT CONFIG ERROR] IMAGEKIT_PRIVATE_KEY is missing in Netlify environment variables.');
       return {
         statusCode: 500,
         headers,
-        body: JSON.stringify({ error: 'ImageKit private key configuration missing on the server.' })
+        body: JSON.stringify({ error: 'IMAGEKIT_PRIVATE_KEY is missing in Netlify variables.' })
       };
     }
 
-    // Since Netlify redirects from /api/imagekit-delete/* to /.netlify/functions/imagekit-delete,
-    // the splat path is inside event.path. We parse the last segment as our target fileId.
     const pathParts = event.path.split('/');
     const fileId = pathParts[pathParts.length - 1];
 
@@ -72,8 +68,8 @@ export const handler: Handler = async (event, context) => {
         body: JSON.stringify({ error: errMsg || 'Failed to delete from ImageKit API.' })
       };
     }
-  } catch (error: any) {
-    console.error('[SERVERLESS DELETE EXCEPTION]', error);
+  } catch (error) {
+    console.error('[IMAGEKIT DELETE ERROR]', error);
     return {
       statusCode: 500,
       headers,
