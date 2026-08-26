@@ -1,1 +1,4 @@
-/*    /index.html   200
+/api/imagekit-auth          /.netlify/functions/imagekit-auth      200!
+/api/imagekit-delete/*      /.netlify/functions/imagekit-delete    200!
+/api/*                      /.netlify/functions/:splat             200!
+/*                          /index.html                            200

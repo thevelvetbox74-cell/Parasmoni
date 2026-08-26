@@ -19,6 +19,13 @@
   status = 200
   to = "/.netlify/functions/imagekit-delete"
 
+# Proxy all other general API requests to Netlify Functions
+[[redirects]]
+  force = true
+  from = "/api/*"
+  status = 200
+  to = "/.netlify/functions/:splat"
+
 # Fallback all other client-side paths to index.html for React Router SPA smoothness
 [[redirects]]
   from = "/*"
