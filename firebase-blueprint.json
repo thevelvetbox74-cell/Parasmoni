@@ -77,6 +77,29 @@
         "updatedAt": { "type": "string", "format": "date-time", "description": "Market sync timestamp" }
       },
       "required": ["metal", "pricePerGram", "change", "unit"]
+    },
+    "PageSections": {
+      "title": "PageSections",
+      "description": "Dynamic layout schema containing an ordered list of builder sections",
+      "type": "object",
+      "properties": {
+        "pageId": { "type": "string", "description": "Page identifier e.g. home" },
+        "sections": { 
+          "type": "array", 
+          "description": "Ordered array of section objects containing section details",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "type": { "type": "string" },
+              "content": { "type": "object" }
+            },
+            "required": ["id", "type", "content"]
+          }
+        },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["pageId", "sections"]
     }
   },
   "firestore": {
@@ -99,6 +122,10 @@
     "/metalPrices/{priceId}": {
       "schema": "#/entities/MetalPrice",
       "description": "Live bullion pricing index"
+    },
+    "/pageSections/{pageId}": {
+      "schema": "#/entities/PageSections",
+      "description": "Dynamic homepage/custom page builder sections sequence"
     }
   }
 }

@@ -146,17 +146,19 @@ export function AdminMetalPrices(): React.JSX.Element {
               id: docSnapshot.id,
               metalName: data.metalName || data.metal || '',
               purity: data.purity || '',
-              price: Number(data.price || data.pricePerGram || 0),
+              price: Number(data.price || data.pricePerGram || data.ratePerGram || 0),
               unit: data.unit || '1g',
               currency: data.currency || 'INR',
               effectiveDate: data.effectiveDate || new Date().toISOString().substring(0, 16),
               status: data.status || 'active',
               change: Number(data.change || 0),
+              displayOrder: typeof data.displayOrder === 'number' ? data.displayOrder : 9999,
               updatedAt: updateDateStr,
               updatedBy: data.updatedBy || 'Administrator'
             };
           });
 
+          items.sort((a, b) => a.displayOrder - b.displayOrder);
           setPrices(items);
           updateGlobalTimestamp(items);
         }
@@ -305,6 +307,12 @@ export function AdminMetalPrices(): React.JSX.Element {
         calculatedChange = Number((((formData.price - matchingPrev.price) / matchingPrev.price) * 100).toFixed(2));
       }
 
+      let displayOrder = matchingPrev?.displayOrder;
+      if (typeof displayOrder !== 'number') {
+        const maxOrder = prices.reduce((max, p) => (typeof p.displayOrder === 'number' && p.displayOrder > max ? p.displayOrder : max), 0);
+        displayOrder = maxOrder + 1;
+      }
+
       // 2. Format precise payload satisfying both custom parameters and home page component models
       const payload: any = {
         metalName: formData.metalName,
@@ -317,6 +325,7 @@ export function AdminMetalPrices(): React.JSX.Element {
         effectiveDate: formData.effectiveDate,
         status: formData.status,
         change: calculatedChange,
+        displayOrder: displayOrder,
         updatedBy: currentUserEmail
       };
 
@@ -353,6 +362,114 @@ export function AdminMetalPrices(): React.JSX.Element {
     } finally {
       setSaving(false);
     }
+  };
+
+  // Reorder and delete handlers
+  const handleDeleteMetal = async (metalId: string, metalName: string) => {
+    try {
+      setSaving(true);
+      setError(null);
+      setSuccess(null);
+
+      let productsUsingMetal: any[] = [];
+      if (isFirebaseConfigured && db) {
+        const prodRef = collection(db, 'products');
+        const prodSnap = await getDocs(prodRef);
+        productsUsingMetal = prodSnap.docs
+          .map(doc => ({ id: doc.id, ...doc.data() }))
+          .filter((p: any) => p.metalRef === metalId);
+      } else {
+        // Fallback local storage
+        const localProds = localStorage.getItem('local_products');
+        if (localProds) {
+          productsUsingMetal = JSON.parse(localProds).filter((p: any) => p.metalRef === metalId);
+        }
+      }
+
+      if (productsUsingMetal.length > 0) {
+        const productNames = productsUsingMetal.map(p => `"${p.productName || p.name}"`).slice(0, 3).join(', ');
+        const count = productsUsingMetal.length;
+        const listText = count > 3 ? `${productNames} and ${count - 3} others` : productNames;
+        
+        setError(`Cannot delete "${metalName}". It is currently referenced by ${count} products: ${listText}. Please edit or delete those products first.`);
+        setSaving(false);
+        return;
+      }
+
+      if (!window.confirm(`Are you absolutely sure you want to delete the metal "${metalName}"? This action cannot be undone.`)) {
+        setSaving(false);
+        return;
+      }
+
+      if (!isFirebaseConfigured) {
+        const filtered = prices.filter(p => p.id !== metalId);
+        localStorage.setItem('local_metal_prices', JSON.stringify(filtered));
+        setPrices(filtered);
+        updateGlobalTimestamp(filtered);
+        setSuccess(`Successfully deleted "${metalName}" locally.`);
+      } else {
+        const { deleteDoc, doc } = await import('firebase/firestore');
+        await deleteDoc(doc(db, 'metalPrices', metalId));
+        setPrices(prev => prev.filter(p => p.id !== metalId));
+        setSuccess(`Successfully deleted "${metalName}" from Live Cloud Database.`);
+      }
+    } catch (err: any) {
+      console.error('Failed to delete metal:', err);
+      setError('Deletion failed: ' + err.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const swapDisplayOrders = async (idx1: number, idx2: number) => {
+    try {
+      setSaving(true);
+      setError(null);
+      setSuccess(null);
+
+      const list = [...prices];
+      list.forEach((p, idx) => {
+        if (typeof p.displayOrder !== 'number') {
+          p.displayOrder = idx;
+        }
+      });
+
+      const tempOrder = list[idx1].displayOrder;
+      list[idx1].displayOrder = list[idx2].displayOrder;
+      list[idx2].displayOrder = tempOrder;
+
+      list.sort((a, b) => a.displayOrder - b.displayOrder);
+
+      if (!isFirebaseConfigured) {
+        localStorage.setItem('local_metal_prices', JSON.stringify(list));
+        setPrices(list);
+        setSuccess('Display sequence updated locally!');
+      } else {
+        const item1 = list[idx1];
+        const item2 = list[idx2];
+        
+        await setDoc(doc(db, 'metalPrices', item1.id), { displayOrder: item1.displayOrder }, { merge: true });
+        await setDoc(doc(db, 'metalPrices', item2.id), { displayOrder: item2.displayOrder }, { merge: true });
+
+        setPrices(list);
+        setSuccess('Display sequence synchronized sitewide!');
+      }
+    } catch (err: any) {
+      console.error('Reordering failed:', err);
+      setError('Failed to update display order: ' + err.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleMoveUp = async (index: number) => {
+    if (index === 0) return;
+    await swapDisplayOrders(index, index - 1);
+  };
+
+  const handleMoveDown = async (index: number) => {
+    if (index === prices.length - 1) return;
+    await swapDisplayOrders(index, index + 1);
   };
 
   return (
@@ -475,6 +592,7 @@ export function AdminMetalPrices(): React.JSX.Element {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-b border-stone-850 text-[10px] font-bold text-stone-500 uppercase tracking-wider bg-stone-950">
+                  <th className="p-4 font-semibold w-24">Order</th>
                   <th className="p-4 font-semibold">Metal / Tier</th>
                   <th className="p-4 font-semibold">Purity Rating</th>
                   <th className="p-4 font-semibold text-center">Price Rate</th>
@@ -485,12 +603,34 @@ export function AdminMetalPrices(): React.JSX.Element {
                 </tr>
               </thead>
               <tbody className="divide-y divide-stone-850/60">
-                {prices.map((item) => {
+                {prices.map((item, index) => {
                   const isUp = item.change >= 0;
                   const formattedDate = item.updatedAt ? new Date(item.updatedAt).toLocaleDateString('en-IN') : 'N/A';
                   
                   return (
                     <tr key={item.id} className="hover:bg-stone-900/40 text-stone-200 transition-colors">
+                      <td className="p-4">
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => handleMoveUp(index)}
+                            disabled={index === 0}
+                            className="p-1 border border-stone-800 hover:border-stone-700 disabled:opacity-20 disabled:hover:border-stone-800 rounded bg-stone-950/40 text-[10px] text-stone-400 hover:text-amber-500 disabled:text-stone-600 font-bold transition-all cursor-pointer"
+                            title="Move Up"
+                          >
+                            ▲
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleMoveDown(index)}
+                            disabled={index === prices.length - 1}
+                            className="p-1 border border-stone-800 hover:border-stone-700 disabled:opacity-20 disabled:hover:border-stone-800 rounded bg-stone-950/40 text-[10px] text-stone-400 hover:text-amber-500 disabled:text-stone-600 font-bold transition-all cursor-pointer"
+                            title="Move Down"
+                          >
+                            ▼
+                          </button>
+                        </div>
+                      </td>
                       <td className="p-4">
                         <div className="flex items-center gap-2">
                           <span className="h-2 w-2 rounded-full bg-amber-500/80" />
@@ -531,13 +671,22 @@ export function AdminMetalPrices(): React.JSX.Element {
                         </div>
                       </td>
                       <td className="p-4 text-right">
-                        <button
-                          onClick={() => handleStartEdit(item)}
-                          className="p-1.5 border border-stone-800 hover:border-amber-500/40 hover:bg-stone-900 text-stone-400 hover:text-amber-500 rounded transition-all cursor-pointer"
-                          title="Modify current rates"
-                        >
-                          <Edit className="w-3.5 h-3.5" />
-                        </button>
+                        <div className="flex items-center justify-end gap-1.5">
+                          <button
+                            onClick={() => handleStartEdit(item)}
+                            className="p-1.5 border border-stone-800 hover:border-amber-500/40 hover:bg-stone-900 text-stone-400 hover:text-amber-500 rounded transition-all cursor-pointer"
+                            title="Modify current rates"
+                          >
+                            <Edit className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteMetal(item.id, item.metalName)}
+                            className="p-1.5 border border-stone-800 hover:border-red-500/40 hover:bg-stone-900 text-stone-400 hover:text-red-500 rounded transition-all cursor-pointer"
+                            title="Delete custom metal specification"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );

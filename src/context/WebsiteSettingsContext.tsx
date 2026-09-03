@@ -66,12 +66,27 @@ export function WebsiteSettingsProvider({ children }: { children: React.ReactNod
           googleMapsEmbed: docData.googleMapsEmbed || docData.googleMapUrl || "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3684.1481119779313!2d88.35850937584102!3d22.573531479491742!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3a0277ab360df89d%3A0xc6c4295fa9578168!2sBowbazar%2C%20Kolkata%2C%20West%20Bengal!5e0!3m2!1sen!2sin!4v1787646387697!5m2!1sen!2sin",
           workingHours: docData.workingHours || docData.openingHours || mockWebsiteSettings.workingHours,
           footerText: docData.footerText || "© 2026 Parasmoni Jewellers & Brothers. All Rights Reserved.",
+          categoryShowcaseEyebrowTag: docData.categoryShowcaseEyebrowTag !== undefined ? docData.categoryShowcaseEyebrowTag : mockWebsiteSettings.categoryShowcaseEyebrowTag,
+          categoryShowcaseTitle: docData.categoryShowcaseTitle !== undefined ? docData.categoryShowcaseTitle : mockWebsiteSettings.categoryShowcaseTitle,
+          categoryShowcaseSubtitle: docData.categoryShowcaseSubtitle !== undefined ? docData.categoryShowcaseSubtitle : mockWebsiteSettings.categoryShowcaseSubtitle,
+          categoryShowcaseLayout: docData.categoryShowcaseLayout || mockWebsiteSettings.categoryShowcaseLayout,
+          categoryShowcaseHeaderBgColor: docData.categoryShowcaseHeaderBgColor || mockWebsiteSettings.categoryShowcaseHeaderBgColor,
+          categoryShowcaseHeaderTextColor: docData.categoryShowcaseHeaderTextColor || mockWebsiteSettings.categoryShowcaseHeaderTextColor,
+          categoryShowcaseHeaderBorderColor: docData.categoryShowcaseHeaderBorderColor || mockWebsiteSettings.categoryShowcaseHeaderBorderColor,
+          categoryShowcaseHeaderFontStyle: docData.categoryShowcaseHeaderFontStyle || mockWebsiteSettings.categoryShowcaseHeaderFontStyle,
+          categoryShowcaseHeaderFontSize: docData.categoryShowcaseHeaderFontSize || mockWebsiteSettings.categoryShowcaseHeaderFontSize,
+          categoryShowcaseSubtitleColor: docData.categoryShowcaseSubtitleColor || mockWebsiteSettings.categoryShowcaseSubtitleColor,
+          categoryShowcaseEyebrowColor: docData.categoryShowcaseEyebrowColor || mockWebsiteSettings.categoryShowcaseEyebrowColor,
           socials: {
             facebook: docData.socials?.facebook || docData.socialMediaLinks?.facebook || mockWebsiteSettings.socials.facebook,
             instagram: docData.socials?.instagram || docData.socialMediaLinks?.instagram || mockWebsiteSettings.socials.instagram,
             youtube: docData.socials?.youtube || docData.socialMediaLinks?.youtube || mockWebsiteSettings.socials.youtube,
             pinterest: docData.socials?.pinterest || docData.socialMediaLinks?.pinterest || mockWebsiteSettings.socials.pinterest
-          }
+          },
+          navigation: docData.navigation || mockWebsiteSettings.navigation,
+          navGlobalTextColor: docData.navGlobalTextColor || mockWebsiteSettings.navGlobalTextColor,
+          navGlobalFontSize: docData.navGlobalFontSize || mockWebsiteSettings.navGlobalFontSize,
+          navGlobalFontWeight: docData.navGlobalFontWeight || mockWebsiteSettings.navGlobalFontWeight
         };
         
         setSettings(fetched);

@@ -28,10 +28,13 @@ import {
   CheckCircle,
   Eye,
   EyeOff,
-  Sparkles
+  Sparkles,
+  Sliders
 } from 'lucide-react';
 import { ImageUploader } from '../components/ImageUploader';
 import { IMAGEKIT_FOLDERS } from '../imagekit/client';
+import { Link } from 'react-router-dom';
+import { mockProducts } from '../data/mockData';
 
 // Core default category labels based on catalog filter mappings
 const DEFAULT_CATEGORIES = [
@@ -45,6 +48,7 @@ export function AdminCategories(): React.JSX.Element {
   // UI View Mode State
   const [view, setView] = useState<'list' | 'add' | 'edit'>('list');
   const [categories, setCategories] = useState<any[]>([]);
+  const [productCounts, setProductCounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState<boolean>(true);
   const [saving, setSaving] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -64,8 +68,111 @@ export function AdminCategories(): React.JSX.Element {
     ogTitle: '',
     ogDescription: '',
     ogImage: '',
-    imageAltText: ''
+    imageAltText: '',
+    offerTag: '',
+    customTitle: '',
+    customSubtitle: '',
+    fontStyle: 'serif',
+    textColor: '#ffffff',
+    subtitleColor: '#fecdd3',
+    offerTagColor: '#ffffff',
+    offerTagBgColor: '#e11d48',
+    overlayShadeColor: '#000000'
   });
+
+  // Global category showcase settings (from websiteSettings)
+  const [globalSettingsId, setGlobalSettingsId] = useState<string | null>(null);
+  const [globalEyebrow, setGlobalEyebrow] = useState('CURATED SELECTIONS');
+  const [globalTitle, setGlobalTitle] = useState('Shop by Category Showcase');
+  const [globalSubtitle, setGlobalSubtitle] = useState('Explore our spectacular hand-crafted designs categorized for perfect visual navigation');
+  const [globalLayout, setGlobalLayout] = useState<'single' | 'double'>('single');
+  const [globalHeaderBgColor, setGlobalHeaderBgColor] = useState('transparent');
+  const [globalHeaderTextColor, setGlobalHeaderTextColor] = useState('#1c1917');
+  const [globalHeaderBorderColor, setGlobalHeaderBorderColor] = useState('transparent');
+  const [globalHeaderFontStyle, setGlobalHeaderFontStyle] = useState('serif');
+  const [globalHeaderFontSize, setGlobalHeaderFontSize] = useState('28px');
+  const [globalSubtitleColor, setGlobalSubtitleColor] = useState('#78716c');
+  const [globalEyebrowColor, setGlobalEyebrowColor] = useState('#e11d48');
+  const [savingGlobal, setSavingGlobal] = useState(false);
+  const [globalSuccess, setGlobalSuccess] = useState<string | null>(null);
+  const [globalError, setGlobalError] = useState<string | null>(null);
+
+  // Load Global Category Settings on Mount
+  useEffect(() => {
+    async function loadGlobalCategorySettings() {
+      try {
+        if (!isFirebaseConfigured) return;
+        const settingsCol = collection(db, 'websiteSettings');
+        const snapshot = await getDocs(settingsCol);
+        if (!snapshot.empty) {
+          const docSnap = snapshot.docs[0];
+          setGlobalSettingsId(docSnap.id);
+          const data = docSnap.data();
+          setGlobalEyebrow(data.categoryShowcaseEyebrowTag !== undefined ? data.categoryShowcaseEyebrowTag : 'CURATED SELECTIONS');
+          setGlobalTitle(data.categoryShowcaseTitle !== undefined ? data.categoryShowcaseTitle : 'Shop by Category Showcase');
+          setGlobalSubtitle(data.categoryShowcaseSubtitle !== undefined ? data.categoryShowcaseSubtitle : 'Explore our spectacular hand-crafted designs categorized for perfect visual navigation');
+          setGlobalLayout(data.categoryShowcaseLayout || 'single');
+          setGlobalHeaderBgColor(data.categoryShowcaseHeaderBgColor || 'transparent');
+          setGlobalHeaderTextColor(data.categoryShowcaseHeaderTextColor || '#1c1917');
+          setGlobalHeaderBorderColor(data.categoryShowcaseHeaderBorderColor || 'transparent');
+          setGlobalHeaderFontStyle(data.categoryShowcaseHeaderFontStyle || 'serif');
+          setGlobalHeaderFontSize(data.categoryShowcaseHeaderFontSize || '28px');
+          setGlobalSubtitleColor(data.categoryShowcaseSubtitleColor || '#78716c');
+          setGlobalEyebrowColor(data.categoryShowcaseEyebrowColor || '#e11d48');
+        }
+      } catch (err) {
+        console.error('Error fetching global category settings:', err);
+      }
+    }
+    loadGlobalCategorySettings();
+  }, []);
+
+  const handleSaveGlobalSettings = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSavingGlobal(true);
+    setGlobalSuccess(null);
+    setGlobalError(null);
+
+    const payload = {
+      categoryShowcaseEyebrowTag: globalEyebrow,
+      categoryShowcaseTitle: globalTitle,
+      categoryShowcaseSubtitle: globalSubtitle,
+      categoryShowcaseLayout: globalLayout,
+      categoryShowcaseHeaderBgColor: 'transparent',
+      categoryShowcaseHeaderTextColor: globalHeaderTextColor,
+      categoryShowcaseHeaderBorderColor: 'transparent',
+      categoryShowcaseHeaderFontStyle: globalHeaderFontStyle,
+      categoryShowcaseHeaderFontSize: globalHeaderFontSize,
+      categoryShowcaseSubtitleColor: globalSubtitleColor,
+      categoryShowcaseEyebrowColor: globalEyebrowColor,
+      updatedAt: new Date().toISOString()
+    };
+
+    try {
+      if (!isFirebaseConfigured) {
+        setGlobalSuccess('Global layout settings saved in frontend memory!');
+        setSavingGlobal(false);
+        return;
+      }
+
+      if (globalSettingsId) {
+        const docRef = doc(db, 'websiteSettings', globalSettingsId);
+        await setDoc(docRef, payload, { merge: true });
+        setGlobalSuccess('Homepage Category Showcase banner options saved successfully!');
+      } else {
+        const settingsCol = collection(db, 'websiteSettings');
+        const ref = doc(settingsCol);
+        await setDoc(ref, payload);
+        setGlobalSettingsId(ref.id);
+        setGlobalSuccess('Initial Category Showcase settings created successfully!');
+      }
+    } catch (err: any) {
+      console.error('Error saving global settings:', err);
+      setGlobalError(err.message || 'Failed to publish settings changes.');
+    } finally {
+      setSavingGlobal(false);
+    }
+  };
 
   // Load Categories on Mount
   useEffect(() => {
@@ -83,15 +190,49 @@ export function AdminCategories(): React.JSX.Element {
             description: `Exquisite handpicked selection of fine design ${cat.toLowerCase()}.`,
             imageUrl: '',
             displayOrder: idx + 1,
-            status: 'active'
+            status: 'active',
+            offerTag: '',
+            customTitle: '',
+            customSubtitle: '',
+            fontStyle: 'serif',
+            textColor: '#ffffff',
+            subtitleColor: '#fecdd3',
+            offerTagColor: '#ffffff',
+            offerTagBgColor: '#e11d48',
+            overlayShadeColor: '#000000'
           }));
           setCategories(normalizedMocks);
+          
+          const counts: Record<string, number> = {};
+          mockProducts.forEach((p: any) => {
+            const cat = p.category || '';
+            if (cat) {
+              counts[cat] = (counts[cat] || 0) + 1;
+            }
+          });
+          setProductCounts(counts);
           setLoading(false);
           return;
         }
 
         const catRef = collection(db, 'categories');
         const snapshot = await getDocs(catRef);
+        
+        const counts: Record<string, number> = {};
+        try {
+          const prodRef = collection(db, 'products');
+          const prodSnapshot = await getDocs(prodRef);
+          prodSnapshot.docs.forEach(doc => {
+            const data = doc.data();
+            const cat = data.category || '';
+            if (cat) {
+              counts[cat] = (counts[cat] || 0) + 1;
+            }
+          });
+        } catch (e) {
+          console.warn("Failed to fetch products for count:", e);
+        }
+        setProductCounts(counts);
         
         const items = snapshot.docs.map(doc => {
           const data = doc.data();
@@ -108,7 +249,16 @@ export function AdminCategories(): React.JSX.Element {
             ogTitle: data.ogTitle || '',
             ogDescription: data.ogDescription || '',
             ogImage: data.ogImage || '',
-            imageAltText: data.imageAltText || ''
+            imageAltText: data.imageAltText || '',
+            offerTag: data.offerTag || '',
+            customTitle: data.customTitle || '',
+            customSubtitle: data.customSubtitle || '',
+            fontStyle: data.fontStyle || 'serif',
+            textColor: data.textColor || '#ffffff',
+            subtitleColor: data.subtitleColor || '#fecdd3',
+            offerTagColor: data.offerTagColor || '#ffffff',
+            offerTagBgColor: data.offerTagBgColor || '#e11d48',
+            overlayShadeColor: data.overlayShadeColor || '#000000'
           };
         });
 
@@ -135,6 +285,28 @@ export function AdminCategories(): React.JSX.Element {
       .replace(/\s+/g, '-'); // replace spaces with hyphens
   };
 
+  const getAssignedProductsCount = () => {
+    if (!formData.name && !formData.slug) return 0;
+    const keyId = formData.id;
+    const keyName = formData.name.toLowerCase();
+    const keySlug = formData.slug.toLowerCase();
+    
+    let count = 0;
+    Object.keys(productCounts).forEach(key => {
+      const lowerKey = key.toLowerCase();
+      if (
+        (keyId && lowerKey === keyId.toLowerCase()) ||
+        lowerKey === keyName ||
+        lowerKey === keySlug ||
+        lowerKey === `cat-${keySlug}` ||
+        lowerKey === keyName.replace(/\s+/g, '-')
+      ) {
+        count += productCounts[key];
+      }
+    });
+    return count;
+  };
+
   const handleNameChange = (val: string) => {
     setFormData(prev => ({
       ...prev,
@@ -158,7 +330,16 @@ export function AdminCategories(): React.JSX.Element {
       ogTitle: cat.ogTitle || '',
       ogDescription: cat.ogDescription || '',
       ogImage: cat.ogImage || '',
-      imageAltText: cat.imageAltText || ''
+      imageAltText: cat.imageAltText || '',
+      offerTag: cat.offerTag || '',
+      customTitle: cat.customTitle || '',
+      customSubtitle: cat.customSubtitle || '',
+      fontStyle: cat.fontStyle || 'serif',
+      textColor: cat.textColor || '#ffffff',
+      subtitleColor: cat.subtitleColor || '#fecdd3',
+      offerTagColor: cat.offerTagColor || '#ffffff',
+      offerTagBgColor: cat.offerTagBgColor || '#e11d48',
+      overlayShadeColor: cat.overlayShadeColor || '#000000'
     });
     setError(null);
     setSuccess(null);
@@ -184,7 +365,16 @@ export function AdminCategories(): React.JSX.Element {
       ogTitle: '',
       ogDescription: '',
       ogImage: '',
-      imageAltText: ''
+      imageAltText: '',
+      offerTag: '',
+      customTitle: '',
+      customSubtitle: '',
+      fontStyle: 'serif',
+      textColor: '#ffffff',
+      subtitleColor: '#fecdd3',
+      offerTagColor: '#ffffff',
+      offerTagBgColor: '#e11d48',
+      overlayShadeColor: '#000000'
     });
     setError(null);
     setSuccess(null);
@@ -308,6 +498,15 @@ export function AdminCategories(): React.JSX.Element {
       ogDescription: formData.ogDescription.trim() || formData.seoDescription.trim() || formData.description.trim(),
       ogImage: formData.ogImage.trim() || formData.imageUrl || '',
       imageAltText: formData.imageAltText.trim() || formData.name,
+      offerTag: formData.offerTag.trim(),
+      customTitle: formData.customTitle.trim(),
+      customSubtitle: formData.customSubtitle.trim(),
+      fontStyle: formData.fontStyle,
+      textColor: formData.textColor,
+      subtitleColor: formData.subtitleColor,
+      offerTagColor: formData.offerTagColor,
+      offerTagBgColor: formData.offerTagBgColor,
+      overlayShadeColor: formData.overlayShadeColor,
       updatedAt: new Date().toISOString(),
       updatedBy: user?.email || 'admin'
     };
@@ -510,6 +709,209 @@ export function AdminCategories(): React.JSX.Element {
             </div>
           )}
 
+          {/* Global Category Showcase Heading & Styling Section */}
+          <div className="bg-stone-900/40 border border-stone-800 rounded p-6 mt-8 space-y-6" id="global-category-settings-panel">
+            <div className="border-b border-stone-800 pb-3 flex items-center justify-between">
+              <div>
+                <h3 className="text-xs uppercase tracking-widest font-bold text-amber-500 flex items-center gap-2">
+                  <Sliders className="w-4 h-4" />
+                  <span>Homepage Categories Header & Section Customization</span>
+                </h3>
+                <p className="text-[10px] text-stone-500 mt-1 font-sans">Configure layout rows, fonts, custom colors, and background buttons of the showcase heading.</p>
+              </div>
+            </div>
+
+            {globalSuccess && (
+              <div className="p-3 bg-emerald-950/20 border border-emerald-500/20 text-emerald-400 text-xs rounded flex items-center gap-2">
+                <CheckCircle className="w-4 h-4 text-emerald-500" />
+                <span>{globalSuccess}</span>
+              </div>
+            )}
+
+            {globalError && (
+              <div className="p-3 bg-red-950/25 border border-red-500/20 text-red-400 text-xs rounded flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-red-500" />
+                <span>{globalError}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleSaveGlobalSettings} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Eyebrow Tag */}
+                <div className="space-y-1.5">
+                  <label className="text-[10px] text-stone-400 font-bold uppercase tracking-wider block">Section Eyebrow Tag (e.g. CURATED SELECTIONS)</label>
+                  <input
+                    type="text"
+                    value={globalEyebrow}
+                    onChange={(e) => setGlobalEyebrow(e.target.value)}
+                    placeholder="Leave empty to hide eyebrow"
+                    className="w-full px-3 py-2 bg-stone-950 border border-stone-800 focus:border-amber-500 focus:outline-hidden text-xs rounded text-stone-200"
+                  />
+                </div>
+
+                {/* Main Heading title */}
+                <div className="space-y-1.5">
+                  <label className="text-[10px] text-stone-400 font-bold uppercase tracking-wider block">
+                    Section Header Text <span className="text-rose-400">* Leave empty to hide title completely</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={globalTitle}
+                    onChange={(e) => setGlobalTitle(e.target.value)}
+                    placeholder="e.g. CATEGORIES"
+                    className="w-full px-3 py-2 bg-stone-950 border border-stone-800 focus:border-amber-500 focus:outline-hidden text-xs rounded text-stone-200 font-sans uppercase font-bold"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Heading Subtitle */}
+                <div className="space-y-1.5">
+                  <label className="text-[10px] text-stone-400 font-bold uppercase tracking-wider block">Section Subtitle Text</label>
+                  <input
+                    type="text"
+                    value={globalSubtitle}
+                    onChange={(e) => setGlobalSubtitle(e.target.value)}
+                    placeholder="Leave empty to hide subtitle"
+                    className="w-full px-3 py-2 bg-stone-950 border border-stone-800 focus:border-amber-500 focus:outline-hidden text-xs rounded text-stone-200"
+                  />
+                </div>
+
+                {/* Showcase layout style */}
+                <div className="space-y-1.5">
+                  <label className="text-[10px] text-stone-400 font-bold uppercase tracking-wider block">Showcase Scrolling Layout Grid</label>
+                  <select
+                    value={globalLayout}
+                    onChange={(e) => setGlobalLayout(e.target.value as 'single' | 'double')}
+                    className="w-full px-3 py-2 bg-stone-950 border border-stone-800 focus:border-amber-500 focus:outline-hidden text-xs rounded text-stone-200 cursor-pointer font-sans"
+                  >
+                    <option value="single">Single Row Horizontal List (Standard)</option>
+                    <option value="double">Double Rows (2-Tier Bento Scrolling Grid)</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Advanced Header Styling Block */}
+              <div className="p-4 bg-stone-950/60 border border-stone-850/60 rounded space-y-4">
+                <span className="text-[9px] text-stone-400 font-bold uppercase tracking-widest block font-sans">Advanced Header Design & Typography Size</span>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4">
+                  {/* Header Font style */}
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] text-stone-400 font-bold uppercase tracking-wider block">Header Font Style</label>
+                    <select
+                      value={globalHeaderFontStyle}
+                      onChange={(e) => setGlobalHeaderFontStyle(e.target.value)}
+                      className="w-full px-3 py-1.5 bg-stone-900 border border-stone-800 focus:border-amber-500 focus:outline-hidden text-xs rounded text-stone-300 font-sans cursor-pointer"
+                    >
+                      <option value="serif">Elegant Serif (Playfair Display)</option>
+                      <option value="sans">Modern Sans-Serif (Inter)</option>
+                      <option value="cursive">Decorative Cursive (Sacramento/Script)</option>
+                      <option value="mono">Symmetric Monospace (Courier)</option>
+                      <option value="cinzel">Majestic Roman Luxury (Cinzel)</option>
+                      <option value="cormorant">Royal Renaissance Serif (Cormorant Garamond)</option>
+                      <option value="marcellus">Classic Ancient Trajan (Marcellus)</option>
+                      <option value="lobster">Playful Vintage Retro (Lobster)</option>
+                      <option value="alex-brush">Premium Script Calligraphy (Alex Brush)</option>
+                      <option value="poppins">Sleek Rounded Geometric (Poppins)</option>
+                    </select>
+                  </div>
+
+                  {/* Header Font Size */}
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] text-stone-400 font-bold uppercase tracking-wider block">Header Text Size</label>
+                    <select
+                      value={globalHeaderFontSize}
+                      onChange={(e) => setGlobalHeaderFontSize(e.target.value)}
+                      className="w-full px-3 py-1.5 bg-stone-900 border border-stone-800 focus:border-amber-500 focus:outline-hidden text-xs rounded text-stone-300 font-sans cursor-pointer"
+                    >
+                      <option value="16px">Tiny (16px)</option>
+                      <option value="20px">Small (20px)</option>
+                      <option value="24px">Medium (24px)</option>
+                      <option value="28px">Regular (28px)</option>
+                      <option value="32px">Large (32px)</option>
+                      <option value="36px">Extra Large (36px)</option>
+                      <option value="42px">Display (42px)</option>
+                      <option value="48px">Super Display (48px)</option>
+                      <option value="56px">Sovereign Huge (56px)</option>
+                    </select>
+                  </div>
+
+                  {/* Header Text color */}
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] text-stone-400 font-bold uppercase tracking-wider block">Header Text Color</label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="color"
+                        value={globalHeaderTextColor.startsWith('#') && globalHeaderTextColor.length === 7 ? globalHeaderTextColor : '#1c1917'}
+                        onChange={(e) => setGlobalHeaderTextColor(e.target.value)}
+                        className="w-8 h-8 rounded border border-stone-850 bg-transparent cursor-pointer"
+                      />
+                      <input
+                        type="text"
+                        value={globalHeaderTextColor}
+                        onChange={(e) => setGlobalHeaderTextColor(e.target.value)}
+                        placeholder="#1c1917"
+                        className="w-full px-2 py-1 bg-stone-900 border border-stone-800 focus:border-amber-500 focus:outline-hidden text-xs rounded text-stone-200 font-mono"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Eyebrow tag color */}
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] text-stone-400 font-bold uppercase tracking-wider block">Eyebrow Tag Color</label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="color"
+                        value={globalEyebrowColor.startsWith('#') && globalEyebrowColor.length === 7 ? globalEyebrowColor : '#e11d48'}
+                        onChange={(e) => setGlobalEyebrowColor(e.target.value)}
+                        className="w-8 h-8 rounded border border-stone-850 bg-transparent cursor-pointer"
+                      />
+                      <input
+                        type="text"
+                        value={globalEyebrowColor}
+                        onChange={(e) => setGlobalEyebrowColor(e.target.value)}
+                        placeholder="#e11d48"
+                        className="w-full px-2 py-1 bg-stone-900 border border-stone-800 focus:border-amber-500 focus:outline-hidden text-xs rounded text-stone-200 font-mono"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Subtitle color */}
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] text-stone-400 font-bold uppercase tracking-wider block">Subtitle Color</label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="color"
+                        value={globalSubtitleColor.startsWith('#') && globalSubtitleColor.length === 7 ? globalSubtitleColor : '#78716c'}
+                        onChange={(e) => setGlobalSubtitleColor(e.target.value)}
+                        className="w-8 h-8 rounded border border-stone-850 bg-transparent cursor-pointer"
+                      />
+                      <input
+                        type="text"
+                        value={globalSubtitleColor}
+                        onChange={(e) => setGlobalSubtitleColor(e.target.value)}
+                        placeholder="#78716c"
+                        className="w-full px-2 py-1 bg-stone-900 border border-stone-800 focus:border-amber-500 focus:outline-hidden text-xs rounded text-stone-200 font-mono"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Submit Button */}
+              <div className="flex justify-end pt-2">
+                <button
+                  type="submit"
+                  disabled={savingGlobal}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-rose-600 hover:bg-rose-500 disabled:bg-rose-800 text-white text-[10px] font-bold uppercase tracking-wider rounded cursor-pointer transition-all font-sans"
+                >
+                  {savingGlobal ? 'Publishing Section Settings...' : 'Save Category Showcase Layout & Header'}
+                </button>
+              </div>
+            </form>
+          </div>
+
         </div>
       )}
 
@@ -583,6 +985,218 @@ export function AdminCategories(): React.JSX.Element {
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   className="w-full px-3 py-2 bg-stone-950 border border-stone-800 focus:border-amber-600 focus:outline-hidden text-xs rounded text-stone-200 placeholder-stone-600 font-sans resize-none"
                 />
+              </div>
+
+              {/* Product Assignments Info Card */}
+              <div className="p-4 bg-stone-900 border border-stone-800 rounded space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] text-stone-400 font-bold uppercase tracking-wider block">Product Assignments Stats</span>
+                  <span className="text-xs font-mono font-bold text-amber-500">{getAssignedProductsCount()} products</span>
+                </div>
+                <p className="text-[10px] text-stone-500 font-sans leading-relaxed">
+                  Active stock items matching this category classification name or URL slug.
+                </p>
+                {getAssignedProductsCount() === 0 ? (
+                  <div className="pt-2 border-t border-stone-850">
+                    <Link
+                      to="/admin/products"
+                      className="inline-flex items-center gap-1.5 text-[10px] font-bold text-amber-500 hover:text-amber-400 uppercase tracking-wider"
+                    >
+                      <span>Assign / Add Products to this Category &rarr;</span>
+                    </Link>
+                  </div>
+                ) : (
+                  <div className="pt-2 border-t border-stone-850">
+                    <Link
+                      to="/admin/products"
+                      className="inline-flex items-center gap-1.5 text-[10px] font-bold text-stone-400 hover:text-stone-300 uppercase tracking-wider"
+                    >
+                      <span>Manage Category Products &rarr;</span>
+                    </Link>
+                  </div>
+                )}
+              </div>
+
+              {/* Showcase Design Overlay Settings */}
+              <div className="p-5 bg-stone-950 border border-stone-800 rounded space-y-4">
+                <h3 className="font-serif font-bold text-stone-200 text-xs flex items-center gap-1.5 uppercase tracking-wider border-b border-stone-900 pb-2">
+                  <Sliders className="w-4 h-4 text-rose-500" />
+                  <span>Showcase Tile Customization & Typography</span>
+                </h3>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Custom Title Override */}
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] text-stone-400 font-bold uppercase tracking-wider block">Tile Title Override</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Purple Radiance (Defaults to Name)"
+                      value={formData.customTitle}
+                      onChange={(e) => setFormData({ ...formData, customTitle: e.target.value })}
+                      className="w-full px-3 py-2 bg-stone-900 border border-stone-800 focus:border-rose-500 focus:outline-hidden text-xs rounded text-stone-200 placeholder-stone-600 font-sans"
+                    />
+                  </div>
+
+                  {/* Font Family Selector */}
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] text-stone-400 font-bold uppercase tracking-wider block">Text Font Style</label>
+                    <select
+                      value={formData.fontStyle}
+                      onChange={(e) => setFormData({ ...formData, fontStyle: e.target.value })}
+                      className="w-full px-3 py-2 bg-stone-900 border border-stone-800 focus:border-rose-500 focus:outline-hidden text-xs rounded text-stone-300 font-sans cursor-pointer"
+                    >
+                      <option value="serif">Elegant Serif (Playfair / Luxury)</option>
+                      <option value="sans">Modern Sans-Serif (Inter / Minimal)</option>
+                      <option value="cursive">Decorative Cursive (Signature Style)</option>
+                      <option value="mono">Symmetric Monospace (Clean Slate)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Title Font Color */}
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] text-stone-400 font-bold uppercase tracking-wider block">Title Text Color</label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="color"
+                        value={formData.textColor && formData.textColor.startsWith('#') && formData.textColor.length === 7 ? formData.textColor : '#ffffff'}
+                        onChange={(e) => setFormData({ ...formData, textColor: e.target.value })}
+                        className="w-8 h-8 rounded border border-stone-850 bg-transparent cursor-pointer"
+                      />
+                      <input
+                        type="text"
+                        placeholder="#ffffff"
+                        value={formData.textColor}
+                        onChange={(e) => setFormData({ ...formData, textColor: e.target.value })}
+                        className="w-full px-3 py-1.5 bg-stone-900 border border-stone-800 focus:border-rose-500 focus:outline-hidden text-xs rounded text-stone-200 font-mono"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Custom Subtitle text */}
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] text-stone-400 font-bold uppercase tracking-wider block">Tile Subtitle Text</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Gemstone Edit"
+                      value={formData.customSubtitle}
+                      onChange={(e) => setFormData({ ...formData, customSubtitle: e.target.value })}
+                      className="w-full px-3 py-2 bg-stone-900 border border-stone-800 focus:border-rose-500 focus:outline-hidden text-xs rounded text-stone-200 placeholder-stone-600 font-sans"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Subtitle Font Color */}
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] text-stone-400 font-bold uppercase tracking-wider block">Subtitle Text Color</label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="color"
+                        value={formData.subtitleColor && formData.subtitleColor.startsWith('#') && formData.subtitleColor.length === 7 ? formData.subtitleColor : '#fecdd3'}
+                        onChange={(e) => setFormData({ ...formData, subtitleColor: e.target.value })}
+                        className="w-8 h-8 rounded border border-stone-850 bg-transparent cursor-pointer"
+                      />
+                      <input
+                        type="text"
+                        placeholder="#fecdd3"
+                        value={formData.subtitleColor}
+                        onChange={(e) => setFormData({ ...formData, subtitleColor: e.target.value })}
+                        className="w-full px-3 py-1.5 bg-stone-900 border border-stone-800 focus:border-rose-500 focus:outline-hidden text-xs rounded text-stone-200 font-mono"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Offer Tag text */}
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] text-stone-400 font-bold uppercase tracking-wider block">Promotional Offer Tag</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 15% OFF, BESTSELLER, NEW"
+                      value={formData.offerTag}
+                      onChange={(e) => setFormData({ ...formData, offerTag: e.target.value })}
+                      className="w-full px-3 py-2 bg-stone-900 border border-stone-800 focus:border-rose-500 focus:outline-hidden text-xs rounded text-stone-200 placeholder-stone-600 font-sans font-bold"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Offer Tag Text Color */}
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] text-stone-400 font-bold uppercase tracking-wider block">Offer Tag Text Color</label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="color"
+                        value={formData.offerTagColor && formData.offerTagColor.startsWith('#') && formData.offerTagColor.length === 7 ? formData.offerTagColor : '#ffffff'}
+                        onChange={(e) => setFormData({ ...formData, offerTagColor: e.target.value })}
+                        className="w-8 h-8 rounded border border-stone-850 bg-transparent cursor-pointer"
+                      />
+                      <input
+                        type="text"
+                        placeholder="#ffffff"
+                        value={formData.offerTagColor}
+                        onChange={(e) => setFormData({ ...formData, offerTagColor: e.target.value })}
+                        className="w-full px-3 py-1.5 bg-stone-900 border border-stone-800 focus:border-rose-500 focus:outline-hidden text-xs rounded text-stone-200 font-mono"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Offer Tag Background Color */}
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] text-stone-400 font-bold uppercase tracking-wider block">Offer Tag Background Color</label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="color"
+                        value={formData.offerTagBgColor && formData.offerTagBgColor.startsWith('#') && formData.offerTagBgColor.length === 7 ? formData.offerTagBgColor : '#e11d48'}
+                        onChange={(e) => setFormData({ ...formData, offerTagBgColor: e.target.value })}
+                        className="w-8 h-8 rounded border border-stone-850 bg-transparent cursor-pointer"
+                      />
+                      <input
+                        type="text"
+                        placeholder="#e11d48"
+                        value={formData.offerTagBgColor}
+                        onChange={(e) => setFormData({ ...formData, offerTagBgColor: e.target.value })}
+                        className="w-full px-3 py-1.5 bg-stone-900 border border-stone-800 focus:border-rose-500 focus:outline-hidden text-xs rounded text-stone-200 font-mono"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Bottom Shade Color overlay */}
+                  <div className="space-y-1.5 col-span-2">
+                    <label className="text-[10px] text-stone-400 font-bold uppercase tracking-wider block flex items-center justify-between">
+                      <span>Bottom Overlay Shade Color</span>
+                      <button 
+                        type="button"
+                        onClick={() => setFormData({ ...formData, overlayShadeColor: 'transparent' })}
+                        className="text-[9px] text-rose-400 hover:text-rose-300 transition-colors font-sans lowercase font-medium"
+                      >
+                        Set Transparent (No Shade)
+                      </button>
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="color"
+                        disabled={formData.overlayShadeColor === 'transparent'}
+                        value={formData.overlayShadeColor && formData.overlayShadeColor.startsWith('#') && formData.overlayShadeColor.length === 7 ? formData.overlayShadeColor : '#000000'}
+                        onChange={(e) => setFormData({ ...formData, overlayShadeColor: e.target.value })}
+                        className={`w-8 h-8 rounded border border-stone-850 bg-transparent cursor-pointer ${formData.overlayShadeColor === 'transparent' ? 'opacity-40 cursor-not-allowed' : ''}`}
+                      />
+                      <input
+                        type="text"
+                        placeholder="#000000 or transparent"
+                        value={formData.overlayShadeColor}
+                        onChange={(e) => setFormData({ ...formData, overlayShadeColor: e.target.value })}
+                        className="w-full px-3 py-1.5 bg-stone-900 border border-stone-800 focus:border-rose-500 focus:outline-hidden text-xs rounded text-stone-200 font-mono"
+                      />
+                    </div>
+                    <p className="text-[9px] text-stone-500 leading-normal">
+                      Customize the color shade behind category title. Select any color or type 'transparent' to make the background completely see-through.
+                    </p>
+                  </div>
+                </div>
               </div>
 
               {/* SEO & Meta configurations block */}

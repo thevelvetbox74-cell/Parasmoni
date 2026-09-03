@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   Phone, 
@@ -44,6 +44,17 @@ export interface Banner {
   image: string;
   buttonText: string;
   buttonLink: string;
+  desktopImage?: string;
+  mobileImage?: string;
+  mediaType?: 'image' | 'video';
+  desktopVideo?: string;
+  mobileVideo?: string;
+  titleColor?: string;
+  titleFont?: string;
+  subtitleColor?: string;
+  subtitleFont?: string;
+  buttonColor?: string;
+  buttonTextColor?: string;
 }
 
 export interface MetalPrice {
@@ -199,12 +210,28 @@ export function ProductCard({
 
       {/* Image Block */}
       <div className="relative aspect-square overflow-hidden bg-stone-50 border-b border-stone-100">
-        <img 
-          src={optimizedUrl || "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&q=80&w=600"} 
-          alt={product.name}
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-          referrerPolicy="no-referrer"
-        />
+        {optimizedUrl && (optimizedUrl.toLowerCase().split('?')[0].endsWith('.mp4') || optimizedUrl.toLowerCase().split('?')[0].endsWith('.mov') || optimizedUrl.toLowerCase().split('?')[0].endsWith('.webm') || optimizedUrl.toLowerCase().split('?')[0].endsWith('.m4v')) ? (
+          <video 
+            src={optimizedUrl} 
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            autoPlay
+            loop
+            muted
+            playsInline
+            preload="auto"
+            onEnded={(e) => {
+              e.currentTarget.currentTime = 0;
+              e.currentTarget.play().catch(() => {});
+            }}
+          />
+        ) : (
+          <img 
+            src={optimizedUrl || "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&q=80&w=600"} 
+            alt={product.name}
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            referrerPolicy="no-referrer"
+          />
+        )}
         <div className="absolute inset-0 bg-stone-900/5 group-hover:bg-stone-900/0 transition-colors" />
       </div>
 
@@ -302,110 +329,302 @@ interface BannerSliderProps {
 
 export function BannerSlider({ banners }: BannerSliderProps): React.JSX.Element {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [transitionEnabled, setTransitionEnabled] = useState(true);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [dragOffset, setDragOffset] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const [isInteracting, setIsInteracting] = useState(false);
+  
+  const startXRef = useRef(0);
+  const autoPlayRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Responsive break observer
   useEffect(() => {
-    if (banners.length <= 1) return;
-    const interval = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % banners.length);
-    }, 6000); // 6-second rotation
-    return () => clearInterval(interval);
-  }, [banners]);
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
-  if (banners.length === 0) return <div className="h-[400px] bg-stone-800" />;
+  const hasMultiple = banners.length > 1;
+
+  // Build the seamless cloned array of banners to allow sliding infinitely both left and right
+  const clonedBanners = hasMultiple 
+    ? [...banners.slice(-2), ...banners, ...banners.slice(0, 2)] 
+    : banners;
+
+  // The virtual center-mapped index used for rendering and position math
+  const virtualIndex = hasMultiple ? currentIndex + 2 : currentIndex;
+
+  // Normalizes any out-of-bound indexes to map correctly to original dot indicators (0 to N-1)
+  const displayActiveIndex = hasMultiple 
+    ? ((currentIndex % banners.length) + banners.length) % banners.length 
+    : 0;
+
+  // Timer-driven auto-advance with dynamic pausing under drag/hover
+  useEffect(() => {
+    if (banners.length <= 1 || isDragging) {
+      if (autoPlayRef.current) {
+        clearInterval(autoPlayRef.current);
+        autoPlayRef.current = null;
+      }
+      return;
+    }
+
+    autoPlayRef.current = setInterval(() => {
+      setCurrentIndex((prev) => prev + 1);
+    }, 3500); // 3.5s smooth autoplay rotation
+
+    return () => {
+      if (autoPlayRef.current) {
+        clearInterval(autoPlayRef.current);
+        autoPlayRef.current = null;
+      }
+    };
+  }, [banners, isDragging]);
+
+  // Hook to instantly handle infinite loop resetting silently behind the scenes
+  useEffect(() => {
+    if (!transitionEnabled) {
+      const timer = setTimeout(() => {
+        setTransitionEnabled(true);
+      }, 30); // Instant frame transition resetting
+      return () => clearTimeout(timer);
+    }
+  }, [transitionEnabled]);
+
+  if (banners.length === 0) return <div className="h-[400px] bg-stone-950" />;
 
   const handlePrev = () => {
-    setCurrentIndex((prev) => (prev === 0 ? banners.length - 1 : prev - 1));
+    if (!hasMultiple) return;
+    setCurrentIndex((prev) => prev - 1);
   };
 
   const handleNext = () => {
-    setCurrentIndex((prev) => (prev + 1) % banners.length);
+    if (!hasMultiple) return;
+    setCurrentIndex((prev) => prev + 1);
   };
 
-  return (
-    <div className="relative h-[480px] md:h-[600px] w-full overflow-hidden bg-stone-950 border-b border-gold-500/20" id="showroom-banner-slider">
-      {banners.map((banner, index) => {
-        const isActive = index === currentIndex;
-        return (
-          <div
-            key={banner.id}
-            className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
-              isActive ? 'opacity-100 z-10' : 'opacity-0 z-0'
-            }`}
-          >
-            {/* Background Image with optimized zoom transition */}
-            <div className="absolute inset-0 overflow-hidden">
-              <img
-                src={getOptimizedShowroomUrl(banner.image, { width: 1440, quality: 85 }) || banner.image}
-                alt={banner.title}
-                className={`w-full h-full object-cover transform transition-transform duration-[6000ms] ease-out ${
-                  isActive ? 'scale-105' : 'scale-100'
-                }`}
-                referrerPolicy="no-referrer"
-              />
-              <div className="absolute inset-0 bg-stone-950/40" />
-              <div className="absolute inset-0 bg-gradient-to-t from-stone-950 via-stone-950/20 to-transparent" />
-            </div>
+  // Instant seamless snap resetting on transition completion
+  const handleTransitionEnd = () => {
+    if (!hasMultiple) return;
+    if (currentIndex >= banners.length) {
+      setTransitionEnabled(false);
+      setCurrentIndex(0);
+    } else if (currentIndex < 0) {
+      setTransitionEnabled(false);
+      setCurrentIndex(banners.length - 1);
+    }
+  };
 
-            {/* Slide Content */}
-            <div className="absolute inset-0 flex items-center px-6 md:px-16">
-              <div className="max-w-3xl space-y-4 md:space-y-6">
-                <span className="inline-flex items-center gap-2 text-gold-400 text-[10px] md:text-xs font-bold tracking-widest uppercase bg-stone-900/75 border border-gold-500/30 px-3 py-1 rounded">
-                  <Sparkles className="w-3.5 h-3.5" />
-                  <span>PARASMONI LEGACY</span>
-                </span>
-                <h2 className="font-serif text-3xl md:text-5xl lg:text-6xl text-white font-bold tracking-wide leading-tight drop-shadow-md">
-                  {banner.title}
-                </h2>
-                <p className="text-stone-200 text-xs md:text-sm font-sans tracking-wide leading-relaxed max-w-xl font-serif italic">
-                  {banner.subtitle}
-                </p>
-                <div className="pt-2">
-                  <Link
-                    to={banner.buttonLink}
-                    className="inline-flex h-11 px-8 bg-brand-red-600 hover:bg-brand-red-700 text-stone-100 text-xs font-bold tracking-widest uppercase transition-all duration-300 rounded items-center gap-2"
+  // Drag Gesture Handlers (Touch + Mouse dragging)
+  const handleDragStart = (clientX: number) => {
+    setIsDragging(true);
+    startXRef.current = clientX;
+    setDragOffset(0);
+  };
+
+  const handleDragMove = (clientX: number) => {
+    if (!isDragging) return;
+    const delta = clientX - startXRef.current;
+    // Apply minor friction so swipe moves in absolute synchronization
+    setDragOffset(delta);
+  };
+
+  const handleDragEnd = () => {
+    if (!isDragging) return;
+    setIsDragging(false);
+
+    // If drag exceeds threshold of 70px, advance or reverse slides
+    if (dragOffset > 70) {
+      handlePrev();
+    } else if (dragOffset < -70) {
+      handleNext();
+    }
+    setDragOffset(0);
+  };
+
+  // Get properly transformed, optimized ImageKit responsive URLs
+  const getBannerImage = (banner: Banner) => {
+    const rawImage = (isMobile && banner.mobileImage) ? banner.mobileImage : (banner.desktopImage || banner.image);
+    const targetWidth = isMobile ? 800 : 1600;
+    return getOptimizedShowroomUrl(rawImage, { width: targetWidth, quality: 85 }) || rawImage;
+  };
+
+  // Math-guided Peek Carousel Track translates (percentage based)
+  const slideWidth = isMobile ? 85 : 75; // 85% width on mobile, 75% on desktop
+  const centerOffset = (100 - slideWidth) / 2; // Centers the active slide exactly
+  const trackTranslate = centerOffset - (virtualIndex * slideWidth);
+
+  return (
+    <div 
+      className="relative w-full overflow-hidden bg-white pt-0 pb-6 md:pb-12 border-b border-stone-100 select-none" 
+      id="showroom-banner-slider"
+      onMouseEnter={() => setIsInteracting(true)}
+      onMouseLeave={() => {
+        setIsInteracting(false);
+        handleDragEnd();
+      }}
+    >
+      {/* Horizontal Slider Track Container */}
+      <div 
+        className={`flex w-full ${isDragging || !transitionEnabled ? 'transition-none' : 'transition-transform duration-700'}`}
+        style={{ 
+          transform: `translate3d(calc(${trackTranslate}% + ${dragOffset}px), 0px, 0px)`,
+          transitionTimingFunction: 'cubic-bezier(0.25, 1, 0.5, 1)'
+        }}
+        onTransitionEnd={handleTransitionEnd}
+        onMouseDown={(e) => handleDragStart(e.clientX)}
+        onMouseMove={(e) => handleDragMove(e.clientX)}
+        onMouseUp={handleDragEnd}
+        onMouseLeave={handleDragEnd}
+        onTouchStart={(e) => {
+          if (e.touches && e.touches[0]) {
+            handleDragStart(e.touches[0].clientX);
+          }
+        }}
+        onTouchMove={(e) => {
+          if (e.touches && e.touches[0]) {
+            handleDragMove(e.touches[0].clientX);
+          }
+        }}
+        onTouchEnd={handleDragEnd}
+      >
+        {clonedBanners.map((banner, index) => {
+          const isActive = index === virtualIndex;
+          const displayImage = getBannerImage(banner);
+          
+          // Check if video file should be rendered (with auto-detection support)
+          const isUrlVideo = (url?: string) => {
+            if (!url) return false;
+            const lower = url.toLowerCase();
+            return lower.endsWith('.mp4') || lower.endsWith('.mov') || lower.endsWith('.webm') || lower.endsWith('.m4v');
+          };
+
+          const isDirectVideo = isUrlVideo(banner.image) || isUrlVideo(banner.desktopImage) || isUrlVideo(banner.mobileImage);
+          const activeVideoUrl = (isMobile ? (banner.mobileVideo || banner.desktopVideo) : banner.desktopVideo) || 
+                                (isDirectVideo ? ((isMobile && banner.mobileImage) ? banner.mobileImage : (banner.desktopImage || banner.image)) : '');
+          const hasVideo = banner.mediaType === 'video' || isDirectVideo || isUrlVideo(activeVideoUrl);
+
+          return (
+            <div
+              key={`${banner.id}-clone-${index}`}
+              onClick={() => {
+                if (!isActive) {
+                  // Click advances the relative distance to keep movement in same direction
+                  setCurrentIndex((prev) => prev + (index - virtualIndex));
+                }
+              }}
+              className={`flex-shrink-0 h-[460px] md:h-[650px] relative px-1.5 md:px-3.5 transition-all duration-700 ease-out select-none ${
+                isActive 
+                  ? 'scale-100 z-10 opacity-100' 
+                  : 'scale-95 z-0 opacity-40 brightness-50 hover:opacity-60 hover:brightness-75 cursor-pointer'
+              }`}
+              style={{ width: `${slideWidth}%` }}
+              id={`slide-card-${banner.id}-${index}`}
+            >
+              {/* Nested rounded container matching luxury brand guidelines */}
+              <div className="w-full h-full relative rounded-xl md:rounded-2xl overflow-hidden shadow-2xl border border-stone-200/60 bg-stone-950">
+                {/* Media Layer (Video or Image) */}
+                {hasVideo ? (
+                  <video
+                    src={getOptimizedShowroomUrl(activeVideoUrl) || activeVideoUrl}
+                    className="w-full h-full object-cover"
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    preload="auto"
+                    onEnded={(e) => {
+                      e.currentTarget.currentTime = 0;
+                      e.currentTarget.play().catch(() => {});
+                    }}
+                    draggable={false}
+                  />
+                ) : (
+                  <img
+                    src={displayImage}
+                    alt={banner.title}
+                    className={`w-full h-full object-cover transition-transform duration-[6000ms] ease-out ${
+                      isActive ? 'scale-102' : 'scale-100'
+                    }`}
+                    referrerPolicy="no-referrer"
+                    draggable={false}
+                  />
+                )}
+                
+                {/* Visual shading layers (kept transparent for maximum jewelry sparkle/vibrancy) */}
+                <div className="absolute inset-0 bg-transparent" />
+                
+                {/* Readable Text Overlay - Only rendered on the central active card if text content exists */}
+                {isActive && (banner.title?.trim() || banner.subtitle?.trim() || banner.buttonText?.trim()) && (
+                  <div 
+                    className="absolute inset-0 flex items-end md:items-center px-8 md:px-24 pb-16 md:pb-0 bg-transparent transition-opacity duration-500"
                   >
-                    <span>{banner.buttonText}</span>
-                    <ArrowRight className="w-4 h-4 text-gold-300" />
-                  </Link>
-                </div>
+                    <div className="max-w-xl md:max-w-2xl space-y-4 md:space-y-6 text-left select-text">
+                      {banner.title?.trim() && (
+                        <h2 
+                          className={`text-3xl md:text-5xl lg:text-6xl font-normal tracking-wide leading-[1.15] drop-shadow-lg`}
+                          style={{
+                            fontFamily: banner.titleFont === 'sans' ? "'Inter', 'Plus Jakarta Sans', sans-serif" : "'Playfair Display', Georgia, serif",
+                            color: banner.titleColor || '#ffffff'
+                          }}
+                        >
+                          {banner.title}
+                        </h2>
+                      )}
+                      {banner.subtitle?.trim() && (
+                        <p 
+                          className={`text-sm md:text-lg lg:text-xl tracking-wide opacity-95 font-normal drop-shadow-md`}
+                          style={{
+                            fontFamily: banner.subtitleFont === 'serif' ? "'Playfair Display', Georgia, serif" : "'Inter', 'Plus Jakarta Sans', sans-serif",
+                            color: banner.subtitleColor || '#f5f5f4'
+                          }}
+                        >
+                          {banner.subtitle}
+                        </p>
+                      )}
+                      {banner.buttonText?.trim() && (
+                        <div className="pt-2 md:pt-4">
+                          <Link
+                            to={banner.buttonLink || '/catalog'}
+                            className="inline-flex h-11 md:h-12 px-6 md:px-8 text-xs md:text-sm font-semibold tracking-wide rounded-md items-center justify-center cursor-pointer shadow-lg transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98]"
+                            style={{
+                              backgroundColor: banner.buttonColor || '#ffffff',
+                              color: banner.buttonTextColor || '#991b1b'
+                            }}
+                          >
+                            <span>{banner.buttonText}</span>
+                          </Link>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
 
-      {/* Arrow Controls (Only shown if multiple slides) */}
+      {/* Navigation Indicators */}
       {banners.length > 1 && (
-        <>
-          <button
-            onClick={handlePrev}
-            className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded bg-stone-900/60 hover:bg-brand-red-600 hover:text-white text-stone-300 transition-colors flex items-center justify-center cursor-pointer"
-            aria-label="Previous Slide"
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </button>
-          <button
-            onClick={handleNext}
-            className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded bg-stone-900/60 hover:bg-brand-red-600 hover:text-white text-stone-300 transition-colors flex items-center justify-center cursor-pointer"
-            aria-label="Next Slide"
-          >
-            <ChevronRight className="w-5 h-5" />
-          </button>
-
-          {/* Bullet Indicators */}
-          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex gap-2">
-            {banners.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => setCurrentIndex(index)}
-                className={`w-2.5 h-2.5 rounded-full transition-colors ${
-                  index === currentIndex ? 'bg-brand-red-600' : 'bg-stone-500/60'
-                }`}
-                aria-label={`Go to slide ${index + 1}`}
-              />
-            ))}
-          </div>
-        </>
+        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-20 flex gap-2">
+          {banners.map((_, index) => (
+            <button
+              key={index}
+              onClick={(e) => {
+                e.stopPropagation();
+                setCurrentIndex(index);
+              }}
+              className={`h-1.5 rounded-full transition-all duration-500 cursor-pointer ${
+                index === displayActiveIndex ? 'bg-brand-red-600 w-5 md:w-6' : 'bg-stone-400/40 hover:bg-stone-600/60 w-1.5 md:w-2'
+              }`}
+              aria-label={`Go to slide ${index + 1}`}
+            />
+          ))}
+        </div>
       )}
     </div>
   );
@@ -420,31 +639,52 @@ interface MetalPriceBarProps {
 }
 
 export function MetalPriceBar({ prices }: MetalPriceBarProps): React.JSX.Element {
-  return (
-    <div className="bg-stone-950 text-stone-200 py-2 border-b border-gold-500/10 text-[10px] md:text-xs font-sans tracking-wide" id="metal-announcement-bar">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col md:flex-row justify-between items-center gap-2">
-        <div className="flex items-center gap-2 text-stone-400">
-          <Calendar className="w-3.5 h-3.5 text-gold-500 shrink-0" />
-          <span>Live Kolkata Showroom Valuation Rate:</span>
-        </div>
+  const duplicatedPrices = prices && prices.length > 0 ? [...prices, ...prices, ...prices] : [];
 
-        <div className="flex flex-wrap justify-center items-center gap-4 sm:gap-6 font-medium">
-          {prices.map((p, idx) => {
-            const isUp = p.change >= 0;
-            return (
-              <div key={idx} className="flex items-center gap-1.5 border-r border-stone-800 pr-4 last:border-r-0 last:pr-0">
-                <span className="text-stone-300 font-serif font-bold">{p.metal}</span>
-                <span className="text-gold-400 font-mono">₹{p.pricePerGram.toLocaleString('en-IN')}/{p.unit}</span>
-                <span className={`inline-flex items-center gap-0.5 text-[9px] font-bold px-1 rounded ${
-                  isUp ? 'bg-emerald-950 text-emerald-400' : 'bg-rose-950 text-rose-400'
-                }`}>
-                  <TrendingUp className={`w-2.5 h-2.5 ${!isUp && 'rotate-180'}`} />
-                  <span>{isUp ? '+' : ''}{p.change}%</span>
-                </span>
-              </div>
-            );
-          })}
-        </div>
+  return (
+    <div 
+      className="bg-stone-950 text-stone-200 py-2 border-b border-gold-500/10 text-xs tracking-wider overflow-hidden relative select-none w-full" 
+      id="metal-announcement-bar" 
+      style={{ fontFamily: "'Arial Narrow', 'Arial', sans-serif" }}
+    >
+      <style>{`
+        @keyframes ticker-scroll {
+          0% { transform: translate3d(0, 0, 0); }
+          100% { transform: translate3d(-33.3333%, 0, 0); }
+        }
+        .ticker-container-animate {
+          display: flex;
+          width: max-content;
+          animation: ticker-scroll 35s linear infinite;
+        }
+        .ticker-container-animate:hover {
+          animation-play-state: paused;
+        }
+      `}</style>
+      <div className="flex items-center w-full">
+        {duplicatedPrices.length > 0 ? (
+          <div className="ticker-container-animate">
+            {duplicatedPrices.map((p, idx) => {
+              const isUp = p.change >= 0;
+              return (
+                <div key={idx} className="flex items-center gap-2 px-6 border-r border-stone-900 shrink-0 whitespace-nowrap">
+                  <span className="text-stone-300 font-bold uppercase whitespace-nowrap">{p.metal}</span>
+                  <span className="text-gold-400 font-mono font-bold whitespace-nowrap">₹{p.pricePerGram.toLocaleString('en-IN')}/{p.unit}</span>
+                  <span className={`inline-flex items-center gap-0.5 text-[10px] font-bold px-1 rounded whitespace-nowrap ${
+                    isUp ? 'bg-emerald-950 text-emerald-400' : 'bg-rose-950 text-rose-400'
+                  }`}>
+                    <span>{isUp ? '▲' : '▼'}</span>
+                    <span>{isUp ? '+' : ''}{p.change}%</span>
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="pl-4 text-stone-500 text-[10px] font-semibold uppercase tracking-wider">
+            Connecting to Live Bullion Stream...
+          </div>
+        )}
       </div>
     </div>
   );
@@ -511,12 +751,28 @@ export function CollectionCard({ collection }: CollectionCardProps): React.JSX.E
       className="group block relative aspect-square bg-stone-900 rounded overflow-hidden border border-stone-200"
       id={`collection-card-${collection.id}`}
     >
-      <img 
-        src={optimizedUrl || "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&q=80&w=600"} 
-        alt={collection.name}
-        className="w-full h-full object-cover transform transition-transform duration-700 group-hover:scale-105 opacity-80"
-        referrerPolicy="no-referrer"
-      />
+      {optimizedUrl && (optimizedUrl.toLowerCase().split('?')[0].endsWith('.mp4') || optimizedUrl.toLowerCase().split('?')[0].endsWith('.mov') || optimizedUrl.toLowerCase().split('?')[0].endsWith('.webm') || optimizedUrl.toLowerCase().split('?')[0].endsWith('.m4v')) ? (
+        <video 
+          src={optimizedUrl} 
+          className="w-full h-full object-cover transform transition-transform duration-700 group-hover:scale-105 opacity-80"
+          autoPlay
+          loop
+          muted
+          playsInline
+          preload="auto"
+          onEnded={(e) => {
+            e.currentTarget.currentTime = 0;
+            e.currentTarget.play().catch(() => {});
+          }}
+        />
+      ) : (
+        <img 
+          src={optimizedUrl || "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&q=80&w=600"} 
+          alt={collection.name}
+          className="w-full h-full object-cover transform transition-transform duration-700 group-hover:scale-105 opacity-80"
+          referrerPolicy="no-referrer"
+        />
+      )}
       <div className="absolute inset-0 bg-gradient-to-t from-stone-950 via-stone-950/10 to-transparent" />
       
       {/* Content overlays */}
@@ -550,12 +806,28 @@ export function StoreCard({ store }: StoreCardProps): React.JSX.Element {
     >
       {/* Photo Column */}
       <div className="md:w-2/5 aspect-video md:aspect-auto relative bg-stone-50 border-b md:border-b-0 md:border-r border-stone-100">
-        <img 
-          src={optimizedUrl || "https://images.unsplash.com/photo-1569058242253-92a9c755a0ec?auto=format&fit=crop&q=80&w=600"} 
-          alt={store.name}
-          className="w-full h-full object-cover"
-          referrerPolicy="no-referrer"
-        />
+        {optimizedUrl && (optimizedUrl.toLowerCase().split('?')[0].endsWith('.mp4') || optimizedUrl.toLowerCase().split('?')[0].endsWith('.mov') || optimizedUrl.toLowerCase().split('?')[0].endsWith('.webm') || optimizedUrl.toLowerCase().split('?')[0].endsWith('.m4v')) ? (
+          <video 
+            src={optimizedUrl} 
+            className="w-full h-full object-cover"
+            autoPlay
+            loop
+            muted
+            playsInline
+            preload="auto"
+            onEnded={(e) => {
+              e.currentTarget.currentTime = 0;
+              e.currentTarget.play().catch(() => {});
+            }}
+          />
+        ) : (
+          <img 
+            src={optimizedUrl || "https://images.unsplash.com/photo-1569058242253-92a9c755a0ec?auto=format&fit=crop&q=80&w=600"} 
+            alt={store.name}
+            className="w-full h-full object-cover"
+            referrerPolicy="no-referrer"
+          />
+        )}
       </div>
 
       {/* Copy Column */}

@@ -343,31 +343,41 @@ export function AdminDashboard(): React.JSX.Element {
   if (loading) {
     return (
       <div className="space-y-6" id="dashboard-skeletons-group">
-        {/* Skeletons for cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+        {/* Skeletons for cards - Row 1 */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-6">
           {[...Array(5)].map((_, i) => (
-            <div key={i} className="bg-stone-900 border border-stone-800 p-5 rounded space-y-3 animate-pulse">
-              <div className="h-3 bg-stone-800 rounded w-2/3" />
-              <div className="h-6 bg-stone-800 rounded w-1/2" />
+            <div key={i} className="bg-white border border-stone-200/60 p-5 rounded-xl space-y-3 animate-pulse shadow-sm">
+              <div className="h-3 bg-stone-100 rounded w-2/3" />
+              <div className="h-6 bg-stone-100 rounded w-1/2" />
+            </div>
+          ))}
+        </div>
+
+        {/* Skeletons for cards - Row 2 */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="bg-white border border-stone-200/60 p-5 rounded-xl space-y-3 animate-pulse shadow-sm">
+              <div className="h-3 bg-stone-100 rounded w-2/3" />
+              <div className="h-6 bg-stone-100 rounded w-1/2" />
             </div>
           ))}
         </div>
 
         {/* Skeleton for layouts split */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          <div className="lg:col-span-8 bg-stone-900 border border-stone-800 rounded p-6 space-y-4 animate-pulse">
-            <div className="h-4 bg-stone-800 rounded w-1/4" />
+          <div className="lg:col-span-8 bg-white border border-stone-200/60 rounded-xl p-6 space-y-4 animate-pulse shadow-sm">
+            <div className="h-4 bg-stone-100 rounded w-1/4" />
             <div className="space-y-3">
               {[...Array(5)].map((_, i) => (
-                <div key={i} className="h-12 bg-stone-850 rounded w-full" />
+                <div key={i} className="h-12 bg-stone-50 rounded w-full" />
               ))}
             </div>
           </div>
-          <div className="lg:col-span-4 bg-stone-900 border border-stone-800 rounded p-6 space-y-4 animate-pulse">
-            <div className="h-4 bg-stone-800 rounded w-1/3" />
+          <div className="lg:col-span-4 bg-white border border-stone-200/60 rounded-xl p-6 space-y-4 animate-pulse shadow-sm">
+            <div className="h-4 bg-stone-100 rounded w-1/3" />
             <div className="space-y-3">
               {[...Array(3)].map((_, i) => (
-                <div key={i} className="h-16 bg-stone-850 rounded w-full" />
+                <div key={i} className="h-16 bg-stone-50 rounded w-full" />
               ))}
             </div>
           </div>
@@ -377,143 +387,163 @@ export function AdminDashboard(): React.JSX.Element {
   }
 
   return (
-    <div className="space-y-6" id="admin-dashboard-container">
+    <div className="space-y-6 sm:space-y-8" id="admin-dashboard-container">
       
-      {/* Cards stats grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4" id="stats-dashboard-grid">
+      {/* STAT CARDS GRID - Row 1 (5 cards) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-6" id="stats-row-1">
         
         {/* Total Products */}
-        <div className="p-4 bg-stone-900 border border-stone-800/80 rounded flex items-center justify-between shadow-xs">
-          <div className="space-y-1">
-            <span className="text-[9px] text-stone-500 font-bold uppercase tracking-wider block">Total Products</span>
-            <span className="text-xl sm:text-2xl font-bold font-mono text-stone-100">{stats.totalProducts}</span>
+        <div className="p-5 bg-white border border-stone-200/60 rounded-xl flex items-start justify-between shadow-[0_4px_20px_-4px_rgba(107,31,42,0.04)] hover:shadow-md transition-all duration-200">
+          <div className="space-y-2">
+            <span className="text-[10px] text-stone-400 font-bold uppercase tracking-wider block font-sans">Total Products</span>
+            <span className="text-3xl font-bold font-mono text-stone-800">{stats.totalProducts}</span>
           </div>
-          <div className="p-2 rounded bg-stone-800 border border-stone-700/50 text-amber-500">
+          <div className="p-2.5 rounded-lg bg-amber-50 text-[#B8860B] border border-amber-100/50 shrink-0">
             <Gem className="w-4 h-4" />
           </div>
         </div>
 
-        {/* Active Products */}
-        <div className="p-4 bg-stone-900 border border-stone-800/80 rounded flex items-center justify-between shadow-xs">
-          <div className="space-y-1">
-            <span className="text-[9px] text-stone-500 font-bold uppercase tracking-wider block">Active Ornaments</span>
-            <span className="text-xl sm:text-2xl font-bold font-mono text-emerald-400">{stats.activeProducts}</span>
+        {/* Active Ornaments */}
+        <div className="p-5 bg-white border border-stone-200/60 rounded-xl flex items-start justify-between shadow-[0_4px_20px_-4px_rgba(107,31,42,0.04)] hover:shadow-md transition-all duration-200">
+          <div className="space-y-2">
+            <span className="text-[10px] text-stone-400 font-bold uppercase tracking-wider block font-sans">Active Ornaments</span>
+            <div className="flex items-baseline gap-2 flex-wrap">
+              <span className="text-3xl font-bold font-mono text-stone-800">{stats.activeProducts}</span>
+              <span className="px-1.5 py-0.5 rounded-full text-[8px] font-bold tracking-widest uppercase bg-emerald-50 text-emerald-700 border border-emerald-100 font-sans">
+                Active
+              </span>
+            </div>
           </div>
-          <div className="p-1 px-2.5 rounded bg-emerald-950/20 border border-emerald-900/30 text-emerald-400 text-[8px] font-bold uppercase">
-            Active
-          </div>
-        </div>
-
-        {/* Inactive Products */}
-        <div className="p-4 bg-stone-900 border border-stone-800/80 rounded flex items-center justify-between shadow-xs">
-          <div className="space-y-1">
-            <span className="text-[9px] text-stone-500 font-bold uppercase tracking-wider block">Inactive Vault</span>
-            <span className="text-xl sm:text-2xl font-bold font-mono text-stone-400">{stats.inactiveProducts}</span>
-          </div>
-          <div className="p-1 px-2.5 rounded bg-stone-800/50 border border-stone-700/30 text-stone-400 text-[8px] font-bold uppercase">
-            Draft
+          <div className="p-2.5 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-100/50 shrink-0">
+            <Gem className="w-4 h-4" />
           </div>
         </div>
 
-        {/* Featured Products */}
-        <div className="p-4 bg-stone-900 border border-stone-800/80 rounded flex items-center justify-between shadow-xs">
-          <div className="space-y-1">
-            <span className="text-[9px] text-stone-500 font-bold uppercase tracking-wider block">Featured Masterpieces</span>
-            <span className="text-xl sm:text-2xl font-bold font-mono text-amber-500">{stats.featuredProducts}</span>
+        {/* Inactive Vault */}
+        <div className="p-5 bg-white border border-stone-200/60 rounded-xl flex items-start justify-between shadow-[0_4px_20px_-4px_rgba(107,31,42,0.04)] hover:shadow-md transition-all duration-200">
+          <div className="space-y-2">
+            <span className="text-[10px] text-stone-400 font-bold uppercase tracking-wider block font-sans">Inactive Vault</span>
+            <div className="flex items-baseline gap-2 flex-wrap">
+              <span className="text-3xl font-bold font-mono text-stone-800">{stats.inactiveProducts}</span>
+              <span className="px-1.5 py-0.5 rounded-full text-[8px] font-bold tracking-widest uppercase bg-stone-100 text-stone-500 border border-stone-200 font-sans">
+                Draft
+              </span>
+            </div>
           </div>
-          <div className="p-2 rounded bg-stone-800 border border-stone-700/50 text-amber-500">
+          <div className="p-2.5 rounded-lg bg-stone-50 text-stone-500 border border-stone-200 shrink-0">
+            <FolderHeart className="w-4 h-4" />
+          </div>
+        </div>
+
+        {/* Featured Masterpiece */}
+        <div className="p-5 bg-white border border-stone-200/60 rounded-xl flex items-start justify-between shadow-[0_4px_20px_-4px_rgba(107,31,42,0.04)] hover:shadow-md transition-all duration-200">
+          <div className="space-y-2">
+            <span className="text-[10px] text-stone-400 font-bold uppercase tracking-wider block font-sans">Featured Masterpiece</span>
+            <span className="text-3xl font-bold font-mono text-[#B8860B]">{stats.featuredProducts}</span>
+          </div>
+          <div className="p-2.5 rounded-lg bg-amber-50 text-[#B8860B] border border-amber-100/50 shrink-0">
             <Sparkles className="w-4 h-4" />
           </div>
         </div>
 
         {/* New Arrivals */}
-        <div className="p-4 bg-stone-900 border border-stone-800/80 rounded flex items-center justify-between shadow-xs">
-          <div className="space-y-1">
-            <span className="text-[9px] text-stone-500 font-bold uppercase tracking-wider block">New Arrivals</span>
-            <span className="text-xl sm:text-2xl font-bold font-mono text-blue-400">{stats.newArrivals}</span>
+        <div className="p-5 bg-white border border-stone-200/60 rounded-xl flex items-start justify-between shadow-[0_4px_20px_-4px_rgba(107,31,42,0.04)] hover:shadow-md transition-all duration-200">
+          <div className="space-y-2">
+            <span className="text-[10px] text-stone-400 font-bold uppercase tracking-wider block font-sans">New Arrivals</span>
+            <div className="flex items-baseline gap-2 flex-wrap">
+              <span className="text-3xl font-bold font-mono text-stone-800">{stats.newArrivals}</span>
+              <span className="px-1.5 py-0.5 rounded-full text-[8px] font-bold tracking-widest uppercase bg-amber-50 text-[#B8860B] border border-amber-100/50 font-sans">
+                New
+              </span>
+            </div>
           </div>
-          <div className="p-1 px-2.5 rounded bg-blue-950/20 border border-blue-900/30 text-blue-400 text-[8px] font-bold uppercase">
-            New
+          <div className="p-2.5 rounded-lg bg-stone-50 text-[#B8860B] border border-stone-200 shrink-0">
+            <Sparkles className="w-4 h-4" />
           </div>
         </div>
 
+      </div>
+
+      {/* STAT CARDS GRID - Row 2 (4 cards) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6" id="stats-row-2">
+        
         {/* Total Collections */}
-        <div className="p-4 bg-stone-900 border border-stone-800/80 rounded flex items-center justify-between shadow-xs">
-          <div className="space-y-1">
-            <span className="text-[9px] text-stone-500 font-bold uppercase tracking-wider block">Total Collections</span>
-            <span className="text-xl sm:text-2xl font-bold font-mono text-stone-100">{stats.totalCollections}</span>
+        <div className="p-5 bg-white border border-stone-200/60 rounded-xl flex items-start justify-between shadow-[0_4px_20px_-4px_rgba(107,31,42,0.04)] hover:shadow-md transition-all duration-200">
+          <div className="space-y-2">
+            <span className="text-[10px] text-stone-400 font-bold uppercase tracking-wider block font-sans">Total Collections</span>
+            <span className="text-3xl font-bold font-mono text-stone-800">{stats.totalCollections}</span>
           </div>
-          <div className="p-2 rounded bg-stone-800 border border-stone-700/50 text-amber-500">
+          <div className="p-2.5 rounded-lg bg-rose-50/50 text-[#6B1F2A] border border-rose-100/30 shrink-0">
             <FolderHeart className="w-4 h-4" />
           </div>
         </div>
 
         {/* Total Categories */}
-        <div className="p-4 bg-stone-900 border border-stone-800/80 rounded flex items-center justify-between shadow-xs">
-          <div className="space-y-1">
-            <span className="text-[9px] text-stone-500 font-bold uppercase tracking-wider block">Total Categories</span>
-            <span className="text-xl sm:text-2xl font-bold font-mono text-stone-100">{stats.totalCategories}</span>
+        <div className="p-5 bg-white border border-stone-200/60 rounded-xl flex items-start justify-between shadow-[0_4px_20px_-4px_rgba(107,31,42,0.04)] hover:shadow-md transition-all duration-200">
+          <div className="space-y-2">
+            <span className="text-[10px] text-stone-400 font-bold uppercase tracking-wider block font-sans">Total Categories</span>
+            <span className="text-3xl font-bold font-mono text-stone-800">{stats.totalCategories}</span>
           </div>
-          <div className="p-2 rounded bg-stone-800 border border-stone-700/50 text-amber-500">
+          <div className="p-2.5 rounded-lg bg-stone-50 text-stone-600 border border-stone-200 shrink-0">
             <Tags className="w-4 h-4" />
           </div>
         </div>
 
         {/* Total Stores */}
-        <div className="p-4 bg-stone-900 border border-stone-800/80 rounded flex items-center justify-between shadow-xs">
-          <div className="space-y-1">
-            <span className="text-[9px] text-stone-500 font-bold uppercase tracking-wider block">Total Stores</span>
-            <span className="text-xl sm:text-2xl font-bold font-mono text-stone-100">{stats.totalStores}</span>
+        <div className="p-5 bg-white border border-stone-200/60 rounded-xl flex items-start justify-between shadow-[0_4px_20px_-4px_rgba(107,31,42,0.04)] hover:shadow-md transition-all duration-200">
+          <div className="space-y-2">
+            <span className="text-[10px] text-stone-400 font-bold uppercase tracking-wider block font-sans">Total Stores</span>
+            <span className="text-3xl font-bold font-mono text-stone-800">{stats.totalStores}</span>
           </div>
-          <div className="p-2 rounded bg-stone-800 border border-stone-700/50 text-amber-500">
+          <div className="p-2.5 rounded-lg bg-stone-50 text-stone-600 border border-stone-200 shrink-0">
             <MapPin className="w-4 h-4" />
           </div>
         </div>
 
         {/* Active Banners */}
-        <div className="p-4 bg-stone-900 border border-stone-800/80 rounded flex items-center justify-between shadow-xs">
-          <div className="space-y-1">
-            <span className="text-[9px] text-stone-500 font-bold uppercase tracking-wider block">Active Banners</span>
-            <span className="text-xl sm:text-2xl font-bold font-mono text-stone-100">{stats.activeBanners}</span>
+        <div className="p-5 bg-white border border-stone-200/60 rounded-xl flex items-start justify-between shadow-[0_4px_20px_-4px_rgba(107,31,42,0.04)] hover:shadow-md transition-all duration-200">
+          <div className="space-y-2">
+            <span className="text-[10px] text-stone-400 font-bold uppercase tracking-wider block font-sans">Active Banners</span>
+            <span className="text-3xl font-bold font-mono text-stone-800">{stats.activeBanners}</span>
           </div>
-          <div className="p-2 rounded bg-stone-800 border border-stone-700/50 text-amber-500">
+          <div className="p-2.5 rounded-lg bg-stone-50 text-stone-600 border border-stone-200 shrink-0">
             <ImageIcon className="w-4 h-4" />
           </div>
         </div>
 
       </div>
 
-      {/* Main Splits Area */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      {/* BOTTOM SECTION (two-column layout) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8">
         
-        {/* Column A: Recent Products (Last 5) - 7/12 */}
-        <div className="lg:col-span-7 bg-stone-900 border border-stone-800/80 rounded p-5 sm:p-6 space-y-4" id="recent-products-block">
-          <div className="flex items-center justify-between border-b border-stone-800 pb-3">
+        {/* Column A: Recent Products Register - ~65% */}
+        <div className="lg:col-span-8 bg-white border border-stone-200/60 rounded-xl p-5 sm:p-6 space-y-4 shadow-[0_4px_20px_-4px_rgba(107,31,42,0.04)]" id="recent-products-block">
+          <div className="flex items-center justify-between border-b border-stone-100 pb-4">
             <div className="flex items-center gap-2">
-              <Gem className="w-4.5 h-4.5 text-amber-500" />
-              <h3 className="text-xs font-bold uppercase tracking-wider text-stone-100">Recent Products Registered</h3>
+              <Gem className="w-4.5 h-4.5 text-[#B8860B]" />
+              <h3 className="text-sm font-bold uppercase tracking-wider text-stone-800 font-serif">Recent Products Registered</h3>
             </div>
-            <span className="text-[9px] text-stone-500 font-medium font-sans">Latest 5 Ornaments</span>
+            <span className="text-[10px] text-[#B8860B] font-bold uppercase tracking-widest font-sans">Latest 5 Ornaments</span>
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-[11px] text-stone-300 font-sans">
+            <table className="w-full text-left text-xs text-stone-600 font-sans">
               <thead>
-                <tr className="border-b border-stone-800 text-stone-500 font-bold uppercase text-[9px] tracking-wider">
-                  <th className="py-2.5">SKU / Code</th>
-                  <th className="py-2.5">Name</th>
-                  <th className="py-2.5">Weight</th>
-                  <th className="py-2.5">Purity</th>
+                <tr className="border-b border-stone-100 text-stone-400 font-bold uppercase text-[10px] tracking-widest">
+                  <th className="py-3 px-1">SKU / Code</th>
+                  <th className="py-3 px-1">Name</th>
+                  <th className="py-3 px-1">Weight</th>
+                  <th className="py-3 px-1">Purity</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-stone-800/50">
+              <tbody className="divide-y divide-stone-50">
                 {recentProducts.map((p) => (
-                  <tr key={p.id} className="hover:bg-stone-950/40 transition-colors">
-                    <td className="py-3 font-mono text-amber-500 font-medium">{p.sku}</td>
-                    <td className="py-3 font-medium text-stone-100">{p.name}</td>
-                    <td className="py-3 font-mono">{p.grossWeight.toFixed(2)} g</td>
-                    <td className="py-3">
-                      <span className="px-1.5 py-0.5 rounded bg-stone-800 border border-stone-700 text-[9px] font-mono">
+                  <tr key={p.id} className="hover:bg-stone-50/50 transition-colors">
+                    <td className="py-3.5 px-1 font-mono text-[#B8860B] font-bold">{p.sku}</td>
+                    <td className="py-3.5 px-1 font-semibold text-stone-800">{p.name}</td>
+                    <td className="py-3.5 px-1 font-mono">{p.grossWeight.toFixed(2)} g</td>
+                    <td className="py-3.5 px-1">
+                      <span className="px-2 py-0.5 rounded bg-rose-50 border border-rose-100/50 text-[10px] text-[#6B1F2A] font-bold font-mono">
                         {p.purity}
                       </span>
                     </td>
@@ -524,43 +554,43 @@ export function AdminDashboard(): React.JSX.Element {
           </div>
         </div>
 
-        {/* Column B: Recent Updates / Metal Rate - 5/12 */}
-        <div className="lg:col-span-5 space-y-6" id="updates-and-prices-column">
+        {/* Column B: Latest Metal Price / Activity Logs - ~35% */}
+        <div className="lg:col-span-4 space-y-6 sm:space-y-8" id="updates-and-prices-column">
           
           {/* Metal Price Block */}
-          <div className="bg-stone-900 border border-stone-800/80 rounded p-5 sm:p-6 space-y-4" id="latest-metal-panel">
-            <div className="flex items-center justify-between border-b border-stone-800 pb-3">
+          <div className="bg-white border border-stone-200/60 rounded-xl p-5 sm:p-6 space-y-4 shadow-[0_4px_20px_-4px_rgba(107,31,42,0.04)]" id="latest-metal-panel">
+            <div className="flex items-center justify-between border-b border-stone-100 pb-4">
               <div className="flex items-center gap-2">
-                <CircleDollarSign className="w-4.5 h-4.5 text-amber-500" />
-                <h3 className="text-xs font-bold uppercase tracking-wider text-stone-100">Latest Metal Price</h3>
+                <CircleDollarSign className="w-4.5 h-4.5 text-[#B8860B]" />
+                <h3 className="text-sm font-bold uppercase tracking-wider text-stone-800 font-serif">Latest Metal Price</h3>
               </div>
-              <span className="text-[9px] text-stone-500 font-medium flex items-center gap-1">
-                <Clock className="w-3 h-3" />
+              <span className="text-[10px] text-stone-400 font-bold flex items-center gap-1 uppercase tracking-wider">
+                <Clock className="w-3.5 h-3.5" />
                 <span>Live rates</span>
               </span>
             </div>
 
             {latestMetalPrice ? (
               <div className="space-y-4">
-                <div className="flex items-center justify-between bg-stone-950/60 p-4 rounded border border-stone-800/60">
+                <div className="flex items-center justify-between bg-[#FAF9F5] p-4 rounded-xl border border-stone-200/30">
                   <div className="space-y-1">
-                    <span className="text-xs font-bold text-stone-200">{latestMetalPrice.metal}</span>
-                    <span className="text-[10px] text-stone-500 block">Unit: {latestMetalPrice.unit}</span>
+                    <span className="text-xs font-bold text-stone-800 block font-serif">{latestMetalPrice.metal}</span>
+                    <span className="text-[10px] text-stone-400 font-bold uppercase tracking-wider block">Unit: {latestMetalPrice.unit}</span>
                   </div>
                   
                   <div className="text-right space-y-1">
-                    <span className="text-xl font-bold font-mono text-stone-100">
+                    <span className="text-2xl font-bold font-mono text-[#6B1F2A]">
                       {formatINR(latestMetalPrice.pricePerGram)}
                     </span>
                     
-                    <div className="flex items-center justify-end gap-1 text-[10px] font-bold">
+                    <div className="flex items-center justify-end gap-1 text-[11px] font-bold">
                       {latestMetalPrice.change >= 0 ? (
-                        <span className="text-emerald-400 flex items-center">
+                        <span className="text-emerald-600 flex items-center">
                           <TrendingUp className="w-3.5 h-3.5 mr-0.5" />
                           <span>+{latestMetalPrice.change}</span>
                         </span>
                       ) : (
-                        <span className="text-red-400 flex items-center">
+                        <span className="text-rose-600 flex items-center">
                           <TrendingDown className="w-3.5 h-3.5 mr-0.5" />
                           <span>{latestMetalPrice.change}</span>
                         </span>
@@ -569,47 +599,48 @@ export function AdminDashboard(): React.JSX.Element {
                   </div>
                 </div>
 
-                <div className="flex justify-between items-center text-[10px] text-stone-500 font-sans">
+                <div className="flex justify-between items-center text-[10px] text-stone-400 font-sans font-bold uppercase tracking-wider">
                   <span>Last Updated:</span>
-                  <span className="font-mono text-stone-400">{latestMetalPrice.updateTimeStr}</span>
+                  <span className="font-mono text-stone-600 font-bold">{latestMetalPrice.updateTimeStr}</span>
                 </div>
               </div>
             ) : (
-              <div className="p-4 text-center bg-stone-950/40 rounded border border-stone-800 text-stone-500 text-[11px] flex items-center justify-center gap-2">
-                <AlertCircle className="w-4 h-4 text-stone-600" />
+              <div className="p-4 text-center bg-[#FAF9F5] rounded-xl border border-stone-200/30 text-stone-400 text-xs flex items-center justify-center gap-2">
+                <AlertCircle className="w-4 h-4 text-stone-400" />
                 <span>No active metal pricing logs catalogued.</span>
               </div>
             )}
           </div>
 
           {/* Recent Operations Log Block */}
-          <div className="bg-stone-900 border border-stone-800/80 rounded p-5 sm:p-6 space-y-4" id="recent-logs-panel">
-            <div className="flex items-center justify-between border-b border-stone-800 pb-3">
+          <div className="bg-white border border-stone-200/60 rounded-xl p-5 sm:p-6 space-y-4 shadow-[0_4px_20px_-4px_rgba(107,31,42,0.04)]" id="recent-logs-panel">
+            <div className="flex items-center justify-between border-b border-stone-100 pb-4">
               <div className="flex items-center gap-2">
-                <Calendar className="w-4.5 h-4.5 text-amber-500" />
-                <h3 className="text-xs font-bold uppercase tracking-wider text-stone-100">Recent Operations Log</h3>
+                <Calendar className="w-4.5 h-4.5 text-[#B8860B]" />
+                <h3 className="text-sm font-bold uppercase tracking-wider text-stone-800 font-serif">Recent Operations Log</h3>
               </div>
             </div>
 
             <div className="space-y-3 max-h-72 overflow-y-auto pr-1" id="ops-log-scroll">
               {recentUpdates.map((u) => {
-                let badgeStyle = 'bg-stone-950 text-stone-400 border-stone-800';
-                if (u.type === 'product') badgeStyle = 'bg-amber-500/5 text-amber-400 border-amber-500/10';
-                if (u.type === 'price') badgeStyle = 'bg-emerald-500/5 text-emerald-400 border-emerald-500/10';
-                if (u.type === 'enquiry') badgeStyle = 'bg-blue-500/5 text-blue-400 border-blue-500/10';
+                let badgeStyle = 'bg-stone-50 text-stone-500 border-stone-200';
+                if (u.type === 'product') badgeStyle = 'bg-amber-50 text-[#B8860B] border-amber-200/55';
+                if (u.type === 'price') badgeStyle = 'bg-emerald-50 text-emerald-700 border-emerald-200/55';
+                if (u.type === 'enquiry') badgeStyle = 'bg-blue-50 text-blue-700 border-blue-200/55';
+                if (u.type === 'system') badgeStyle = 'bg-rose-50 text-[#6B1F2A] border-rose-200/55';
 
                 return (
-                  <div key={u.id} className="p-3 bg-stone-950/45 rounded border border-stone-800/50 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-[11px]">
-                    <div className="space-y-1">
+                  <div key={u.id} className="p-3 bg-[#FAF9F5]/40 rounded-xl border border-stone-200/20 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 text-xs">
+                    <div className="space-y-1.5 flex-1">
                       <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold uppercase border ${badgeStyle}`}>
+                        <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold uppercase border ${badgeStyle} tracking-widest`}>
                           {u.type}
                         </span>
-                        <span className="font-bold text-stone-200">{u.title}</span>
+                        <span className="font-bold text-stone-800 font-serif">{u.title}</span>
                       </div>
-                      <p className="text-stone-400 text-[10px] leading-relaxed">{u.description}</p>
+                      <p className="text-stone-500 text-[11px] leading-relaxed font-sans">{u.description}</p>
                     </div>
-                    <span className="text-[9px] text-stone-500 shrink-0 font-mono self-end sm:self-center">
+                    <span className="text-[10px] text-stone-400 shrink-0 font-mono font-semibold self-end sm:self-start">
                       {u.timeStr}
                     </span>
                   </div>

@@ -23,7 +23,7 @@ export const handler = async (event, context) => {
   }
 
   try {
-    const privateKey = process.env.IMAGEKIT_PRIVATE_KEY;
+    let privateKey = process.env.IMAGEKIT_PRIVATE_KEY;
     if (!privateKey) {
       console.error('[IMAGEKIT CONFIG ERROR] IMAGEKIT_PRIVATE_KEY is missing in Netlify environment variables.');
       return {
@@ -32,6 +32,9 @@ export const handler = async (event, context) => {
         body: JSON.stringify({ error: 'IMAGEKIT_PRIVATE_KEY is missing in Netlify variables.' })
       };
     }
+
+    // Sanitize key by trimming whitespace and removing surrounding double/single quotes
+    privateKey = privateKey.trim().replace(/^["']|["']$/g, '');
 
     const pathParts = event.path.split('/');
     const fileId = pathParts[pathParts.length - 1];

@@ -26,6 +26,7 @@ import { mockProducts, mockCollections } from '../data/mockData';
 import { mockWebsiteSettings } from '../data/mockSettings';
 import { db, isFirebaseConfigured } from '../firebase/config';
 import { collection, getDocs, query, where } from 'firebase/firestore';
+import { calculateProductPrice } from '../utils/calculateProductPrice';
 
 // Unique design categories
 const PRODUCT_CATEGORIES = [
@@ -141,26 +142,53 @@ export function Catalog(): React.JSX.Element {
 
       try {
         setLoading(true);
-        // 1. Fetch Published Products
+
+        // 1a. Fetch Metal Prices for dynamic on-the-fly price calculations
+        const pricesRef = collection(db, 'metalPrices');
+        const pricesSnap = await getDocs(pricesRef);
+        const metalPrices = pricesSnap.docs.map(doc => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            metalName: data.metalName || data.metal || '',
+            pricePerGram: Number(data.price || data.pricePerGram || data.ratePerGram || 0),
+            status: data.status || 'active'
+          };
+        });
+
+        // 1b. Fetch Published Products
         const productsRef = collection(db, 'products');
         const productsQuery = query(productsRef, where('status', '==', 'published'));
         const productsSnapshot = await getDocs(productsQuery);
 
         const fetchedProducts = productsSnapshot.docs.map(doc => {
           const data = doc.data();
+          const weight = Number(data.weight || data.grossWeight || 0);
+          
+          // Calculate dynamic price
+          const priceInfo = calculateProductPrice({
+            metalRef: data.metalRef || '',
+            weight: weight,
+            makingCharge: Number(data.makingCharge || 0),
+            makingChargeType: data.makingChargeType || 'fixed',
+            wastagePercent: Number(data.wastagePercent || 0)
+          }, metalPrices);
+
           return {
             id: doc.id,
-            name: data.name || '',
-            sku: data.sku || '',
+            name: data.name || data.productName || '',
+            sku: data.sku || data.productCode || '',
             description: data.description || '',
             category: data.category || '',
             collection: data.collection || '',
-            metalType: data.metalType || data.purity || '',
-            approxWeight: data.approxWeight || (data.grossWeight ? `${data.grossWeight}g` : ''),
+            metalType: priceInfo.metalName || data.metalType || data.purity || '',
+            approxWeight: weight > 0 ? `${weight}g` : (data.approxWeight || ''),
             imageUrl: data.imageUrl || data.thumbnailUrl || (data.images && data.images[0]) || '',
             featured: !!data.featured,
             newArrival: !!data.newArrival,
-            tags: data.tags || []
+            tags: data.tags || [],
+            price: priceInfo.finalPrice > 0 ? priceInfo.finalPrice : Number(data.price || 0),
+            priceVisibility: data.priceVisibility !== undefined ? data.priceVisibility : true
           };
         });
 

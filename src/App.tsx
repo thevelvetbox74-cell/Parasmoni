@@ -14,6 +14,7 @@ import { Catalog } from './pages/Catalog';
 import { ProductDetails } from './pages/ProductDetails';
 import { Stores } from './pages/Stores';
 import { Contact } from './pages/Contact';
+import { CustomPage } from './pages/CustomPage';
 import { AdminLayout } from './admin/AdminLayout';
 import { db, isFirebaseConfigured } from './firebase/config';
 import { collection, onSnapshot } from 'firebase/firestore';
@@ -29,13 +30,18 @@ export default function App(): React.JSX.Element {
       if (localStored) {
         try {
           const parsed = JSON.parse(localStored);
-          const mapped = parsed.map((p: any) => ({
-            id: p.id,
-            metal: p.metalName || p.metal || '',
-            pricePerGram: Number(p.price || p.pricePerGram || 0),
-            change: Number(p.change || 0),
-            unit: p.unit || '1g'
-          }));
+          const mapped = parsed
+            .map((p: any) => ({
+              id: p.id,
+              metal: p.metalName || p.metal || '',
+              pricePerGram: Number(p.price || p.pricePerGram || 0),
+              change: Number(p.change || 0),
+              unit: p.unit || '1g',
+              status: p.status || 'active',
+              displayOrder: typeof p.displayOrder === 'number' ? p.displayOrder : 9999
+            }))
+            .filter((p: any) => p.status === 'active');
+          mapped.sort((a: any, b: any) => a.displayOrder - b.displayOrder);
           setMetalPrices(mapped);
         } catch (e) {
           setMetalPrices(mockMetalPrices);
@@ -53,16 +59,22 @@ export default function App(): React.JSX.Element {
         return;
       }
 
-      const items = snapshot.docs.map(doc => {
-        const data = doc.data();
-        return {
-          id: doc.id,
-          metal: data.metal || data.metalType || data.metalName || '',
-          pricePerGram: Number(data.price || data.pricePerGram || data.ratePerGram || 0),
-          change: Number(data.change || 0),
-          unit: data.unit || '1g'
-        };
-      });
+      const items = snapshot.docs
+        .map(doc => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            metal: data.metal || data.metalType || data.metalName || '',
+            pricePerGram: Number(data.price || data.pricePerGram || data.ratePerGram || 0),
+            change: Number(data.change || 0),
+            unit: data.unit || '1g',
+            status: data.status || 'active',
+            displayOrder: typeof data.displayOrder === 'number' ? data.displayOrder : 9999
+          };
+        })
+        .filter(p => p.status === 'active');
+      
+      items.sort((a, b) => a.displayOrder - b.displayOrder);
       setMetalPrices(items);
     }, (error) => {
       console.error('Error fetching live metal prices for App Bar:', error);
@@ -98,6 +110,8 @@ export default function App(): React.JSX.Element {
                       <Route path="/our-stores" element={<Stores />} />
                       <Route path="/contact" element={<Contact />} />
                       <Route path="/inquire" element={<Contact />} />
+                      <Route path="/pages/:slug" element={<CustomPage />} />
+                      <Route path="/pages" element={<Home />} />
                       {/* Fallback redirection to home */}
                       <Route path="*" element={<Home />} />
                     </Routes>

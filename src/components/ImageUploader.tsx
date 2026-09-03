@@ -6,7 +6,8 @@
 import React, { useState, useRef } from 'react';
 import { uploadToImageKit } from '../imagekit/upload';
 import { IMAGEKIT_FOLDERS } from '../imagekit/client';
-import { UploadCloud, X, ImageIcon, AlertCircle, CheckCircle } from 'lucide-react';
+import { UploadCloud, X, ImageIcon, AlertCircle, CheckCircle, FolderOpen } from 'lucide-react';
+import { MediaLibraryDrawer } from './MediaLibraryDrawer';
 
 interface ImageUploaderProps {
   id: string;
@@ -23,6 +24,7 @@ export function ImageUploader({
   onChange,
   folder = IMAGEKIT_FOLDERS.products,
 }: ImageUploaderProps): React.JSX.Element {
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
@@ -121,7 +123,7 @@ export function ImageUploader({
       <div
         onDragOver={handleDragOver}
         onDrop={handleDrop}
-        onClick={() => !uploading && fileInputRef.current?.click()}
+        onClick={() => !uploading && setIsDrawerOpen(true)}
         className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-all duration-200 select-none ${
           uploading 
             ? 'bg-stone-900/30 border-amber-600/50 cursor-not-allowed' 
@@ -134,7 +136,7 @@ export function ImageUploader({
           id={`input-file-${id}`}
           ref={fileInputRef}
           multiple={multiple}
-          accept="image/*"
+          accept="image/*,video/*"
           className="hidden"
           disabled={uploading}
           onChange={(e) => e.target.files && handleFiles(e.target.files)}
@@ -142,15 +144,15 @@ export function ImageUploader({
 
         <div className="flex flex-col items-center justify-center gap-3">
           <div className="p-3 bg-stone-900 border border-stone-800 rounded-full text-stone-400">
-            <UploadCloud className="w-6 h-6 text-amber-500" />
+            <UploadCloud className="w-6 h-6 text-amber-500 animate-pulse" />
           </div>
           
           <div className="space-y-1">
             <p className="text-xs font-semibold text-stone-200">
-              {uploading ? 'Processing & uploading...' : 'Click to upload or drag & drop'}
+              {uploading ? 'Processing & uploading...' : 'Click to choose from Media Library / Drag & Drop'}
             </p>
             <p className="text-[10px] text-stone-500">
-              Supports JPEG, PNG, WEBP (Max 5MB per file)
+              Select existing media (Images/Videos) or drag & drop to upload new
             </p>
           </div>
         </div>
@@ -190,37 +192,68 @@ export function ImageUploader({
       {/* Previews Grid */}
       {images.length > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-3 mt-3" id={`previews-grid-${id}`}>
-          {images.map((url, idx) => (
-            <div key={idx} className="relative group aspect-square rounded-md border border-stone-800 bg-stone-950 overflow-hidden shadow-xs">
-              <img
-                src={url}
-                alt={`Preview asset ${idx + 1}`}
-                className="w-full h-full object-cover"
-                referrerPolicy="no-referrer"
-              />
-              
-              {/* Overlay tools */}
-              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => handleRemoveImage(idx)}
-                  className="p-1.5 bg-red-600 hover:bg-red-700 rounded text-stone-100 cursor-pointer transition-colors"
-                  title="Remove asset"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
+          {images.map((url, idx) => {
+            const isVideo = url.toLowerCase().endsWith('.mp4') || url.toLowerCase().endsWith('.mov') || url.toLowerCase().endsWith('.webm') || url.toLowerCase().endsWith('.m4v');
+            
+            return (
+              <div key={idx} className="relative group aspect-square rounded-md border border-stone-800 bg-stone-950 overflow-hidden shadow-xs">
+                {isVideo ? (
+                  <video
+                    src={url}
+                    className="w-full h-full object-cover"
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    preload="metadata"
+                  />
+                ) : (
+                  <img
+                    src={url}
+                    alt={`Preview asset ${idx + 1}`}
+                    className="w-full h-full object-cover"
+                    referrerPolicy="no-referrer"
+                  />
+                )}
+                
+                {/* Overlay tools */}
+                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveImage(idx)}
+                    className="p-1.5 bg-red-600 hover:bg-red-700 rounded text-stone-100 cursor-pointer transition-colors"
+                    title="Remove asset"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
 
-              {/* Tag for thumbnail */}
-              {idx === 0 && (
-                <span className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-amber-500 text-stone-950 font-sans text-[8px] font-bold uppercase tracking-wider shadow-xs">
-                  Cover
-                </span>
-              )}
-            </div>
-          ))}
+                {/* Tag for thumbnail */}
+                {idx === 0 && (
+                  <span className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-amber-500 text-stone-950 font-sans text-[8px] font-bold uppercase tracking-wider shadow-xs">
+                    Cover
+                  </span>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
+
+      {/* Media Vault Side Panel / Drawer */}
+      <MediaLibraryDrawer
+        isOpen={isDrawerOpen}
+        onClose={() => setIsDrawerOpen(false)}
+        onSelect={(url) => {
+          if (multiple) {
+            onChange([...images, url]);
+          } else {
+            onChange(url);
+          }
+        }}
+        currentValue={value}
+        defaultFolder={folder}
+      />
     </div>
   );
 }

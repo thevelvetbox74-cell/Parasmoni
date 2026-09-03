@@ -43,7 +43,8 @@ import {
   Settings
 } from 'lucide-react';
 import { ImageUploader } from '../components/ImageUploader';
-import { mockProducts, mockStores, mockCollections } from '../data/mockData';
+import { mockProducts, mockStores, mockCollections, mockMetalPrices } from '../data/mockData';
+import { calculateProductPrice } from '../utils/calculateProductPrice';
 
 // Purity Lists for options
 const PURITY_OPTIONS = {
@@ -79,6 +80,7 @@ export function AdminProducts(): React.JSX.Element {
   ]);
   const [collections, setCollections] = useState<any[]>(mockCollections);
   const [stores, setStores] = useState<any[]>(mockStores);
+  const [metalPrices, setMetalPrices] = useState<any[]>([]);
 
   // Form Fields State
   const [formData, setFormData] = useState({
@@ -95,6 +97,10 @@ export function AdminProducts(): React.JSX.Element {
     purity: '22k',
     weight: '',
     price: '',
+    metalRef: '',
+    makingCharge: '',
+    makingChargeType: 'fixed' as 'fixed' | 'percentage' | 'fixed_per_gram',
+    wastagePercent: '',
     priceVisibility: 'on_enquiry' as 'visible' | 'hidden' | 'on_enquiry',
     images: [] as string[],
     thumbnail: '',
@@ -191,12 +197,40 @@ export function AdminProducts(): React.JSX.Element {
           if (!storeSnap.empty) {
             setStores(storeSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
           }
+
+          // Fetch metalPrices dynamically
+          const pricesSnap = await getDocs(collection(db, 'metalPrices'));
+          if (!pricesSnap.empty) {
+            setMetalPrices(pricesSnap.docs.map(doc => {
+              const data = doc.data();
+              return {
+                id: doc.id,
+                metalName: data.metalName || data.metal || '',
+                pricePerGram: Number(data.price || data.pricePerGram || data.ratePerGram || 0),
+                status: data.status || 'active'
+              };
+            }));
+          } else {
+            setMetalPrices(mockMetalPrices);
+          }
         } catch (e) {
           console.warn('Could not load separate CMS master collections:', e);
+          setMetalPrices(mockMetalPrices);
         }
 
       } else {
         // Fallback offline simulation
+        const localStoredPrices = localStorage.getItem('local_metal_prices');
+        if (localStoredPrices) {
+          try {
+            setMetalPrices(JSON.parse(localStoredPrices));
+          } catch (e) {
+            setMetalPrices(mockMetalPrices);
+          }
+        } else {
+          setMetalPrices(mockMetalPrices);
+        }
+
         setProducts((mockProducts as any[]).map(p => ({
           id: p.id,
           productCode: p.sku,
@@ -300,6 +334,10 @@ export function AdminProducts(): React.JSX.Element {
       purity: '22k',
       weight: '',
       price: '',
+      metalRef: '',
+      makingCharge: '',
+      makingChargeType: 'fixed',
+      wastagePercent: '',
       priceVisibility: 'on_enquiry',
       images: [],
       thumbnail: '',
@@ -335,6 +373,10 @@ export function AdminProducts(): React.JSX.Element {
       purity: prod.purity || '22k',
       weight: prod.weight || '',
       price: prod.price || '',
+      metalRef: prod.metalRef || '',
+      makingCharge: prod.makingCharge !== undefined ? String(prod.makingCharge) : '',
+      makingChargeType: prod.makingChargeType || 'fixed',
+      wastagePercent: prod.wastagePercent !== undefined ? String(prod.wastagePercent) : '',
       priceVisibility: prod.priceVisibility || 'on_enquiry',
       images: prod.images || [],
       thumbnail: prod.thumbnail || '',
@@ -371,6 +413,10 @@ export function AdminProducts(): React.JSX.Element {
       purity: prod.purity || '22k',
       weight: prod.weight || '',
       price: prod.price || '',
+      metalRef: prod.metalRef || '',
+      makingCharge: prod.makingCharge !== undefined ? String(prod.makingCharge) : '',
+      makingChargeType: prod.makingChargeType || 'fixed',
+      wastagePercent: prod.wastagePercent !== undefined ? String(prod.wastagePercent) : '',
       priceVisibility: prod.priceVisibility || 'on_enquiry',
       images: [...(prod.images || [])],
       thumbnail: prod.thumbnail || '',
@@ -466,7 +512,11 @@ export function AdminProducts(): React.JSX.Element {
         metal: formData.metal,
         purity: formData.purity,
         weight: formData.weight.trim(),
-        price: formData.price.trim(),
+        price: '0', // Exclude frozen price from the document
+        metalRef: formData.metalRef,
+        makingCharge: Number(formData.makingCharge || 0),
+        makingChargeType: formData.makingChargeType,
+        wastagePercent: Number(formData.wastagePercent || 0),
         priceVisibility: formData.priceVisibility,
         images: formData.images,
         thumbnail: formData.images[0] || formData.thumbnail || '',
@@ -705,13 +755,30 @@ export function AdminProducts(): React.JSX.Element {
 
                         {/* Price Details and Visibility */}
                         <td className="p-4 font-mono text-stone-300">
-                          {prod.priceVisibility === 'visible' && prod.price ? (
-                            <span>₹{parseInt(prod.price).toLocaleString('en-IN')}</span>
-                          ) : prod.priceVisibility === 'on_enquiry' ? (
-                            <span className="text-amber-500/80 font-sans text-[10px] font-bold uppercase tracking-wider">On Enquiry</span>
-                          ) : (
-                            <span className="text-stone-500 font-sans text-[10px] font-bold uppercase tracking-wider">Hidden</span>
-                          )}
+                          {(() => {
+                            const calculated = calculateProductPrice({
+                              metalRef: prod.metalRef,
+                              weight: Number(prod.weight || 0),
+                              makingCharge: Number(prod.makingCharge || 0),
+                              makingChargeType: prod.makingChargeType || 'fixed',
+                              wastagePercent: Number(prod.wastagePercent || 0)
+                            }, metalPrices);
+
+                            if (prod.priceVisibility === 'visible') {
+                              return <span>₹{calculated.finalPrice.toLocaleString('en-IN')}</span>;
+                            } else if (prod.priceVisibility === 'on_enquiry') {
+                              return (
+                                <div className="space-y-0.5">
+                                  <span className="block text-amber-500/80 font-sans text-[10px] font-bold uppercase tracking-wider">On Enquiry</span>
+                                  {calculated.finalPrice > 0 && (
+                                    <span className="block text-[9px] text-stone-500">Valuation: ₹{calculated.finalPrice.toLocaleString('en-IN')}</span>
+                                  )}
+                                </div>
+                              );
+                            } else {
+                              return <span className="text-stone-500 font-sans text-[10px] font-bold uppercase tracking-wider">Hidden</span>;
+                            }
+                          })()}
                         </td>
 
                         {/* Featured Or New Badges */}
@@ -1127,45 +1194,61 @@ export function AdminProducts(): React.JSX.Element {
               <div className="bg-stone-950 border border-stone-800 rounded p-6 space-y-4">
                 <h3 className="font-serif font-bold text-stone-100 text-sm border-b border-stone-900 pb-2 flex items-center gap-2">
                   <Coins className="w-4 h-4 text-amber-500" />
-                  <span>Metal & Purity Specifications</span>
+                  <span>Metal specifications</span>
                 </h3>
 
-                {/* Metal Type */}
+                {/* Dynamic Base Metal Selection */}
                 <div className="space-y-1.5">
-                  <label htmlFor="form-metal" className="font-bold text-stone-400 uppercase tracking-wider text-[10px] block">
-                    Base Precious Metal
+                  <label htmlFor="form-metalRef" className="font-bold text-stone-400 uppercase tracking-wider text-[10px] block">
+                    Assigned Showroom Metal Rate
                   </label>
                   <select
-                    id="form-metal"
-                    name="metal"
-                    value={formData.metal}
-                    onChange={handleInputChange}
-                    className="w-full bg-stone-900 border border-stone-800 text-stone-200 p-3 rounded focus:outline-hidden focus:border-amber-500 cursor-pointer capitalize"
+                    id="form-metalRef"
+                    name="metalRef"
+                    value={formData.metalRef}
+                    onChange={(e) => {
+                      const selectedId = e.target.value;
+                      const matched = metalPrices.find(m => m.id === selectedId);
+                      setFormData(prev => ({
+                        ...prev,
+                        metalRef: selectedId,
+                        // Maintain backwards category and purity mapping
+                        metal: (matched ? matched.metalName.toLowerCase().includes('silver') ? 'silver' : matched.metalName.toLowerCase().includes('platinum') ? 'platinum' : 'gold' : prev.metal) as any,
+                        purity: matched ? matched.purity || '22k' : prev.purity
+                      }));
+                    }}
+                    className="w-full bg-stone-900 border border-stone-800 text-stone-200 p-3 rounded focus:outline-hidden focus:border-amber-500 cursor-pointer text-xs font-semibold"
                   >
-                    <option value="gold">Gold</option>
-                    <option value="silver">Silver</option>
-                    <option value="platinum">Platinum</option>
-                    <option value="diamond_setting">Diamond Setting</option>
+                    <option value="">-- Select Bullion Index --</option>
+                    {metalPrices.map(m => (
+                      <option key={m.id} value={m.id}>
+                        {m.metalName} ({m.purity || 'Standard Purity'}) - ₹{m.pricePerGram || m.price}/g {m.status === 'inactive' ? '[INACTIVE]' : ''}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
-                {/* Purity Option */}
-                <div className="space-y-1.5">
-                  <label htmlFor="form-purity" className="font-bold text-stone-400 uppercase tracking-wider text-[10px] block">
-                    Fine Purity Grade
-                  </label>
-                  <select
-                    id="form-purity"
-                    name="purity"
-                    value={formData.purity}
-                    onChange={handleInputChange}
-                    className="w-full bg-stone-900 border border-stone-800 text-stone-200 p-3 rounded focus:outline-hidden focus:border-amber-500 cursor-pointer uppercase font-mono"
-                  >
-                    {PURITY_OPTIONS[formData.metal as keyof typeof PURITY_OPTIONS]?.map(pur => (
-                      <option key={pur} value={pur}>{pur}</option>
-                    )) || <option value="22k">22K</option>}
-                  </select>
-                </div>
+                {/* Active warnings and status badging */}
+                {(() => {
+                  const matched = metalPrices.find(m => m.id === formData.metalRef);
+                  if (formData.metalRef && !matched) {
+                    return (
+                      <div className="p-2.5 bg-red-950/40 border border-red-900/40 text-red-400 text-[10px] rounded flex items-center gap-1.5 font-bold uppercase tracking-wider animate-pulse">
+                        <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                        <span>Warning: Assigned Metal index is missing!</span>
+                      </div>
+                    );
+                  }
+                  if (matched && matched.status === 'inactive') {
+                    return (
+                      <div className="p-2.5 bg-amber-950/40 border border-amber-900/40 text-amber-500 text-[10px] rounded flex items-center gap-1.5 font-bold uppercase tracking-wider">
+                        <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                        <span>Warning: Assigned Metal is marked INACTIVE!</span>
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
 
                 {/* Gross weight */}
                 <div className="space-y-1.5">
@@ -1189,24 +1272,104 @@ export function AdminProducts(): React.JSX.Element {
               <div className="bg-stone-950 border border-stone-800 rounded p-6 space-y-4">
                 <h3 className="font-serif font-bold text-stone-100 text-sm border-b border-stone-900 pb-2 flex items-center gap-2">
                   <Coins className="w-4 h-4 text-amber-500" />
-                  <span>Price Config & Showroom Access</span>
+                  <span>Dynamic Pricing Calculator</span>
                 </h3>
 
-                {/* Price (In INR) */}
+                {/* Making Charge */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label htmlFor="form-makingCharge" className="font-bold text-stone-400 uppercase tracking-wider text-[10px] block">
+                      Making Charge Rate
+                    </label>
+                    <input
+                      type="number"
+                      id="form-makingCharge"
+                      name="makingCharge"
+                      value={formData.makingCharge}
+                      onChange={handleInputChange}
+                      placeholder="e.g. 450"
+                      className="w-full bg-stone-900 border border-stone-800 text-stone-100 p-3 rounded focus:outline-hidden focus:border-amber-500 font-mono text-xs"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label htmlFor="form-makingChargeType" className="font-bold text-stone-400 uppercase tracking-wider text-[10px] block">
+                      Calculation Type
+                    </label>
+                    <select
+                      id="form-makingChargeType"
+                      name="makingChargeType"
+                      value={formData.makingChargeType}
+                      onChange={handleInputChange}
+                      className="w-full bg-stone-900 border border-stone-800 text-stone-200 p-3 rounded focus:outline-hidden focus:border-amber-500 cursor-pointer text-xs font-semibold"
+                    >
+                      <option value="fixed">Fixed Absolute (₹)</option>
+                      <option value="fixed_per_gram">Per Gram (₹/g)</option>
+                      <option value="percentage">% of Gold Rate</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Wastage Percent */}
                 <div className="space-y-1.5">
-                  <label htmlFor="form-price" className="font-bold text-stone-400 uppercase tracking-wider text-[10px] block">
-                    Showroom Estimate Price (INR)
+                  <label htmlFor="form-wastagePercent" className="font-bold text-stone-400 uppercase tracking-wider text-[10px] block">
+                    Wastage / Alloy Loss (%)
                   </label>
                   <input
                     type="number"
-                    id="form-price"
-                    name="price"
-                    value={formData.price}
+                    step="0.01"
+                    id="form-wastagePercent"
+                    name="wastagePercent"
+                    value={formData.wastagePercent}
                     onChange={handleInputChange}
-                    placeholder="e.g., 185000"
-                    className="w-full bg-stone-900 border border-stone-800 text-stone-100 p-3 rounded focus:outline-hidden focus:border-amber-500 font-mono"
+                    placeholder="e.g. 3.50"
+                    className="w-full bg-stone-900 border border-stone-800 text-stone-100 p-3 rounded focus:outline-hidden focus:border-amber-500 font-mono text-xs"
                   />
                 </div>
+
+                {/* Live Calculated Price Preview */}
+                {(() => {
+                  const weight = Number(formData.weight || 0);
+                  const priceInfo = calculateProductPrice({
+                    metalRef: formData.metalRef,
+                    weight: weight,
+                    makingCharge: Number(formData.makingCharge || 0),
+                    makingChargeType: formData.makingChargeType,
+                    wastagePercent: Number(formData.wastagePercent || 0)
+                  }, metalPrices);
+
+                  return (
+                    <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded space-y-2">
+                      <div className="flex justify-between items-center text-[10px] text-stone-400 uppercase font-bold tracking-wider">
+                        <span>Live Calculated Price</span>
+                        <span className="text-amber-500 animate-pulse">● LIVE PREVIEW</span>
+                      </div>
+                      <div className="flex justify-between items-baseline">
+                        <span className="text-xl font-mono font-bold text-amber-500">
+                          ₹{priceInfo.finalPrice.toLocaleString('en-IN')}
+                        </span>
+                        <span className="text-[10px] text-stone-400 font-sans italic">All parameters applied</span>
+                      </div>
+                      
+                      {priceInfo.finalPrice > 0 && (
+                        <div className="text-[10px] text-stone-400 space-y-1 font-mono pt-1 border-t border-stone-900/60">
+                          <div className="flex justify-between">
+                            <span>Base Metal Value:</span>
+                            <span>₹{priceInfo.rawMetalPrice.toLocaleString('en-IN')}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Wastage Cost:</span>
+                            <span>₹{priceInfo.wastageValue.toLocaleString('en-IN')}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Making Charges:</span>
+                            <span>₹{priceInfo.makingChargeValue.toLocaleString('en-IN')}</span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
 
                 {/* Price Visibility */}
                 <div className="space-y-1.5">
@@ -1218,7 +1381,7 @@ export function AdminProducts(): React.JSX.Element {
                     name="priceVisibility"
                     value={formData.priceVisibility}
                     onChange={handleInputChange}
-                    className="w-full bg-stone-900 border border-stone-800 text-stone-200 p-3 rounded focus:outline-hidden focus:border-amber-500 cursor-pointer font-sans"
+                    className="w-full bg-stone-900 border border-stone-800 text-stone-200 p-3 rounded focus:outline-hidden focus:border-amber-500 cursor-pointer font-sans text-xs"
                   >
                     <option value="on_enquiry">Ask for Price (WhatsApp lead)</option>
                     <option value="visible">Show price on website</option>

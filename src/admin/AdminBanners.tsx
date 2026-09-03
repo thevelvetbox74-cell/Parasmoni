@@ -33,6 +33,7 @@ import {
 } from 'lucide-react';
 import { ImageUploader } from '../components/ImageUploader';
 import { IMAGEKIT_FOLDERS } from '../imagekit/client';
+import { SmartLinkPicker } from '../components/SmartLinkPicker';
 import { mockBanners } from '../data/mockData';
 
 export function AdminBanners(): React.JSX.Element {
@@ -53,6 +54,9 @@ export function AdminBanners(): React.JSX.Element {
     subtitle: '',
     desktopImage: '',
     mobileImage: '',
+    mediaType: 'image' as 'image' | 'video',
+    desktopVideo: '',
+    mobileVideo: '',
     buttonText: 'EXPLORE MASTERPIECES',
     buttonLink: '/catalog',
     displayOrder: 1,
@@ -76,6 +80,9 @@ export function AdminBanners(): React.JSX.Element {
             subtitle: b.subtitle || '',
             desktopImage: b.image,
             mobileImage: b.image, // fallback
+            mediaType: b.mediaType || 'image',
+            desktopVideo: b.desktopVideo || '',
+            mobileVideo: b.mobileVideo || '',
             buttonText: b.buttonText || 'EXPLORE MASTERPIECES',
             buttonLink: b.buttonLink || '/catalog',
             displayOrder: idx + 1,
@@ -99,6 +106,9 @@ export function AdminBanners(): React.JSX.Element {
             subtitle: data.subtitle || '',
             desktopImage: data.imageUrl || data.desktopImage || data.image || '',
             mobileImage: data.mobileImage || data.imageUrl || data.desktopImage || data.image || '',
+            mediaType: data.mediaType || 'image',
+            desktopVideo: data.desktopVideo || '',
+            mobileVideo: data.mobileVideo || '',
             buttonText: data.buttonText || 'EXPLORE MASTERPIECES',
             buttonLink: data.linkUrl || data.buttonLink || '/catalog',
             displayOrder: typeof data.displayOrder === 'number' ? data.displayOrder : 1,
@@ -128,14 +138,17 @@ export function AdminBanners(): React.JSX.Element {
       id: banner.id,
       title: banner.title,
       subtitle: banner.subtitle,
-      desktopImage: banner.desktopImage,
-      mobileImage: banner.mobileImage,
+      desktopImage: banner.desktopImage || '',
+      mobileImage: banner.mobileImage || '',
+      mediaType: banner.mediaType || 'image',
+      desktopVideo: banner.desktopVideo || '',
+      mobileVideo: banner.mobileVideo || '',
       buttonText: banner.buttonText,
       buttonLink: banner.buttonLink,
       displayOrder: banner.displayOrder,
       status: banner.status,
-      startDate: banner.startDate,
-      endDate: banner.endDate
+      startDate: banner.startDate || '',
+      endDate: banner.endDate || ''
     });
     setError(null);
     setSuccess(null);
@@ -154,7 +167,10 @@ export function AdminBanners(): React.JSX.Element {
       subtitle: '',
       desktopImage: '',
       mobileImage: '',
-      buttonText: 'EXPLORE COLORED COLOURS',
+      mediaType: 'image',
+      desktopVideo: '',
+      mobileVideo: '',
+      buttonText: 'EXPLORE MASTERPIECES',
       buttonLink: '/catalog',
       displayOrder: nextOrder,
       status: 'active',
@@ -254,10 +270,6 @@ export function AdminBanners(): React.JSX.Element {
     setError(null);
     setSuccess(null);
 
-    if (!formData.title.trim()) {
-      setError('A banner title is required.');
-      return;
-    }
     if (!formData.desktopImage) {
       setError('Desktop ImageKit asset is required.');
       return;
@@ -272,6 +284,9 @@ export function AdminBanners(): React.JSX.Element {
       subtitle: formData.subtitle.trim(),
       desktopImage: formData.desktopImage,
       mobileImage: formData.mobileImage || formData.desktopImage,
+      mediaType: formData.mediaType,
+      desktopVideo: formData.desktopVideo,
+      mobileVideo: formData.mobileVideo,
       imageUrl: formData.desktopImage, // legacy mapping
       image: formData.desktopImage, // legacy mapping
       buttonText: formData.buttonText.trim(),
@@ -503,10 +518,9 @@ export function AdminBanners(): React.JSX.Element {
               
               {/* Title */}
               <div className="space-y-1.5">
-                <label className="text-[10px] text-stone-400 font-bold uppercase tracking-wider block">Banner Headline Title *</label>
+                <label className="text-[10px] text-stone-400 font-bold uppercase tracking-wider block">Banner Headline Title (Optional)</label>
                 <input
                   type="text"
-                  required
                   placeholder="e.g. Royal Filigree Kundan Set"
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
@@ -544,12 +558,9 @@ export function AdminBanners(): React.JSX.Element {
                 {/* Button Link */}
                 <div className="space-y-1.5">
                   <label className="text-[10px] text-stone-400 font-bold uppercase tracking-wider block">Button Redirection Route Link</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. /jewellery?category=bridal"
+                  <SmartLinkPicker
                     value={formData.buttonLink}
-                    onChange={(e) => setFormData({ ...formData, buttonLink: e.target.value })}
-                    className="w-full px-3 py-2 bg-stone-950 border border-stone-800 focus:border-amber-600 focus:outline-hidden text-xs rounded text-stone-200 font-sans"
+                    onChange={(newUrl) => setFormData({ ...formData, buttonLink: newUrl })}
                   />
                 </div>
 
@@ -624,53 +635,216 @@ export function AdminBanners(): React.JSX.Element {
 
               </div>
 
-              {/* Desktop Billboard Image */}
-              <div className="space-y-2">
-                <label className="text-[10px] text-stone-400 font-bold uppercase tracking-wider block">
-                  Desktop Image (16:9 / 1200x600 recommended) *
+              {/* Media Type Selector */}
+              <div className="space-y-2 border border-stone-800 p-4 rounded bg-stone-950/40">
+                <label className="text-[10px] text-stone-300 font-bold uppercase tracking-wider block">
+                  Banner Media Format
                 </label>
-                <ImageUploader
-                  id="desktop-image-uploader"
-                  multiple={false}
-                  value={formData.desktopImage}
-                  onChange={(val) => setFormData({ ...formData, desktopImage: val as string })}
-                  folder={IMAGEKIT_FOLDERS.banners}
-                />
-                {formData.desktopImage && (
-                  <div className="p-1 border border-stone-800 rounded bg-stone-950">
-                    <img 
-                      src={formData.desktopImage} 
-                      alt="Desktop slide preview" 
-                      className="w-full h-24 object-cover rounded-sm"
-                      referrerPolicy="no-referrer"
+                <div className="flex gap-4">
+                  <label className="flex items-center gap-2 text-xs text-stone-300 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="mediaType"
+                      value="image"
+                      checked={formData.mediaType === 'image'}
+                      onChange={() => setFormData({ ...formData, mediaType: 'image' })}
+                      className="text-amber-600 focus:ring-0 cursor-pointer"
                     />
-                  </div>
-                )}
+                    <span>Standard Image</span>
+                  </label>
+                  <label className="flex items-center gap-2 text-xs text-stone-300 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="mediaType"
+                      value="video"
+                      checked={formData.mediaType === 'video'}
+                      onChange={() => setFormData({ ...formData, mediaType: 'video' })}
+                      className="text-amber-600 focus:ring-0 cursor-pointer"
+                    />
+                    <span>High-Definition Video</span>
+                  </label>
+                </div>
               </div>
 
-              {/* Mobile Portrait Image */}
-              <div className="space-y-2">
-                <label className="text-[10px] text-stone-400 font-bold uppercase tracking-wider block">
-                  Mobile Image (9:16 / 600x1000 recommended)
-                </label>
-                <ImageUploader
-                  id="mobile-image-uploader"
-                  multiple={false}
-                  value={formData.mobileImage}
-                  onChange={(val) => setFormData({ ...formData, mobileImage: val as string })}
-                  folder={IMAGEKIT_FOLDERS.banners}
-                />
-                {formData.mobileImage && (
-                  <div className="p-1 border border-stone-800 rounded bg-stone-950">
-                    <img 
-                      src={formData.mobileImage} 
-                      alt="Mobile portrait preview" 
-                      className="w-1/2 h-24 object-cover mx-auto rounded-sm"
-                      referrerPolicy="no-referrer"
-                    />
+              {formData.mediaType === 'image' ? (
+                <>
+                  {/* Desktop Billboard Image */}
+                  <div className="space-y-2 border border-stone-800 p-4 rounded bg-stone-950/40">
+                    <label className="text-[10px] text-stone-300 font-bold uppercase tracking-wider block">
+                      Desktop Banner Image (recommended size: e.g. 1600x600px or similar wide aspect ratio) *
+                    </label>
+                    <p className="text-[10px] text-stone-500 font-sans leading-normal">
+                      💡 This image will be shown to visitors browsing on desktop/laptop screens.
+                    </p>
+                    <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+                      <div className="flex-1 w-full">
+                        <ImageUploader
+                          id="desktop-image-uploader"
+                          multiple={false}
+                          value={formData.desktopImage}
+                          onChange={(val) => setFormData({ ...formData, desktopImage: val as string })}
+                          folder={IMAGEKIT_FOLDERS.banners}
+                        />
+                      </div>
+                      {formData.desktopImage && (
+                        <div className="p-1 border border-stone-800 rounded bg-stone-950 shrink-0 w-32">
+                          <img 
+                            src={formData.desktopImage} 
+                            alt="Desktop slide preview" 
+                            className="w-full h-16 object-cover rounded-sm"
+                            referrerPolicy="no-referrer"
+                          />
+                        </div>
+                      )}
+                    </div>
                   </div>
-                )}
-              </div>
+
+                  {/* Mobile Portrait Image */}
+                  <div className="space-y-2 border border-stone-800 p-4 rounded bg-stone-950/40">
+                    <label className="text-[10px] text-stone-300 font-bold uppercase tracking-wider block">
+                      Mobile Banner Image (recommended size: e.g. 800x1000px or a taller/portrait-friendly aspect ratio suited for phone screens)
+                    </label>
+                    <p className="text-[10px] text-stone-500 font-sans leading-normal">
+                      💡 This image will be shown to visitors browsing on mobile phones.
+                    </p>
+                    <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+                      <div className="flex-1 w-full">
+                        <ImageUploader
+                          id="mobile-image-uploader"
+                          multiple={false}
+                          value={formData.mobileImage}
+                          onChange={(val) => setFormData({ ...formData, mobileImage: val as string })}
+                          folder={IMAGEKIT_FOLDERS.banners}
+                        />
+                      </div>
+                      {formData.mobileImage ? (
+                        <div className="p-1 border border-stone-800 rounded bg-stone-950 shrink-0 w-32">
+                          <img 
+                            src={formData.mobileImage} 
+                            alt="Mobile portrait preview" 
+                            className="w-full h-16 object-cover rounded-sm"
+                            referrerPolicy="no-referrer"
+                          />
+                        </div>
+                      ) : (
+                        <div className="p-2 border border-amber-900/40 rounded bg-amber-950/20 shrink-0 w-full sm:w-44 text-[10px] text-amber-500 font-sans">
+                          ⚠️ No mobile image set — desktop image will be used as fallback on phones.
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <>
+                  {/* Desktop Banner Video */}
+                  <div className="space-y-2 border border-stone-800 p-4 rounded bg-stone-950/40">
+                    <label className="text-[10px] text-stone-300 font-bold uppercase tracking-wider block">
+                      Desktop Banner Video (recommended format: MP4 with wide aspect ratio) *
+                    </label>
+                    <p className="text-[10px] text-stone-500 font-sans leading-normal">
+                      💡 This video will be shown to visitors browsing on desktop/laptop screens.
+                    </p>
+                    <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+                      <div className="flex-1 w-full">
+                        <ImageUploader
+                          id="desktop-video-uploader"
+                          multiple={false}
+                          value={formData.desktopVideo}
+                          onChange={(val) => setFormData({ ...formData, desktopVideo: val as string })}
+                          folder={IMAGEKIT_FOLDERS.banners}
+                        />
+                      </div>
+                      {formData.desktopVideo && (
+                        <div className="p-1 border border-stone-800 rounded bg-stone-950 shrink-0 w-32">
+                          <video 
+                            src={formData.desktopVideo} 
+                            className="w-full h-16 object-cover rounded-sm"
+                            autoPlay
+                            loop
+                            muted
+                            playsInline
+                            preload="auto"
+                            onEnded={(e) => {
+                              e.currentTarget.currentTime = 0;
+                              e.currentTarget.play().catch(() => {});
+                            }}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Mobile Portrait Video */}
+                  <div className="space-y-2 border border-stone-800 p-4 rounded bg-stone-950/40">
+                    <label className="text-[10px] text-stone-300 font-bold uppercase tracking-wider block">
+                      Mobile Banner Video (optional: portrait aspect ratio for mobile screens)
+                    </label>
+                    <p className="text-[10px] text-stone-500 font-sans leading-normal">
+                      💡 This video will be shown to visitors browsing on mobile phones.
+                    </p>
+                    <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+                      <div className="flex-1 w-full">
+                        <ImageUploader
+                          id="mobile-video-uploader"
+                          multiple={false}
+                          value={formData.mobileVideo}
+                          onChange={(val) => setFormData({ ...formData, mobileVideo: val as string })}
+                          folder={IMAGEKIT_FOLDERS.banners}
+                        />
+                      </div>
+                      {formData.mobileVideo ? (
+                        <div className="p-1 border border-stone-800 rounded bg-stone-950 shrink-0 w-32">
+                          <video 
+                            src={formData.mobileVideo} 
+                            className="w-full h-16 object-cover rounded-sm"
+                            autoPlay
+                            loop
+                            muted
+                            playsInline
+                            preload="auto"
+                            onEnded={(e) => {
+                              e.currentTarget.currentTime = 0;
+                              e.currentTarget.play().catch(() => {});
+                            }}
+                          />
+                        </div>
+                      ) : (
+                        <div className="p-2 border border-amber-900/40 rounded bg-amber-950/20 shrink-0 w-full sm:w-44 text-[10px] text-amber-500 font-sans">
+                          ⚠️ No mobile video set — desktop video will be used as fallback on phones.
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Optional Poster Image upload for fast first-frame rendering fallback */}
+                  <div className="space-y-2 border border-stone-800 p-4 rounded bg-stone-950/40">
+                    <label className="text-[10px] text-stone-300 font-bold uppercase tracking-wider block">
+                      Fallback Poster Image (Required for list views) *
+                    </label>
+                    <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+                      <div className="flex-1 w-full">
+                        <ImageUploader
+                          id="desktop-poster-uploader"
+                          multiple={false}
+                          value={formData.desktopImage}
+                          onChange={(val) => setFormData({ ...formData, desktopImage: val as string })}
+                          folder={IMAGEKIT_FOLDERS.banners}
+                        />
+                      </div>
+                      {formData.desktopImage && (
+                        <div className="p-1 border border-stone-800 rounded bg-stone-950 shrink-0 w-32">
+                          <img 
+                            src={formData.desktopImage} 
+                            alt="Poster preview" 
+                            className="w-full h-16 object-cover rounded-sm"
+                            referrerPolicy="no-referrer"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
 
             </div>
 

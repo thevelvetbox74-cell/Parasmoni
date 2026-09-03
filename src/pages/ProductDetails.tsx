@@ -22,8 +22,9 @@ import {
   Clock,
   ExternalLink
 } from 'lucide-react';
-import { db } from '../firebase/config';
+import { db, isFirebaseConfigured } from '../firebase/config';
 import { collection, getDocs, doc, getDoc, query, where, limit } from 'firebase/firestore';
+import { calculateProductPrice } from '../utils/calculateProductPrice';
 import { getOptimizedShowroomUrl } from '../imagekit/client';
 import { mockWebsiteSettings } from '../data/mockSettings';
 import { mockProducts } from '../data/mockData';
@@ -70,6 +71,25 @@ export function ProductDetails(): React.JSX.Element {
       setActiveImageIndex(0);
 
       try {
+        // Fetch metalPrices
+        let metalPrices: any[] = [];
+        if (isFirebaseConfigured) {
+          try {
+            const pricesSnap = await getDocs(collection(db, 'metalPrices'));
+            metalPrices = pricesSnap.docs.map(doc => {
+              const data = doc.data();
+              return {
+                id: doc.id,
+                metalName: data.metalName || data.metal || '',
+                pricePerGram: Number(data.price || data.pricePerGram || data.ratePerGram || 0),
+                status: data.status || 'active'
+              };
+            });
+          } catch (e) {
+            console.warn('Could not load live metal prices for detail calculation:', e);
+          }
+        }
+
         // A. Check Firestore first if database configured
         const productsCol = collection(db, 'products');
         
@@ -113,13 +133,24 @@ export function ProductDetails(): React.JSX.Element {
             };
           }
         } else {
-          // Normalize Firestore data fields
+          // Normalize Firestore data fields using dynamic pricing parameters
+          const weight = Number(foundProduct.weight || foundProduct.grossWeight || 0);
+          const priceInfo = calculateProductPrice({
+            metalRef: foundProduct.metalRef || '',
+            weight: weight,
+            makingCharge: Number(foundProduct.makingCharge || 0),
+            makingChargeType: foundProduct.makingChargeType || 'fixed',
+            wastagePercent: Number(foundProduct.wastagePercent || 0)
+          }, metalPrices);
+
           foundProduct = {
             ...foundProduct,
-            sku: foundProduct.sku || foundProduct.code || 'PM-GEN-01',
-            grossWeight: foundProduct.approxWeight || (foundProduct.grossWeight ? `${foundProduct.grossWeight}g` : ''),
-            purity: foundProduct.purity || foundProduct.metalType || '22K (916) Hallmark',
-            images: foundProduct.images || (foundProduct.imageUrl ? [foundProduct.imageUrl] : [])
+            sku: foundProduct.sku || foundProduct.productCode || foundProduct.code || 'PM-GEN-01',
+            grossWeight: weight > 0 ? `${weight}g` : (foundProduct.approxWeight || ''),
+            purity: priceInfo.metalName || foundProduct.purity || foundProduct.metalType || '22K (916) Hallmark',
+            images: foundProduct.images || (foundProduct.imageUrl ? [foundProduct.imageUrl] : []),
+            price: priceInfo.finalPrice > 0 ? priceInfo.finalPrice : Number(foundProduct.price || 0),
+            priceVisibility: foundProduct.priceVisibility !== undefined ? foundProduct.priceVisibility : true
           };
         }
 
@@ -274,12 +305,28 @@ export function ProductDetails(): React.JSX.Element {
                 </span>
               )}
               
-              <img 
-                src={getOptimizedShowroomUrl(activeMainImage, { width: 800, quality: 90 })} 
-                alt={`${product.name} main view`}
-                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                referrerPolicy="no-referrer"
-              />
+              {activeMainImage && (activeMainImage.toLowerCase().split('?')[0].endsWith('.mp4') || activeMainImage.toLowerCase().split('?')[0].endsWith('.mov') || activeMainImage.toLowerCase().split('?')[0].endsWith('.webm') || activeMainImage.toLowerCase().split('?')[0].endsWith('.m4v')) ? (
+                <video 
+                  src={activeMainImage} 
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  preload="auto"
+                  onEnded={(e) => {
+                    e.currentTarget.currentTime = 0;
+                    e.currentTarget.play().catch(() => {});
+                  }}
+                />
+              ) : (
+                <img 
+                  src={getOptimizedShowroomUrl(activeMainImage, { width: 800, quality: 90 })} 
+                  alt={`${product.name} main view`}
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  referrerPolicy="no-referrer"
+                />
+              )}
               <div className="absolute inset-0 bg-stone-950/5 pointer-events-none" />
             </div>
 
@@ -288,6 +335,7 @@ export function ProductDetails(): React.JSX.Element {
               <div className="flex gap-2.5 overflow-x-auto pb-1" id="gallery-thumb-track">
                 {galleryImages.map((imgUrl: string, idx: number) => {
                   const isActive = idx === activeImageIndex;
+                  const isThumbVideo = imgUrl.toLowerCase().split('?')[0].endsWith('.mp4') || imgUrl.toLowerCase().split('?')[0].endsWith('.mov') || imgUrl.toLowerCase().split('?')[0].endsWith('.webm') || imgUrl.toLowerCase().split('?')[0].endsWith('.m4v');
                   return (
                     <button
                       key={idx}
@@ -297,13 +345,29 @@ export function ProductDetails(): React.JSX.Element {
                       }`}
                       aria-label={`View gallery image ${idx + 1}`}
                     >
-                      <img 
-                        src={getOptimizedShowroomUrl(imgUrl, { width: 150, height: 150 })} 
-                        alt={`${product.name} thumb ${idx + 1}`}
-                        className="w-full h-full object-cover"
-                        loading="lazy"
-                        referrerPolicy="no-referrer"
-                      />
+                      {isThumbVideo ? (
+                        <video 
+                          src={imgUrl} 
+                          className="w-full h-full object-cover"
+                          autoPlay
+                          loop
+                          muted
+                          playsInline
+                          preload="auto"
+                          onEnded={(e) => {
+                            e.currentTarget.currentTime = 0;
+                            e.currentTarget.play().catch(() => {});
+                          }}
+                        />
+                      ) : (
+                        <img 
+                          src={getOptimizedShowroomUrl(imgUrl, { width: 150, height: 150 })} 
+                          alt={`${product.name} thumb ${idx + 1}`}
+                          className="w-full h-full object-cover"
+                          loading="lazy"
+                          referrerPolicy="no-referrer"
+                        />
+                      )}
                     </button>
                   );
                 })}

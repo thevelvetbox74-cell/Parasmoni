@@ -62,6 +62,9 @@ export function getOptimizedShowroomUrl(
 ): string {
   if (!path) return '';
 
+  const lowerPath = path.toLowerCase().split('?')[0];
+  const isVideo = lowerPath.endsWith('.mp4') || lowerPath.endsWith('.mov') || lowerPath.endsWith('.webm') || lowerPath.endsWith('.m4v');
+
   // Return immediately if it's already a fully qualified external URL
   if (path.startsWith('http://') || path.startsWith('https://')) {
     return path;
@@ -73,6 +76,11 @@ export function getOptimizedShowroomUrl(
 
   const endpoint = imageKitClientConfig.urlEndpoint.replace(/\/$/, '');
   const cleanPath = path.replace(/^\//, '');
+
+  if (isVideo) {
+    // For videos, do not apply any image conversions like f-auto as they break HTML5 video tags
+    return `${endpoint}/${cleanPath}`;
+  }
 
   const trParams: string[] = [];
 

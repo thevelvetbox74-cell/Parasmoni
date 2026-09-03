@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { db, isFirebaseConfigured } from '../firebase/config';
-import { collection, getDocs, doc, deleteDoc, updateDoc, writeBatch } from 'firebase/firestore';
+import { collection, getDocs, doc, deleteDoc, updateDoc, writeBatch, getDoc } from 'firebase/firestore';
 import { 
   Folder, 
   Image as ImageIcon, 
@@ -34,6 +34,7 @@ interface MediaAsset {
   sourceCollection?: string;
   sourceTitle?: string;
   referencedBy: string[]; // List of human-readable usage descriptors e.g. "Product: bowbazar"
+  docs?: Array<{ col: string; id: string; field: string }>;
 }
 
 export function AdminMedia(): React.JSX.Element {
@@ -154,6 +155,7 @@ export function AdminMedia(): React.JSX.Element {
           const data = d.data();
           const bLabel = `Banner: ${data.title || 'Promotional Slider'}`;
           if (data.imageUrl) registerUrl(data.imageUrl, bLabel, 'banners', d.id, 'imageUrl');
+          if (data.image) registerUrl(data.image, bLabel, 'banners', d.id, 'image');
         });
       } catch (e) {
         console.log('Skipping banners scan: collection uninitialized');
@@ -169,6 +171,18 @@ export function AdminMedia(): React.JSX.Element {
         });
       } catch (e) {
         console.log('Skipping collections scan: collection uninitialized');
+      }
+
+      // 4.1 Fetch and Scan: Categories
+      try {
+        const categoriesSnapshot = await getDocs(collection(db, 'categories'));
+        categoriesSnapshot.docs.forEach(d => {
+          const data = d.data();
+          const catLabel = `Category: ${data.name || 'Category Slide'}`;
+          if (data.imageUrl) registerUrl(data.imageUrl, catLabel, 'categories', d.id, 'imageUrl');
+        });
+      } catch (e) {
+        console.log('Skipping categories scan');
       }
 
       // 5. Fetch and Scan: Showroom Stores
@@ -232,7 +246,8 @@ export function AdminMedia(): React.JSX.Element {
           folder,
           uploadDate: loggedInfo?.uploadDate || new Date().toISOString(),
           fileId: loggedInfo?.fileId || '',
-          referencedBy: Array.from(val.referencedBy)
+          referencedBy: Array.from(val.referencedBy),
+          docs: val.docs
         });
       });
 
@@ -321,10 +336,25 @@ export function AdminMedia(): React.JSX.Element {
         }
       }
 
-      // 3. Update the host documents to remove the broken reference (if requested)
-      if (isFirebaseConfigured && db && isReferenced) {
-        // Here we could perform targeted clears, but soft-removing from list is the primary action
-        console.log('Image deleted from catalog list. Note: Host records must be updated with a new upload.');
+      // 3. Update the host documents to remove the broken reference
+      if (isFirebaseConfigured && db && asset.docs && asset.docs.length > 0) {
+        for (const refDoc of asset.docs) {
+          try {
+            const docRef = doc(db, refDoc.col, refDoc.id);
+            const docSnap = await getDoc(docRef);
+            if (docSnap.exists()) {
+              const currentData = docSnap.data();
+              if (refDoc.field === 'images' && Array.isArray(currentData.images)) {
+                const updatedImages = currentData.images.filter((img: string) => img.split('?')[0] !== asset.url);
+                await updateDoc(docRef, { images: updatedImages });
+              } else {
+                await updateDoc(docRef, { [refDoc.field]: '' });
+              }
+            }
+          } catch (refErr) {
+            console.error(`Failed to clear reference in ${refDoc.col}/${refDoc.id}:`, refErr);
+          }
+        }
       }
 
       setSuccessMsg(`Asset "${asset.filename}" deleted from gallery successfully.`);
