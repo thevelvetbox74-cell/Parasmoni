@@ -263,7 +263,7 @@ export function Footer({ isBuilder = false, customBgColor, customConfig, onFoote
                   <div className="flex items-center gap-4">
                     {(config.logoUrl || settings.logoUrl) && (
                       <img 
-                        src={config.logoUrl || settings.logoUrl} 
+                        src={(config.logoUrl || settings.logoUrl) || undefined} 
                         alt={`${settings.brandName || 'Brand'} Logo`} 
                         className="h-16 w-auto object-contain rounded-md border border-stone-800 p-1 bg-stone-900/60 shadow-inner"
                         referrerPolicy="no-referrer"

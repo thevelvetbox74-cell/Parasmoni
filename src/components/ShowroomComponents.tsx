@@ -689,11 +689,11 @@ export function BannerSlider({ banners }: BannerSliderProps): React.JSX.Element 
     setDragOffset(0);
   };
 
-  // Get properly transformed, optimized ImageKit responsive URLs
+  // Get properly transformed, ultra-high-definition ImageKit responsive URLs
   const getBannerImage = (banner: Banner) => {
-    const rawImage = (isMobile && banner.mobileImage) ? banner.mobileImage : (banner.desktopImage || banner.image);
-    const targetWidth = isMobile ? 800 : 1600;
-    return getOptimizedShowroomUrl(rawImage, { width: targetWidth, quality: 85 }) || rawImage;
+    const rawImage = (isMobile && banner.mobileImage) ? banner.mobileImage : (banner.desktopImage || banner.image) || 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&q=80&w=1600';
+    const targetWidth = isMobile ? 1200 : 2560;
+    return getOptimizedShowroomUrl(rawImage, { width: targetWidth, quality: 95 }) || rawImage;
   };
 
   // Math-guided Peek Carousel Track translates (percentage based)
@@ -773,7 +773,7 @@ export function BannerSlider({ banners }: BannerSliderProps): React.JSX.Element 
                 {/* Media Layer (Video or Image) */}
                 {hasVideo ? (
                   <video
-                    src={getOptimizedShowroomUrl(activeVideoUrl) || activeVideoUrl}
+                    src={getOptimizedShowroomUrl(activeVideoUrl) || activeVideoUrl || undefined}
                     className="w-full h-full object-cover"
                     autoPlay
                     loop

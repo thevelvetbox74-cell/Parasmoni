@@ -21,8 +21,24 @@ export function UploadChoiceModal({
   onCancel,
 }: UploadChoiceModalProps): React.JSX.Element | null {
   const [objectUrls, setObjectUrls] = useState<string[]>([]);
+  const [dimensions, setDimensions] = useState<{ width: number; height: number } | null>(null);
 
-  // Generate object URLs for previews
+  const mainFile = files[0];
+
+  // Detect image natural dimensions
+  useEffect(() => {
+    if (mainFile && mainFile.type.startsWith('image/')) {
+      const img = new Image();
+      const url = URL.createObjectURL(mainFile);
+      img.onload = () => {
+        setDimensions({ width: img.naturalWidth, height: img.naturalHeight });
+        URL.revokeObjectURL(url);
+      };
+      img.src = url;
+    } else {
+      setDimensions(null);
+    }
+  }, [mainFile]);
   useEffect(() => {
     if (!isOpen || files.length === 0) {
       setObjectUrls([]);
@@ -52,7 +68,6 @@ export function UploadChoiceModal({
   const hasSvg = files.some(isSvgFile);
   const allSvg = files.every(isSvgFile);
   const totalFiles = files.length;
-  const mainFile = files[0];
   const mainPreview = objectUrls[0];
 
   return (
@@ -111,6 +126,12 @@ export function UploadChoiceModal({
               </div>
               <div className="text-[10px] text-stone-500 font-mono flex flex-wrap gap-x-2 items-center">
                 <span>{(mainFile.size / 1024).toFixed(1)} KB</span>
+                {dimensions && (
+                  <>
+                    <span className="text-stone-700 font-sans">•</span>
+                    <span className="text-amber-400 font-bold">{dimensions.width} x {dimensions.height} px</span>
+                  </>
+                )}
                 <span className="text-stone-700 font-sans">•</span>
                 <span className="uppercase text-amber-500/80 font-bold tracking-wide">
                   {mainFile.type.split('/')[1] || 'unknown'}

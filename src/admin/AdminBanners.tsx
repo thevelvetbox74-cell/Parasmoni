@@ -684,6 +684,7 @@ export function AdminBanners(): React.JSX.Element {
                           value={formData.desktopImage}
                           onChange={(val) => setFormData({ ...formData, desktopImage: val as string })}
                           folder={IMAGEKIT_FOLDERS.banners}
+                          recommendedDimensions="2560 x 1080 px (21:9 Ultra HD) or 1920 x 1080 px (16:9)"
                         />
                       </div>
                       {formData.desktopImage && (
@@ -715,6 +716,7 @@ export function AdminBanners(): React.JSX.Element {
                           value={formData.mobileImage}
                           onChange={(val) => setFormData({ ...formData, mobileImage: val as string })}
                           folder={IMAGEKIT_FOLDERS.banners}
+                          recommendedDimensions="1080 x 1350 px (4:5 HD) or 1080 x 1920 px (9:16 Portrait)"
                         />
                       </div>
                       {formData.mobileImage ? (
@@ -752,6 +754,7 @@ export function AdminBanners(): React.JSX.Element {
                           value={formData.desktopVideo}
                           onChange={(val) => setFormData({ ...formData, desktopVideo: val as string })}
                           folder={IMAGEKIT_FOLDERS.banners}
+                          recommendedDimensions="1920 x 1080 px (1080p MP4/WebM) @ 30/60fps"
                         />
                       </div>
                       {formData.desktopVideo && (

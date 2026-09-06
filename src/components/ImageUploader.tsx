@@ -17,6 +17,7 @@ interface ImageUploaderProps {
   value: string | string[];
   onChange: (value: string | string[]) => void;
   folder?: typeof IMAGEKIT_FOLDERS[keyof typeof IMAGEKIT_FOLDERS];
+  recommendedDimensions?: string;
 }
 
 export function ImageUploader({
@@ -25,6 +26,7 @@ export function ImageUploader({
   value,
   onChange,
   folder = IMAGEKIT_FOLDERS.products,
+  recommendedDimensions,
 }: ImageUploaderProps): React.JSX.Element {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -32,6 +34,32 @@ export function ImageUploader({
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Compute recommended resolution hints if not explicitly passed
+  const getDimensionHint = () => {
+    if (recommendedDimensions) return recommendedDimensions;
+    if (folder === IMAGEKIT_FOLDERS.banners) {
+      return "Desktop: 2560 x 1080 px (21:9 HD) | Mobile: 1080 x 1350 px (4:5 HD) | Video: 1080p MP4";
+    }
+    if (folder === IMAGEKIT_FOLDERS.products) {
+      return "1200 x 1200 px (1:1 HD Square) or 1500 x 1500 px";
+    }
+    if (folder === IMAGEKIT_FOLDERS.categories) {
+      return "1080 x 1080 px (1:1 HD)";
+    }
+    if (folder === IMAGEKIT_FOLDERS.collections) {
+      return "1200 x 800 px (3:2 HD)";
+    }
+    if (folder === IMAGEKIT_FOLDERS.stores) {
+      return "1200 x 800 px (3:2 HD)";
+    }
+    if (folder === IMAGEKIT_FOLDERS.branding) {
+      return "500 x 200 px (Transparent PNG/SVG)";
+    }
+    return "1920 x 1080 px or 1200 x 1200 px HD";
+  };
+
+  const effectiveDimensions = getDimensionHint();
 
   // Optimization Prompt States
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
@@ -97,10 +125,10 @@ export function ImageUploader({
           throw new Error(`File "${file.name}" is not a supported format.`);
         }
 
-        // Validate size (limit image to 5MB, video to 15MB)
-        const limitSize = isVideo ? 15 * 1024 * 1024 : 5 * 1024 * 1024;
+        // Validate size (allow high-definition images up to 25MB and HD videos up to 100MB)
+        const limitSize = isVideo ? 100 * 1024 * 1024 : 25 * 1024 * 1024;
         if (file.size > limitSize) {
-          throw new Error(`File "${file.name}" exceeds the allowed size limit.`);
+          throw new Error(`File "${file.name}" exceeds the allowed size limit (${isVideo ? '100MB for videos' : '25MB for images'}).`);
         }
 
         // Apply WebP conversion on client-side if selected & convertible
@@ -198,6 +226,12 @@ export function ImageUploader({
             <p className="text-[10px] text-stone-500">
               Select existing media (Images/Videos) or drag & drop to upload new
             </p>
+          </div>
+
+          {/* Explicit Recommended Dimension Badge */}
+          <div className="mt-1 inline-flex items-center gap-1.5 px-3 py-1 bg-amber-500/10 border border-amber-500/25 text-amber-300 text-[10px] font-mono rounded-full tracking-wide shadow-2xs">
+            <span className="font-bold uppercase text-amber-400">RECOMMENDED HD SIZE:</span>
+            <span className="text-stone-200 font-semibold">{effectiveDimensions}</span>
           </div>
         </div>
 

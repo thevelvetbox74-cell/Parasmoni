@@ -55,18 +55,47 @@ export function getOptimizedShowroomUrl(
   transformations: {
     width?: number;
     height?: number;
-    quality?: number; // 1 to 100 (e.g. 80 for great balance)
+    quality?: number; // 1 to 100 (defaults to 95 for pristine HD fidelity)
     blur?: number;
     cropMode?: 'pad' | 'force' | 'maintain' | 'extract';
   } = {}
 ): string {
   if (!path) return '';
 
+  // Return base64 data URLs or local object blob URLs unmodified
+  if (path.startsWith('data:') || path.startsWith('blob:')) {
+    return path;
+  }
+
   const lowerPath = path.toLowerCase().split('?')[0];
   const isVideo = lowerPath.endsWith('.mp4') || lowerPath.endsWith('.mov') || lowerPath.endsWith('.webm') || lowerPath.endsWith('.m4v');
 
-  // Return immediately if it's already a fully qualified external URL
-  if (path.startsWith('http://') || path.startsWith('https://')) {
+  // If video asset, return pristine raw source without query strings to guarantee full native resolution playback
+  if (isVideo) {
+    return path.split('?')[0];
+  }
+
+  // Enhance Unsplash image URLs for HD/4K display without compression artifacts
+  if (path.includes('images.unsplash.com')) {
+    const baseUrl = path.split('?')[0];
+    const targetWidth = transformations.width ? Math.max(transformations.width, 2400) : 2400;
+    const targetQuality = transformations.quality || 95;
+    return `${baseUrl}?auto=format&fit=crop&q=${targetQuality}&w=${targetWidth}`;
+  }
+
+  // Handle full ImageKit URLs (e.g. https://ik.imagekit.io/...)
+  if (path.includes('ik.imagekit.io') || path.startsWith('http://') || path.startsWith('https://')) {
+    if (path.includes('ik.imagekit.io')) {
+      const baseUrl = path.split('?')[0];
+      const trParams: string[] = [];
+      if (transformations.width) trParams.push(`w-${transformations.width}`);
+      if (transformations.height) trParams.push(`h-${transformations.height}`);
+      trParams.push(`q-${transformations.quality || 95}`);
+      if (transformations.blur) trParams.push(`bl-${transformations.blur}`);
+      if (transformations.cropMode) trParams.push(`cm-${transformations.cropMode}`);
+      trParams.push('f-auto');
+      return `${baseUrl}?tr=${trParams.join(',')}`;
+    }
     return path;
   }
 
@@ -77,24 +106,12 @@ export function getOptimizedShowroomUrl(
   const endpoint = imageKitClientConfig.urlEndpoint.replace(/\/$/, '');
   const cleanPath = path.replace(/^\//, '');
 
-  if (isVideo) {
-    // For videos, do not apply any image conversions like f-auto as they break HTML5 video tags
-    return `${endpoint}/${cleanPath}`;
-  }
-
   const trParams: string[] = [];
-
   if (transformations.width) trParams.push(`w-${transformations.width}`);
   if (transformations.height) trParams.push(`h-${transformations.height}`);
-  if (transformations.quality) {
-    trParams.push(`q-${transformations.quality}`);
-  } else {
-    trParams.push('q-80'); // Standard high-fidelity showroom compression
-  }
+  trParams.push(`q-${transformations.quality || 95}`);
   if (transformations.blur) trParams.push(`bl-${transformations.blur}`);
   if (transformations.cropMode) trParams.push(`cm-${transformations.cropMode}`);
-
-  // Auto-convert to next-gen formats (WebP/AVIF) and progressive loading
   trParams.push('f-auto');
 
   const queryParam = trParams.length > 0 ? `?tr=${trParams.join(',')}` : '';

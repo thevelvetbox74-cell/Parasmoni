@@ -21,7 +21,7 @@ export function isImageFile(file: File): boolean {
  * Converts any raster image File object to WebP format client-side using Canvas API.
  * Preserves the file name but replaces the extension with .webp.
  */
-export function convertToWebP(file: File, quality = 0.85): Promise<File> {
+export function convertToWebP(file: File, quality = 0.98): Promise<File> {
   return new Promise((resolve, reject) => {
     if (isSvgFile(file)) {
       // SVG shouldn't be converted as it is vector, resolve with original
@@ -44,8 +44,12 @@ export function convertToWebP(file: File, quality = 0.85): Promise<File> {
             return;
           }
           
-          // Draw image to canvas
-          ctx.drawImage(img, 0, 0);
+          // Enable max fidelity image smoothing
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = 'high';
+
+          // Draw image to canvas at full resolution
+          ctx.drawImage(img, 0, 0, img.width, img.height);
           
           canvas.toBlob(
             (blob) => {

@@ -3458,7 +3458,7 @@ export function Home({
             const isSelected = selectedSectionId === section.id;
             return (
               <div 
-                key={section.id || index}
+                key={section.id ? `${section.id}-${index}` : `section-${index}`}
                 onClick={(e) => {
                   if (isBuilder) {
                     e.preventDefault();

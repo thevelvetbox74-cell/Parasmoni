@@ -3847,7 +3847,7 @@ export function SectionEditorPanel({
                       const isInactive = s.status === 'inactive';
                       return (
                         <div 
-                          key={s.id || index}
+                          key={s.id ? `${s.id}-${index}` : `slide-${index}`}
                           className={`flex items-center gap-3 p-2 bg-stone-950 border rounded-lg transition-all ${
                             isInactive ? 'border-stone-900 opacity-60' : 'border-stone-850 hover:border-stone-800'
                           }`}

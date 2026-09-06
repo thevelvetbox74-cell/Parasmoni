@@ -88,6 +88,20 @@
     background-size: 200% auto;
     animation: gold-shimmer 4s linear infinite;
   }
+  .image-crisp-hd {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+  }
+}
+
+img, video {
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+#showroom-banner-slider img,
+#showroom-banner-slider video {
+  image-rendering: -webkit-optimize-contrast;
 }
 
 /* Custom CSS Scrollbars and Typography Layout details */

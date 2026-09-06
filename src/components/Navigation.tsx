@@ -241,7 +241,7 @@ export function Navigation({
         {/* Logo Section */}
         <Link to="/" className="flex items-center gap-2.5 hover:opacity-95 transition-opacity shrink-0" onClick={() => setMobileMenuOpen(false)}>
           <img 
-            src={settings.logoUrl} 
+            src={settings.logoUrl || undefined} 
             alt={`${settings.brandName} Logo`} 
             className="h-10 w-auto object-contain"
             referrerPolicy="no-referrer"
