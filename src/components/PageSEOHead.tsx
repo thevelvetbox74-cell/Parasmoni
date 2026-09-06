@@ -23,14 +23,19 @@ interface PageSEOHeadProps {
 export function PageSEOHead({
   seo,
   pageTitle,
-  defaultDescription = 'Discover handcrafted 925 sterling silver and hallmarked gold jewellery at VelvetBox / Parasmoni Jewellers. Shop bridal sets, polki, bangles, and diamond settings.',
+  defaultDescription = 'Parasmoni Jewellers & Brothers – a trusted West Bengal gold jewellery showroom established in 1974. Discover handcrafted gold jewellery, bridal collections, and traditional Bengali designs crafted with authenticity and heritage craftsmanship.',
   defaultOgImage = 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&q=80&w=1200'
 }: PageSEOHeadProps): null {
   useEffect(() => {
-    const title = seo?.title?.trim() || (pageTitle ? `${pageTitle} | VelvetBox Parasmoni Jewellers` : 'VelvetBox | Premium Sterling Silver & Gold Jewellery');
+    const title = seo?.title?.trim() || (pageTitle ? `${pageTitle} | Parasmoni Jewellers & Brothers` : 'Parasmoni Jewellers & Brothers | Premium Gold Jewellery Showroom Since 1974');
     const description = seo?.description?.trim() || defaultDescription;
     const ogImage = seo?.ogImage?.trim() || defaultOgImage;
-    const url = typeof window !== 'undefined' ? window.location.href : 'https://velvetbox.in';
+    
+    let url = 'https://parasmoni.in';
+    if (typeof window !== 'undefined') {
+      const pathname = window.location.pathname;
+      url = `https://parasmoni.in${pathname === '/' ? '' : pathname}`;
+    }
 
     // 1. Update document title
     document.title = title;
@@ -67,7 +72,7 @@ export function PageSEOHead({
     setMetaTag('property', 'og:description', description);
     setMetaTag('property', 'og:image', ogImage);
     setMetaTag('property', 'og:url', url);
-    setMetaTag('property', 'og:site_name', 'VelvetBox Jewellers');
+    setMetaTag('property', 'og:site_name', 'Parasmoni Jewellers & Brothers');
 
     // 4. Twitter Card Meta Tags
     setMetaTag('name', 'twitter:card', 'summary_large_image');

@@ -48,7 +48,7 @@
   --color-cream-400: #deca96;
 
   /* Typography Families */
-  --font-serif: "Playfair Display", Georgia, serif;
+  --font-serif: "Cormorant Garamond", "Playfair Display", Georgia, serif;
   --font-display: "Cinzel", "Times New Roman", serif;
   --font-sans: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
   
@@ -94,7 +94,7 @@
 body {
   background-color: var(--color-cream-50);
   color: var(--color-stone-800);
-  font-family: var(--font-sans);
+  font-family: var(--font-serif);
   -webkit-font-smoothing: antialiased;
 }
 
@@ -105,4 +105,9 @@ h1, h2, h3, h4, .font-serif {
 .font-display {
   font-family: var(--font-display);
   letter-spacing: 0.07em;
+}
+
+.font-sans, .font-mono, .font-number, [data-numeric="true"], .price, .rate, .weight, .ticker {
+  font-family: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif !important;
+  font-variant-numeric: tabular-nums !important;
 }

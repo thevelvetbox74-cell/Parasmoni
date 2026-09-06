@@ -4,9 +4,34 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { Navigation } from './components/Navigation';
 import { Footer } from './components/Footer';
+
+function ConditionalFooter(): React.JSX.Element | null {
+  const location = useLocation();
+  const path = location.pathname.toLowerCase();
+
+  // Hide footer on product details pages and product category / catalog pages
+  const isProductPage = path.startsWith('/product/') || path.startsWith('/products/');
+  const isCategoryPage = 
+    path === '/catalog' || 
+    path === '/collections' || 
+    path.startsWith('/collections/') || 
+    path.startsWith('/category/') || 
+    path === '/jewellery';
+
+  if (isProductPage || isCategoryPage) {
+    return null;
+  }
+
+  return (
+    <div className="hidden md:block">
+      <Footer />
+    </div>
+  );
+}
+import { BottomNavigation } from './components/BottomNavigation';
 import { MetalPriceBar } from './components/ShowroomComponents';
 import { mockMetalPrices } from './data/mockData';
 import { Home } from './pages/Home';
@@ -15,6 +40,8 @@ import { ProductDetails } from './pages/ProductDetails';
 import { Stores } from './pages/Stores';
 import { Contact } from './pages/Contact';
 import { CustomPage } from './pages/CustomPage';
+import { Wishlist } from './pages/Wishlist';
+import { Profile } from './pages/Profile';
 import { AdminLayout } from './admin/AdminLayout';
 import { db, isFirebaseConfigured } from './firebase/config';
 import { collection, onSnapshot } from 'firebase/firestore';
@@ -96,7 +123,7 @@ export default function App(): React.JSX.Element {
                 <>
                   <MetalPriceBar prices={metalPrices} />
                   <Navigation />
-                  <div className="flex-1">
+                  <div className="flex-1 pb-20 md:pb-0">
                     <Routes>
                       <Route path="/" element={<Home />} />
                       <Route path="/catalog" element={<Catalog />} />
@@ -110,13 +137,16 @@ export default function App(): React.JSX.Element {
                       <Route path="/our-stores" element={<Stores />} />
                       <Route path="/contact" element={<Contact />} />
                       <Route path="/inquire" element={<Contact />} />
+                      <Route path="/wishlist" element={<Wishlist />} />
+                      <Route path="/profile" element={<Profile />} />
                       <Route path="/pages/:slug" element={<CustomPage />} />
                       <Route path="/pages" element={<Home />} />
                       {/* Fallback redirection to home */}
                       <Route path="*" element={<Home />} />
                     </Routes>
                   </div>
-                  <Footer />
+                  <ConditionalFooter />
+                  <BottomNavigation />
                 </>
               }
             />

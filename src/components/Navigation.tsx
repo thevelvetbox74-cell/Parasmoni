@@ -17,12 +17,14 @@ import {
   Clock,
   Calendar,
   Compass,
-  MessageCircle
+  MessageCircle,
+  Heart
 } from 'lucide-react';
 import { useWebsiteSettings } from '../context/WebsiteSettingsContext';
 import { db } from '../firebase/config';
 import { collection, getDocs, query } from 'firebase/firestore';
 import { mockWebsiteSettings } from '../data/mockSettings';
+import { getWishlist } from '../utils/wishlistHelper';
 
 export function Navigation({ 
   customNavItems, 
@@ -44,7 +46,22 @@ export function Navigation({
   const [selectedStore, setSelectedStore] = useState<any | null>(null);
   const [loadingStores, setLoadingStores] = useState(true);
   const [activeMobileAccordion, setActiveMobileAccordion] = useState<string | null>(null);
+  const [wishlistCount, setWishlistCount] = useState(0);
   const navigate = useNavigate();
+
+  // Sync wishlist badge count in real-time
+  useEffect(() => {
+    setWishlistCount(getWishlist().length);
+
+    const handleSync = () => {
+      setWishlistCount(getWishlist().length);
+    };
+
+    window.addEventListener('wishlist-updated', handleSync);
+    return () => {
+      window.removeEventListener('wishlist-updated', handleSync);
+    };
+  }, []);
 
   // Listen to escape key to close store locator panel
   useEffect(() => {
@@ -356,6 +373,21 @@ export function Navigation({
           >
             <Search className="w-5 h-5" />
           </button>
+
+          {/* Desktop/Tablet Wishlist Heart Icon */}
+          <Link 
+            to="/wishlist"
+            className="p-2 text-white/90 hover:text-white transition-colors cursor-pointer relative"
+            aria-label="Wishlist"
+            id="header-wishlist-btn"
+          >
+            <Heart className={`w-5 h-5 transition-all ${wishlistCount > 0 ? 'fill-white text-white scale-110' : ''}`} />
+            {wishlistCount > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white font-sans text-[8px] font-extrabold w-4 h-4 rounded-full border border-brand-red-600 flex items-center justify-center shadow-xs">
+                {wishlistCount}
+              </span>
+            )}
+          </Link>
 
           {/* Store Locator Icon replacing Shopping Bag */}
           <button 

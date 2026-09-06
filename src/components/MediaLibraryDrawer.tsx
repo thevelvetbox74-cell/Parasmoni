@@ -8,6 +8,8 @@ import { motion, AnimatePresence } from 'motion/react';
 import { db, isFirebaseConfigured } from '../firebase/config';
 import { collection, getDocs, doc, setDoc, getDoc, deleteDoc, updateDoc } from 'firebase/firestore';
 import { uploadToImageKit } from '../imagekit/upload';
+import { isSvgFile, convertToWebP } from '../utils/imageConverter';
+import { UploadChoiceModal } from './UploadChoiceModal';
 import { IMAGEKIT_FOLDERS } from '../imagekit/client';
 import { 
   X, 
@@ -61,6 +63,10 @@ export function MediaLibraryDrawer({
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadError, setUploadError] = useState<string | null>(null);
+
+  // Image Optimization Choice States
+  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+  const [isChoiceModalOpen, setIsChoiceModalOpen] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -313,10 +319,45 @@ export function MediaLibraryDrawer({
       return;
     }
 
+    if (isImageFile) {
+      setPendingFiles([file]);
+      setIsChoiceModalOpen(true);
+    } else {
+      executeUploadDirect([file], 'raw');
+    }
+  };
+
+  const handleChoiceDecision = async (mode: 'raw' | 'webp') => {
+    setIsChoiceModalOpen(false);
+    const filesToUpload = [...pendingFiles];
+    setPendingFiles([]);
+    await executeUploadDirect(filesToUpload, mode);
+  };
+
+  const handleChoiceCancel = () => {
+    setIsChoiceModalOpen(false);
+    setPendingFiles([]);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const executeUploadDirect = async (filesToUpload: File[], mode: 'raw' | 'webp') => {
+    if (filesToUpload.length === 0) return;
+    let file = filesToUpload[0];
+    const isVideoFile = file.type.startsWith('video/');
+    const isImageFile = file.type.startsWith('image/');
+
     try {
       setUploading(true);
       setUploadProgress(20);
       setUploadError(null);
+
+      // Perform conversion if applicable
+      if (mode === 'webp' && isImageFile && !isSvgFile(file)) {
+        setUploadProgress(40);
+        file = await convertToWebP(file);
+      }
 
       // Perform direct ImageKit upload
       const result = await uploadToImageKit(file, defaultFolder);
@@ -352,6 +393,10 @@ export function MediaLibraryDrawer({
       console.error('File upload failed inside drawer:', err);
       setUploadError(err.message || 'Failed to complete media upload.');
       setUploading(false);
+    } finally {
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
   };
 
@@ -692,6 +737,14 @@ export function MediaLibraryDrawer({
           </motion.div>
         </div>
       )}
+
+      {/* Image Optimization Selector Modal for Direct Drawer Uploads */}
+      <UploadChoiceModal
+        isOpen={isChoiceModalOpen}
+        files={pendingFiles}
+        onChoose={handleChoiceDecision}
+        onCancel={handleChoiceCancel}
+      />
     </AnimatePresence>
   );
 }

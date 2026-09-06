@@ -48,16 +48,16 @@ export function PageSeoDrawer({
   const isHome = pageId === 'home' || initialSeo?.slug === 'home' || pageName.toLowerCase() === 'home page';
 
   const defaultTitle = isHome 
-    ? 'Premium Sterling Silver Jewelry | VelvetBox Official'
-    : `${pageName} | VelvetBox Parasmoni Jewellers`;
+    ? 'Parasmoni Jewellers & Brothers | Premium Gold Jewellery Showroom Since 1974'
+    : `${pageName} | Parasmoni Jewellers & Brothers`;
 
   const defaultSlug = isHome 
     ? 'home' 
     : (pageName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'page');
 
   const defaultDesc = isHome
-    ? 'Shop premium sterling silver jewelry at VelvetBox. Discover rings, necklaces, earrings, and bracelets with timeless designs, brilliant finish, and pure hallmark silver.'
-    : `Explore exclusive ${pageName} jewellery collection at VelvetBox. Handcrafted designs in sterling silver and hallmarked gold.`;
+    ? 'Parasmoni Jewellers & Brothers – a trusted West Bengal gold jewellery showroom established in 1974. Discover handcrafted gold jewellery, bridal collections, and traditional Bengali designs crafted with authenticity and heritage craftsmanship.'
+    : `Explore exclusive ${pageName} jewellery collection at Parasmoni Jewellers & Brothers. Handcrafted designs in pure 22K gold, bridal diamond settings, and heritage Bengali craftsmanship.`;
 
   const defaultOgImage = 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&q=80&w=1200';
 
@@ -115,8 +115,8 @@ export function PageSeoDrawer({
 
   // Compute live URL for preview
   const displayUrl = isHome
-    ? 'https://velvetbox.in'
-    : `https://velvetbox.in/pages/${slug || 'your-page-slug'}`;
+    ? 'https://parasmoni.in'
+    : `https://parasmoni.in/pages/${slug || 'your-page-slug'}`;
 
   // Character thresholds
   const titleCharCount = title.length;
@@ -200,7 +200,7 @@ export function PageSeoDrawer({
 
               {/* Blue clickable Title Link */}
               <div className="text-base font-semibold text-blue-400 hover:text-blue-300 hover:underline cursor-pointer leading-snug line-clamp-1">
-                {title || 'Page Title Placeholder | VelvetBox'}
+                {title || 'Page Title Placeholder | Parasmoni Jewellers & Brothers'}
               </div>
 
               {/* Snippet Description */}
@@ -236,7 +236,7 @@ export function PageSeoDrawer({
 
               <div className="flex-1 min-w-0 space-y-1">
                 <span className="block text-[9px] font-bold uppercase tracking-wider text-stone-500 font-mono">
-                  VELVETBOX.IN
+                  PARASMONI.IN
                 </span>
                 <h4 className="text-xs font-bold text-stone-200 line-clamp-1 leading-snug">
                   {title || 'Page Title'}
@@ -270,7 +270,7 @@ export function PageSeoDrawer({
                 type="text"
                 value={title}
                 onChange={(e) => handleTitleChange(e.target.value)}
-                placeholder="e.g. Premium Sterling Silver Jewelry | VelvetBox Official"
+                placeholder="e.g. Parasmoni Jewellers & Brothers | Premium Gold Jewellery Showroom Since 1974"
                 className="w-full px-3.5 py-2.5 bg-stone-950 border border-stone-800 rounded-lg text-xs text-stone-100 placeholder-stone-600 focus:outline-none focus:border-amber-500 transition-colors"
                 id="input-seo-title"
               />
@@ -294,7 +294,7 @@ export function PageSeoDrawer({
               </div>
               <div className="flex rounded-lg overflow-hidden border border-stone-800 bg-stone-950 focus-within:border-amber-500 transition-colors">
                 <span className="px-3 py-2.5 bg-stone-900 text-stone-400 text-xs font-mono select-none border-r border-stone-800 shrink-0">
-                  velvetbox.in/{isHome ? '' : 'pages/'}
+                  parasmoni.in/{isHome ? '' : 'pages/'}
                 </span>
                 <input 
                   type="text"

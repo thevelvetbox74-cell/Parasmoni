@@ -88,7 +88,7 @@ export function AdminLogin(): React.JSX.Element {
         }, 1000);
       } else {
         // Mock Bypass Auth for local preview and development
-        // Accept any credentials, with 'admin@parasmoni.com'/'admin123' as the highlighted helper
+        // Accept any credentials, with 'admin@parasmoni.in'/'admin123' as the highlighted helper
         const normalizedEmail = email.trim();
         const fallbackName = normalizedEmail.split('@')[0].toUpperCase();
         lockAdminSession({ email: normalizedEmail, name: `${fallbackName} (Showroom Manager)` });
@@ -186,7 +186,7 @@ export function AdminLogin(): React.JSX.Element {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@parasmoni.com"
+                placeholder="admin@parasmoni.in"
                 disabled={loading || success}
                 className="w-full bg-stone-900 border border-stone-800 text-stone-100 placeholder-stone-600 rounded p-3 focus:outline-hidden focus:border-amber-500 focus:bg-stone-900/50 transition-all font-mono"
               />
@@ -275,7 +275,7 @@ export function AdminLogin(): React.JSX.Element {
                   Firebase configuration variables are missing. Log in using our local bypass keys:
                 </p>
                 <div className="bg-stone-900/50 p-2 rounded border border-stone-800/80 font-mono text-[10px] space-y-0.5 text-stone-300">
-                  <div><span className="text-stone-500">Email:</span> admin@parasmoni.com</div>
+                  <div><span className="text-stone-500">Email:</span> admin@parasmoni.in</div>
                   <div><span className="text-stone-500">Pass:</span> admin123</div>
                 </div>
               </div>

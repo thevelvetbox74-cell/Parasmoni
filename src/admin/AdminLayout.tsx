@@ -24,6 +24,7 @@ import { AdminSeo } from './AdminSeo';
 import { AdminStorefront } from './AdminStorefront';
 import { AdminPages } from './AdminPages';
 import { AdminFooter } from './AdminFooter';
+import { AdminTestimonials } from './AdminTestimonials';
 import { 
   LayoutDashboard, 
   Gem, 
@@ -155,6 +156,12 @@ export function AdminLayout({ children }: { children: React.ReactNode }): React.
       path: '/admin/enquiries', 
       icon: MessageSquare,
       description: 'Review and reply to leads logged from site.' 
+    },
+    { 
+      label: 'Testimonials', 
+      path: '/admin/testimonials', 
+      icon: MessageSquare,
+      description: 'Manage genuine customer review cards with ratings & linked products.' 
     },
     { 
       label: 'Website Settings', 
@@ -417,6 +424,8 @@ export function AdminLayout({ children }: { children: React.ReactNode }): React.
                 <AdminStores />
               ) : location.pathname === '/admin/enquiries' ? (
                 <AdminEnquiries />
+              ) : location.pathname === '/admin/testimonials' ? (
+                <AdminTestimonials />
               ) : location.pathname === '/admin/settings' ? (
                 <AdminSettings />
               ) : location.pathname === '/admin/media' ? (

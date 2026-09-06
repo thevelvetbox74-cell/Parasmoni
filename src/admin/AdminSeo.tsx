@@ -36,14 +36,15 @@ export function AdminSeo(): React.JSX.Element {
 
   // Form Fields State
   const [formData, setFormData] = useState({
-    siteTitle: 'Parasmoni Jewellers & Brothers | Traditional Kolkata Gold Jewellery Since 1974',
-    metaDescription: 'Discover legacy-grade 22K gold chokers, certified Polki gemstones, and Kolkata Nakashi bangles handcrafted by master Bengali goldsmiths.',
+    siteTitle: 'Parasmoni Jewellers & Brothers | Premium Gold Jewellery Showroom Since 1974',
+    metaDescription: 'Parasmoni Jewellers & Brothers – a trusted West Bengal gold jewellery showroom established in 1974. Discover handcrafted gold jewellery, bridal collections, and traditional Bengali designs crafted with authenticity and heritage craftsmanship.',
     defaultOgImage: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&q=80&w=1200',
-    metaKeywords: 'gold jewellery, kolkata goldsmith, bridal neck set, royal polki, certified solitaires, bowbazar jewellers, 22k gold rate',
+    metaKeywords: 'gold jewellery, kolkata goldsmith, bridal neck set, royal polki, certified solitaires, bowbazar jewellers, 22k gold rate, parasmoni jewellers',
     author: 'Parasmoni Jewellers & Brothers',
     googleVerificationId: '',
     enableSitemap: true,
-    enableIndex: true
+    enableIndex: true,
+    siteUrl: 'https://parasmoni.in'
   });
 
   // Load defaults on mount
@@ -53,11 +54,33 @@ export function AdminSeo(): React.JSX.Element {
         setLoading(true);
         setErrorMsg(null);
 
+        const correctDefaults = {
+          siteTitle: 'Parasmoni Jewellers & Brothers | Premium Gold Jewellery Showroom Since 1974',
+          metaDescription: 'Parasmoni Jewellers & Brothers – a trusted West Bengal gold jewellery showroom established in 1974. Discover handcrafted gold jewellery, bridal collections, and traditional Bengali designs crafted with authenticity and heritage craftsmanship.',
+          defaultOgImage: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&q=80&w=1200',
+          metaKeywords: 'gold jewellery, kolkata goldsmith, bridal neck set, royal polki, certified solitaires, bowbazar jewellers, 22k gold rate, parasmoni jewellers',
+          author: 'Parasmoni Jewellers & Brothers',
+          googleVerificationId: '',
+          enableSitemap: true,
+          enableIndex: true,
+          siteUrl: 'https://parasmoni.in'
+        };
+
         if (!isFirebaseConfigured || !db) {
           // Local storage fallback
           const localSeo = localStorage.getItem('parasmoni_global_seo');
           if (localSeo) {
-            setFormData(JSON.parse(localSeo));
+            const parsed = JSON.parse(localSeo);
+            // Self-heal local storage
+            if (/velvetbox/i.test(parsed.siteTitle || '') || /velvetbox/i.test(parsed.metaDescription || '') || /parasmoni\.com/i.test(parsed.siteTitle || '')) {
+              localStorage.setItem('parasmoni_global_seo', JSON.stringify(correctDefaults));
+              setFormData(correctDefaults);
+            } else {
+              setFormData(parsed);
+            }
+          } else {
+            localStorage.setItem('parasmoni_global_seo', JSON.stringify(correctDefaults));
+            setFormData(correctDefaults);
           }
           setLoading(false);
           return;
@@ -68,14 +91,33 @@ export function AdminSeo(): React.JSX.Element {
 
         if (docSnap.exists()) {
           const data = docSnap.data();
-          setFormData(prev => ({
-            ...prev,
-            ...data
-          }));
+          // Self-heal Firestore database: Reset if containing old VelvetBox references or wrong domains
+          const needsReset = 
+            /velvetbox/i.test(data.siteTitle || '') || 
+            /velvetbox/i.test(data.metaDescription || '') ||
+            /velvetbox/i.test(data.canonicalUrl || '') ||
+            /parasmoni\.com/i.test(data.siteTitle || '') ||
+            /parasmoni\.com/i.test(data.metaDescription || '');
+
+          if (needsReset) {
+            console.log('Detected stale VelvetBox/parasmoni.com SEO records in DB. Executing automatic healing sync...');
+            await setDoc(docRef, {
+              ...correctDefaults,
+              updatedAt: new Date().toISOString(),
+              updatedBy: 'system-healing'
+            });
+            setFormData(correctDefaults);
+          } else {
+            setFormData(prev => ({
+              ...prev,
+              ...data
+            }));
+          }
         } else {
           // Provision initial seed document
           console.log('SEO config not found. Seeding initial defaults...');
-          await setDoc(docRef, formData);
+          await setDoc(docRef, correctDefaults);
+          setFormData(correctDefaults);
         }
       } catch (err: any) {
         console.error('Error fetching global SEO settings:', err);
@@ -381,7 +423,7 @@ export function AdminSeo(): React.JSX.Element {
             </h4>
             <div className="bg-stone-900 border border-stone-850 p-4 rounded font-sans text-xs space-y-1">
               <span className="text-[10px] text-stone-500 block truncate font-mono">
-                https://parasmonijewellers.com/
+                https://parasmoni.in/
               </span>
               <h4 className="text-sky-400 font-serif font-bold text-sm hover:underline cursor-pointer line-clamp-1">
                 {formData.siteTitle}

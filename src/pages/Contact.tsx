@@ -175,123 +175,139 @@ export function Contact(): React.JSX.Element {
   };
 
   return (
-    <div className="min-h-screen bg-stone-50 py-12 px-4 sm:px-6 lg:px-8 font-sans" id="showroom-contact-page">
-      <div className="max-w-6xl mx-auto space-y-12">
+    <div className="min-h-screen bg-[#FAF7F2] py-10 px-4 sm:px-6 lg:px-8 font-sans" id="showroom-contact-page">
+      <div className="max-w-6xl mx-auto space-y-10">
         
         {/* Title Header */}
-        <div className="text-center space-y-4 max-w-2xl mx-auto">
-          <span className="text-[10px] text-amber-700 font-bold tracking-widest uppercase block">Connect with our Artisans</span>
+        <div className="text-center space-y-3 max-w-2xl mx-auto">
+          <span className="text-[11px] text-[#B8860B] font-bold tracking-widest uppercase block font-sans">
+            CONNECT WITH OUR ARTISANS
+          </span>
           <h1 className="font-serif text-3xl sm:text-4xl font-bold text-stone-900 tracking-wide">
             Inquire & Consultation
           </h1>
-          <p className="text-stone-500 text-xs sm:text-sm leading-relaxed">
+          <p className="text-stone-600 text-xs sm:text-sm leading-relaxed max-w-xl mx-auto font-sans">
             Have questions about our signature works, custom jewellery designs, or want to schedule a virtual showroom tour? Reach out directly.
           </p>
         </div>
 
-        {/* Primary Contact Channels Strip (Top Highlights) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl mx-auto" id="primary-contact-ctas">
+        {/* Primary Contact Channels Strip (Top Highlights Matching Image) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl mx-auto" id="primary-contact-ctas">
           {/* WhatsApp Direct */}
           <a
             href={getWhatsAppLink()}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-center gap-3 bg-emerald-600 hover:bg-emerald-700 text-stone-50 text-xs font-bold tracking-widest uppercase transition-colors rounded p-4 shadow-xs cursor-pointer text-center"
+            className="flex items-center justify-center gap-2.5 bg-[#28A745] hover:bg-[#218838] text-white text-xs font-bold tracking-wider uppercase transition-all rounded-xl py-3.5 px-6 shadow-xs cursor-pointer text-center"
             id="whatsapp-direct-btn"
           >
-            <MessageCircle className="w-5 h-5 text-white" />
-            <div>
-              <span className="block text-left text-[9px] text-emerald-200 font-normal normal-case">Direct Artisan Link</span>
-              <span className="block">WhatsApp Chat</span>
-            </div>
+            <MessageCircle className="w-4 h-4 fill-white text-[#28A745]" />
+            <span>WHATSAPP CHAT</span>
           </a>
 
           {/* Hotline Dial */}
           <a
             href={`tel:${settings.contactNumber.replace(/[^0-9+]/g, '')}`}
-            className="flex items-center justify-center gap-3 bg-stone-900 hover:bg-stone-800 text-stone-50 text-xs font-bold tracking-widest uppercase transition-colors rounded p-4 cursor-pointer text-center"
+            className="flex items-center justify-center gap-2.5 bg-[#18181B] hover:bg-black text-white text-xs font-bold tracking-wider uppercase transition-all rounded-xl py-3.5 px-6 shadow-xs cursor-pointer text-center"
             id="phone-direct-btn"
           >
-            <Phone className="w-4.5 h-4.5 text-amber-400" />
-            <div>
-              <span className="block text-left text-[9px] text-stone-400 font-normal normal-case">Flagship Helpline</span>
-              <span className="block">Call Showroom Now</span>
-            </div>
+            <Phone className="w-4 h-4 text-amber-400" />
+            <span>CALL SHOWROOM NOW</span>
           </a>
         </div>
 
-        {/* Core Layout Split */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 bg-white border border-stone-200/80 rounded overflow-hidden p-6 sm:p-10 shadow-xs">
+        {/* Core Layout Split Card (Matching Image) */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 bg-white border border-stone-200/90 rounded-2xl overflow-hidden p-6 sm:p-10 shadow-sm">
           
           {/* Column A: Contact Information Panel (5/12) */}
-          <div className="lg:col-span-5 space-y-8 lg:pr-8 lg:border-r lg:border-stone-100" id="contact-info-panel">
-            <div className="space-y-2">
-              <span className="text-[10px] text-amber-700 font-bold tracking-widest uppercase block">Our Office</span>
-              <h3 className="font-serif text-lg font-bold text-stone-900">Showroom Details</h3>
-              <p className="text-stone-500 text-xs leading-relaxed font-sans">
+          <div className="lg:col-span-5 space-y-7 lg:pr-8 lg:border-r lg:border-stone-150" id="contact-info-panel">
+            <div className="space-y-1.5">
+              <span className="text-[10px] text-[#B8860B] font-bold tracking-widest uppercase block font-sans">
+                OUR OFFICE
+              </span>
+              <h3 className="font-serif text-xl sm:text-2xl font-bold text-stone-900">
+                Showroom Details
+              </h3>
+              <p className="text-stone-600 text-xs leading-relaxed font-sans">
                 Visit our signature locations in Kolkata for comprehensive consultations, real-time bullion estimations, and personalized customizations.
               </p>
             </div>
 
             {/* Spec Contact Info blocks */}
-            <div className="space-y-5 text-xs text-stone-600">
+            <div className="space-y-4 text-xs text-stone-700">
               
               {/* Address */}
-              <div className="flex gap-4 items-start">
-                <div className="w-8 h-8 rounded-full bg-stone-100 flex items-center justify-center shrink-0 border border-stone-200/50">
-                  <MapPin className="w-4 h-4 text-stone-700" />
+              <div className="flex gap-3.5 items-start">
+                <div className="w-8 h-8 rounded-full bg-[#FAF7F2] flex items-center justify-center shrink-0 border border-[#EAE1D0]">
+                  <MapPin className="w-4 h-4 text-[#B8860B]" />
                 </div>
                 <div>
-                  <h4 className="font-bold text-stone-800 uppercase tracking-wider text-[10px] mb-1">Showroom Address</h4>
-                  <p className="leading-relaxed font-sans">{settings.address}</p>
+                  <h4 className="font-bold text-stone-800 uppercase tracking-wider text-[10px] mb-0.5">
+                    SHOWROOM ADDRESS
+                  </h4>
+                  <p className="leading-relaxed font-sans text-stone-700">
+                    Prince Tower, 5th Floor, Bagnan, Mankur More, West Bengal, India, 711303
+                  </p>
                 </div>
               </div>
 
               {/* Telephone */}
-              <div className="flex gap-4 items-start">
-                <div className="w-8 h-8 rounded-full bg-stone-100 flex items-center justify-center shrink-0 border border-stone-200/50">
-                  <PhoneCall className="w-4 h-4 text-stone-700" />
+              <div className="flex gap-3.5 items-start">
+                <div className="w-8 h-8 rounded-full bg-[#FAF7F2] flex items-center justify-center shrink-0 border border-[#EAE1D0]">
+                  <PhoneCall className="w-4 h-4 text-[#B8860B]" />
                 </div>
                 <div>
-                  <h4 className="font-bold text-stone-800 uppercase tracking-wider text-[10px] mb-1">Customer Helpline</h4>
-                  <a href={`tel:${settings.contactNumber}`} className="font-mono text-stone-950 font-semibold hover:text-amber-700 transition-colors">
-                    {settings.contactNumber}
+                  <h4 className="font-bold text-stone-800 uppercase tracking-wider text-[10px] mb-0.5">
+                    CUSTOMER HELPLINE
+                  </h4>
+                  <a href={`tel:+917076599959`} className="font-bold text-stone-950 hover:text-[#B8860B] transition-colors">
+                    +91 7076599959
                   </a>
                 </div>
               </div>
 
               {/* Email Address */}
-              <div className="flex gap-4 items-start">
-                <div className="w-8 h-8 rounded-full bg-stone-100 flex items-center justify-center shrink-0 border border-stone-200/50">
-                  <Mail className="w-4 h-4 text-stone-700" />
+              <div className="flex gap-3.5 items-start">
+                <div className="w-8 h-8 rounded-full bg-[#FAF7F2] flex items-center justify-center shrink-0 border border-[#EAE1D0]">
+                  <Mail className="w-4 h-4 text-[#B8860B]" />
                 </div>
                 <div>
-                  <h4 className="font-bold text-stone-800 uppercase tracking-wider text-[10px] mb-1">Electronic Mail</h4>
-                  <a href={`mailto:${settings.emailAddress}`} className="font-sans text-stone-950 font-semibold hover:text-amber-700 transition-colors">
-                    {settings.emailAddress}
+                  <h4 className="font-bold text-stone-800 uppercase tracking-wider text-[10px] mb-0.5">
+                    ELECTRONIC MAIL
+                  </h4>
+                  <a href={`mailto:info.parasmoniofficial@gmail.com`} className="font-bold text-stone-950 hover:text-[#B8860B] transition-colors">
+                    info.parasmoniofficial@gmail.com
                   </a>
                 </div>
               </div>
 
               {/* Working Hours */}
-              <div className="flex gap-4 items-start">
-                <div className="w-8 h-8 rounded-full bg-stone-100 flex items-center justify-center shrink-0 border border-stone-200/50">
-                  <Clock className="w-4 h-4 text-stone-700" />
+              <div className="flex gap-3.5 items-start">
+                <div className="w-8 h-8 rounded-full bg-[#FAF7F2] flex items-center justify-center shrink-0 border border-[#EAE1D0]">
+                  <Clock className="w-4 h-4 text-[#B8860B]" />
                 </div>
                 <div>
-                  <h4 className="font-bold text-stone-800 uppercase tracking-wider text-[10px] mb-1">Business Hours</h4>
-                  <p className="font-sans leading-relaxed">{settings.workingHours}</p>
+                  <h4 className="font-bold text-stone-800 uppercase tracking-wider text-[10px] mb-0.5">
+                    BUSINESS HOURS
+                  </h4>
+                  <p className="font-sans leading-relaxed text-stone-700">
+                    Monday - Sunday: 11:30 AM - 8:00 PM
+                  </p>
                 </div>
               </div>
 
             </div>
 
-            {/* Quality seal */}
-            <div className="p-4 bg-amber-50/50 border border-amber-500/10 rounded flex items-start gap-3">
-              <Gem className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
-              <div>
-                <h4 className="text-[11px] font-bold text-stone-800 uppercase tracking-wider">Bespoke Design Requests</h4>
-                <p className="text-[10px] text-stone-500 mt-0.5 leading-relaxed">
+            {/* Quality seal card */}
+            <div className="p-4 bg-[#FAF7F2] border border-[#EAE1D0] rounded-xl flex items-start gap-3">
+              <div className="w-7 h-7 rounded-full bg-[#B8860B]/10 flex items-center justify-center shrink-0 mt-0.5 text-[#B8860B]">
+                <Gem className="w-4 h-4" />
+              </div>
+              <div className="space-y-1">
+                <h4 className="text-[10px] font-bold text-[#B8860B] uppercase tracking-wider">
+                  BESPOKE DESIGN REQUESTS
+                </h4>
+                <p className="text-[11px] text-stone-600 leading-relaxed font-sans">
                   Have a specific sketch or reference? Include the details in your message. Our expert artisans specialize in recreating custom bridal heirlooms, antique works, and lightweight designer pieces.
                 </p>
               </div>
@@ -299,27 +315,31 @@ export function Contact(): React.JSX.Element {
           </div>
 
           {/* Column B: Enquiry Submission Form (7/12) */}
-          <div className="lg:col-span-7 space-y-6" id="contact-form-pane">
+          <div className="lg:col-span-7 space-y-5" id="contact-form-pane">
             <div className="space-y-1">
-              <h3 className="font-serif text-lg font-bold text-stone-900">Send an Enquiry</h3>
-              <p className="text-stone-500 text-xs">Fill out the form below, and our dedicated customer relationship team will reach out to you within 24 business hours.</p>
+              <h3 className="font-serif text-xl sm:text-2xl font-bold text-stone-900">
+                Send an Enquiry
+              </h3>
+              <p className="text-stone-600 text-xs font-sans">
+                Fill out the form below, and our dedicated customer relationship team will reach out to you within 24 business hours.
+              </p>
             </div>
 
             {/* Submit Notification Cards */}
             {submitSuccess && (
-              <div className="p-4 bg-emerald-50 border border-emerald-500/20 text-emerald-900 rounded flex items-start gap-3" id="enquiry-success-alert">
+              <div className="p-4 bg-emerald-50 border border-emerald-500/20 text-emerald-900 rounded-xl flex items-start gap-3" id="enquiry-success-alert">
                 <CheckCircle className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
                 <div className="text-xs space-y-1">
                   <h4 className="font-bold uppercase tracking-wider text-[10px]">Enquiry Submitted Successfully!</h4>
                   <p className="leading-relaxed">
-                    Thank you for your interest in Parasmoni Jewellers. Your showroom inquiry has been securely logged under status **"New"**. Our jewelry experts will contact you shortly.
+                    Thank you for your interest in Parasmoni Jewellers. Your showroom inquiry has been logged. Our experts will contact you shortly.
                   </p>
                 </div>
               </div>
             )}
 
             {submitError && (
-              <div className="p-4 bg-red-50 border border-red-500/20 text-red-900 rounded flex items-start gap-3" id="enquiry-error-alert">
+              <div className="p-4 bg-red-50 border border-red-500/20 text-red-900 rounded-xl flex items-start gap-3" id="enquiry-error-alert">
                 <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
                 <div className="text-xs space-y-1">
                   <h4 className="font-bold uppercase tracking-wider text-[10px]">Submission Failed</h4>
@@ -335,8 +355,8 @@ export function Contact(): React.JSX.Element {
                 {/* Full Name */}
                 <div className="space-y-1">
                   <label htmlFor="name-input" className="font-bold text-stone-700 uppercase tracking-wider text-[10px] flex items-center gap-1">
-                    <User className="w-3 h-3 text-stone-400" />
-                    <span>Your Name <span className="text-red-500">*</span></span>
+                    <User className="w-3.5 h-3.5 text-stone-400" />
+                    <span>YOUR NAME <span className="text-red-500">*</span></span>
                   </label>
                   <input
                     type="text"
@@ -345,8 +365,8 @@ export function Contact(): React.JSX.Element {
                     value={formData.name}
                     onChange={handleInputChange}
                     placeholder="Enter your full name"
-                    className={`w-full bg-stone-50 text-stone-850 p-3 rounded border focus:outline-hidden focus:bg-white transition-all ${
-                      errors.name ? 'border-red-400 focus:border-red-500' : 'border-stone-200 focus:border-amber-600'
+                    className={`w-full bg-[#FAF7F2] text-stone-900 p-3 rounded-xl border focus:outline-none focus:bg-white transition-all ${
+                      errors.name ? 'border-red-400 focus:border-red-500' : 'border-[#E2D8C7] focus:border-[#B8860B]'
                     }`}
                   />
                   {errors.name && <p className="text-[10px] text-red-500 font-medium">{errors.name}</p>}
@@ -355,8 +375,8 @@ export function Contact(): React.JSX.Element {
                 {/* Phone Number */}
                 <div className="space-y-1">
                   <label htmlFor="phone-input" className="font-bold text-stone-700 uppercase tracking-wider text-[10px] flex items-center gap-1">
-                    <Phone className="w-3 h-3 text-stone-400" />
-                    <span>Phone Number <span className="text-red-500">*</span></span>
+                    <Phone className="w-3.5 h-3.5 text-stone-400" />
+                    <span>PHONE NUMBER <span className="text-red-500">*</span></span>
                   </label>
                   <input
                     type="tel"
@@ -365,8 +385,8 @@ export function Contact(): React.JSX.Element {
                     value={formData.phone}
                     onChange={handleInputChange}
                     placeholder="e.g. +91 98765 43210"
-                    className={`w-full bg-stone-50 text-stone-850 p-3 rounded border focus:outline-hidden focus:bg-white transition-all ${
-                      errors.phone ? 'border-red-400 focus:border-red-500' : 'border-stone-200 focus:border-amber-600'
+                    className={`w-full bg-[#FAF7F2] text-stone-900 p-3 rounded-xl border focus:outline-none focus:bg-white transition-all ${
+                      errors.phone ? 'border-red-400 focus:border-red-500' : 'border-[#E2D8C7] focus:border-[#B8860B]'
                     }`}
                   />
                   {errors.phone && <p className="text-[10px] text-red-500 font-medium">{errors.phone}</p>}
@@ -377,8 +397,8 @@ export function Contact(): React.JSX.Element {
                 {/* Email Address */}
                 <div className="space-y-1">
                   <label htmlFor="email-input" className="font-bold text-stone-700 uppercase tracking-wider text-[10px] flex items-center gap-1">
-                    <Mail className="w-3 h-3 text-stone-400" />
-                    <span>Email Address <span className="text-red-500">*</span></span>
+                    <Mail className="w-3.5 h-3.5 text-stone-400" />
+                    <span>EMAIL ADDRESS <span className="text-red-500">*</span></span>
                   </label>
                   <input
                     type="email"
@@ -387,8 +407,8 @@ export function Contact(): React.JSX.Element {
                     value={formData.email}
                     onChange={handleInputChange}
                     placeholder="Enter your email address"
-                    className={`w-full bg-stone-50 text-stone-850 p-3 rounded border focus:outline-hidden focus:bg-white transition-all ${
-                      errors.email ? 'border-red-400 focus:border-red-500' : 'border-stone-200 focus:border-amber-600'
+                    className={`w-full bg-[#FAF7F2] text-stone-900 p-3 rounded-xl border focus:outline-none focus:bg-white transition-all ${
+                      errors.email ? 'border-red-400 focus:border-red-500' : 'border-[#E2D8C7] focus:border-[#B8860B]'
                     }`}
                   />
                   {errors.email && <p className="text-[10px] text-red-500 font-medium">{errors.email}</p>}
@@ -397,8 +417,8 @@ export function Contact(): React.JSX.Element {
                 {/* Product Code (Optional, Prefillable) */}
                 <div className="space-y-1">
                   <label htmlFor="productCode-input" className="font-bold text-stone-700 uppercase tracking-wider text-[10px] flex items-center gap-1">
-                    <FileText className="w-3 h-3 text-stone-400" />
-                    <span>Product Code <span className="text-stone-400 font-normal italic">(Optional)</span></span>
+                    <FileText className="w-3.5 h-3.5 text-stone-400" />
+                    <span>PRODUCT CODE <span className="text-stone-400 font-normal italic">(OPTIONAL)</span></span>
                   </label>
                   <input
                     type="text"
@@ -407,7 +427,7 @@ export function Contact(): React.JSX.Element {
                     value={formData.productCode}
                     onChange={handleInputChange}
                     placeholder="e.g. PM-GOLD-SET-01"
-                    className="w-full bg-stone-50 text-stone-850 p-3 rounded border border-stone-200 focus:outline-hidden focus:border-amber-600 focus:bg-white transition-all"
+                    className="w-full bg-[#FAF7F2] text-stone-900 p-3 rounded-xl border border-[#E2D8C7] focus:outline-none focus:border-[#B8860B] focus:bg-white transition-all"
                   />
                 </div>
               </div>
@@ -415,17 +435,17 @@ export function Contact(): React.JSX.Element {
               {/* Message */}
               <div className="space-y-1">
                 <label htmlFor="message-input" className="font-bold text-stone-700 uppercase tracking-wider text-[10px]">
-                  Message / Inquiry Details <span className="text-red-500">*</span>
+                  MESSAGE / INQUIRY DETAILS <span className="text-red-500">*</span>
                 </label>
                 <textarea
                   id="message-input"
                   name="message"
                   value={formData.message}
                   onChange={handleInputChange}
-                  rows={5}
+                  rows={4}
                   placeholder="Describe what you are looking for (e.g. metal purity, weight preferences, design customization requests, or timeline)"
-                  className={`w-full bg-stone-50 text-stone-850 p-3 rounded border focus:outline-hidden focus:bg-white transition-all resize-y ${
-                    errors.message ? 'border-red-400 focus:border-red-500' : 'border-stone-200 focus:border-amber-600'
+                  className={`w-full bg-[#FAF7F2] text-stone-900 p-3 rounded-xl border focus:outline-none focus:bg-white transition-all resize-y ${
+                    errors.message ? 'border-red-400 focus:border-red-500' : 'border-[#E2D8C7] focus:border-[#B8860B]'
                   }`}
                 />
                 {errors.message && <p className="text-[10px] text-red-500 font-medium">{errors.message}</p>}
@@ -435,18 +455,18 @@ export function Contact(): React.JSX.Element {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full inline-flex items-center justify-center gap-2 bg-stone-900 hover:bg-stone-800 disabled:bg-stone-400 text-stone-50 text-xs font-bold tracking-widest uppercase transition-colors rounded py-3.5 cursor-pointer"
+                className="w-full inline-flex items-center justify-center gap-2 bg-[#18181B] hover:bg-black disabled:bg-stone-400 text-white text-xs font-bold tracking-widest uppercase transition-all rounded-xl py-3.5 cursor-pointer shadow-xs active:scale-[0.99]"
                 id="submit-enquiry-btn"
               >
                 {isSubmitting ? (
                   <>
-                    <div className="w-4 h-4 border-2 border-stone-100 border-t-transparent rounded-full animate-spin" />
-                    <span>Submitting Enquiry...</span>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <span>SUBMITTING ENQUIRY...</span>
                   </>
                 ) : (
                   <>
-                    <Send className="w-3.5 h-3.5" />
-                    <span>Submit Enquiry</span>
+                    <Send className="w-3.5 h-3.5 text-white" />
+                    <span>SUBMIT ENQUIRY</span>
                   </>
                 )}
               </button>

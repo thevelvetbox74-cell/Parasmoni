@@ -31,7 +31,11 @@
         "imageUrl": { "type": "string", "description": "Primary showcase image URL" },
         "featured": { "type": "boolean", "description": "Flag to showcase in featured grids" },
         "newArrival": { "type": "boolean", "description": "Flag to showcase in new arrivals" },
-        "status": { "type": "string", "enum": ["published", "draft"], "description": "Inventory visibility" }
+        "status": { "type": "string", "enum": ["published", "draft"], "description": "Inventory visibility" },
+        "badgeLabel": { "type": "string", "description": "Corner badge custom text e.g. BEST SELLER" },
+        "badgeColor": { "type": "string", "description": "Hex color code for corner badge background e.g. #856404" },
+        "rating": { "type": "number", "description": "Visual rating out of 5 e.g. 4.5" },
+        "reviewCount": { "type": "integer", "description": "Visual review count display e.g. 256" }
       },
       "required": ["name", "sku", "category", "metalType", "approxWeight", "imageUrl", "status"]
     },

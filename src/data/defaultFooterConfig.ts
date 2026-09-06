@@ -124,7 +124,7 @@ export const DEFAULT_FOOTER_CONFIG: FooterConfig = {
   appBlockTitleFontSize: 'text-base',
   appBlockTitleColor: '#f59e0b', // amber-500/gold
   logoUrl: '', // blank defaults to original settings.logoUrl
-  qrCodeUrl: 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://parasmoni.com',
+  qrCodeUrl: 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://parasmoni.in',
   playStoreBadgeUrl: 'https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg',
   playStoreLink: 'https://play.google.com/store',
   appStoreBadgeUrl: 'https://upload.wikimedia.org/wikipedia/commons/3/3c/Download_on_the_App_Store_Badge.svg',

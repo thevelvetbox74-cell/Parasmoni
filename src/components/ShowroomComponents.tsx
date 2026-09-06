@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { 
   Phone, 
   MessageCircle, 
@@ -16,9 +16,52 @@ import {
   Sparkles,
   ArrowRight,
   Info,
-  Calendar
+  Calendar,
+  Scale,
+  Heart
 } from 'lucide-react';
 import { getOptimizedShowroomUrl } from '../imagekit/client';
+import { calculateProductPrice } from '../utils/calculateProductPrice';
+import { collection, onSnapshot } from 'firebase/firestore';
+import { db } from '../firebase/config';
+import { isProductWishlisted, toggleWishlist } from '../utils/wishlistHelper';
+
+// Global cache for metal prices to avoid duplicate listeners across many product cards
+let globalMetalPricesListeners: ((prices: any[]) => void)[] = [];
+let globalMetalPrices: any[] | null = null;
+let isListeningToMetalPrices = false;
+
+function subscribeToMetalPrices(callback: (prices: any[]) => void) {
+  if (globalMetalPrices) {
+    callback(globalMetalPrices);
+  }
+  globalMetalPricesListeners.push(callback);
+  
+  if (!isListeningToMetalPrices) {
+    isListeningToMetalPrices = true;
+    try {
+      const pricesRef = collection(db, 'metalPrices');
+      onSnapshot(pricesRef, (snapshot) => {
+        const prices = snapshot.docs.map(doc => ({
+          id: doc.id,
+          metalName: doc.data().metal || doc.data().metalType || doc.data().metalName || '',
+          pricePerGram: Number(doc.data().pricePerGram || doc.data().ratePerGram || doc.data().price || 0),
+          status: doc.data().status || 'active'
+        }));
+        globalMetalPrices = prices;
+        globalMetalPricesListeners.forEach(cb => cb(prices));
+      }, (error) => {
+        console.error("Error loading metal prices in shared subscription:", error);
+      });
+    } catch (e) {
+      console.warn("Firebase not initialized or available for metal rates:", e);
+    }
+  }
+
+  return () => {
+    globalMetalPricesListeners = globalMetalPricesListeners.filter(cb => cb !== callback);
+  };
+}
 
 // ==========================================
 // Types & Interfaces
@@ -92,13 +135,15 @@ interface WhatsAppButtonProps {
   message: string;
   className?: string;
   label?: string;
+  style?: React.CSSProperties;
 }
 
 export function WhatsAppButton({ 
   phoneNumber, 
   message, 
   className = "", 
-  label = "INQUIRE ON WHATSAPP" 
+  label = "INQUIRE ON WHATSAPP",
+  style
 }: WhatsAppButtonProps): React.JSX.Element {
   const cleanPhone = phoneNumber.replace(/[^0-9]/g, '');
   const waUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
@@ -109,6 +154,7 @@ export function WhatsAppButton({
       target="_blank"
       rel="noopener noreferrer"
       className={`inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold tracking-widest uppercase transition-all duration-300 rounded px-4 py-2.5 shadow-sm cursor-pointer ${className}`}
+      style={style}
       id={`wa-cta-${cleanPhone}`}
     >
       <MessageCircle className="w-4 h-4 shrink-0" />
@@ -178,7 +224,7 @@ export function ContactButtons({
 
 interface ProductCardProps {
   key?: string | number;
-  product: Product;
+  product: any; // Flexible any to accept variations of Product types across files
   whatsappNumber: string;
   whatsappTemplate?: string;
 }
@@ -188,95 +234,181 @@ export function ProductCard({
   whatsappNumber,
   whatsappTemplate = "Hello Parasmoni Jewellers, I am highly interested in the following masterpiece:\n\n*Name*: {NAME}\n*SKU*: {SKU}\n*Weight*: {WEIGHT}\n\nPlease share design details and pricing."
 }: ProductCardProps): React.JSX.Element {
-  const optimizedUrl = getOptimizedShowroomUrl(product.imageUrl, { width: 500, height: 500 });
+  const navigate = useNavigate();
+  const [metalRates, setMetalRates] = useState<any[]>([]);
+  const [isFavorited, setIsFavorited] = useState(false);
+
+  useEffect(() => {
+    setIsFavorited(isProductWishlisted(product.id || product.slug));
+    
+    const handleSync = () => {
+      setIsFavorited(isProductWishlisted(product.id || product.slug));
+    };
+    
+    window.addEventListener('wishlist-updated', handleSync);
+    return () => {
+      window.removeEventListener('wishlist-updated', handleSync);
+    };
+  }, [product.id, product.slug]);
+
+  // Subscribe to real-time metal prices if pricing needs to be calculated live on-the-fly
+  useEffect(() => {
+    return subscribeToMetalPrices(setMetalRates);
+  }, []);
+
+  const optimizedUrl = getOptimizedShowroomUrl(product.imageUrl || (product.images && product.images[0]) || "", { width: 500, height: 500 });
   
-  const customMessage = whatsappTemplate
-    .replace("{NAME}", product.name)
-    .replace("{SKU}", product.sku)
-    .replace("{WEIGHT}", product.approxWeight);
+  // Calculate dynamic price live if not already pre-calculated by parent
+  let finalPrice = product.price;
+  let isPriceVisible = product.priceVisibility === true || product.priceVisibility === 'visible';
+
+  if (product.priceVisibility === undefined || product.priceVisibility === null) {
+    isPriceVisible = true;
+  } else if (product.priceVisibility === false || product.priceVisibility === 'hidden' || product.priceVisibility === 'on_enquiry') {
+    isPriceVisible = false;
+  }
+
+  if ((finalPrice === undefined || finalPrice === null || finalPrice === 0) && product.metalRef) {
+    const rawWeight = Number(product.weight || product.grossWeight || parseFloat(product.approxWeight) || 0);
+    const calculated = calculateProductPrice({
+      metalRef: product.metalRef,
+      weight: rawWeight,
+      makingCharge: Number(product.makingCharge || 0),
+      makingChargeType: product.makingChargeType || 'fixed',
+      wastagePercent: Number(product.wastagePercent || 0)
+    }, metalRates);
+    
+    finalPrice = calculated.finalPrice;
+  }
+
+  // Weight Display Text
+  const weightVal = product.approxWeight || (product.grossWeight ? `${product.grossWeight}g` : "") || (product.weight ? `${product.weight}g` : "");
+
+  const handleCardClick = (e: React.MouseEvent) => {
+    navigate(`/product/${product.slug || product.id}`);
+  };
+
+  const handleWishlistClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    const result = toggleWishlist(product.id || product.slug);
+    setIsFavorited(result);
+  };
+
+  const renderStars = (val: any) => {
+    const stars = [];
+    const ratingNum = Number(val || 0);
+    for (let i = 1; i <= 5; i++) {
+      if (ratingNum >= i) {
+        stars.push(<span key={i} className="text-[#b58b37] text-xs select-none">★</span>);
+      } else if (ratingNum >= i - 0.5) {
+        stars.push(
+          <span key={i} className="relative inline-block text-xs select-none text-stone-200">
+            <span className="absolute top-0 left-0 overflow-hidden w-[50%] text-[#b58b37]">★</span>
+            <span>★</span>
+          </span>
+        );
+      } else {
+        stars.push(<span key={i} className="text-stone-200 text-xs select-none">★</span>);
+      }
+    }
+    return <div className="flex items-center gap-0.5">{stars}</div>;
+  };
+
+  const hasRating = product.rating !== undefined && product.rating !== null && Number(product.rating) > 0;
 
   return (
     <div 
-      className="bg-white rounded border border-stone-200 overflow-hidden flex flex-col group hover:shadow-md transition-all duration-300 relative h-full"
+      onClick={handleCardClick}
+      className="bg-white border border-stone-200 rounded-2xl max-sm:rounded-xl overflow-hidden flex flex-col group hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 relative h-full cursor-pointer"
       id={`product-card-${product.id}`}
     >
-      {/* Visual Accent/Badge */}
-      {product.isPopular && (
-        <span className="absolute top-3 left-3 z-10 bg-brand-red-600 text-stone-100 text-[9px] font-bold tracking-widest uppercase px-2 py-0.5 rounded shadow-xs flex items-center gap-1">
-          <Sparkles className="w-2.5 h-2.5 text-gold-300" />
-          <span>SIGNATURE</span>
-        </span>
-      )}
-
-      {/* Image Block */}
+      {/* Image Block with Corner Badge absolute-positioned */}
       <div className="relative aspect-square overflow-hidden bg-stone-50 border-b border-stone-100">
+        {/* Corner Badge */}
+        {product.badgeLabel && product.badgeLabel.trim() !== "" && (
+          <div 
+            className="absolute top-2 left-2 sm:top-2.5 sm:left-2.5 z-10 text-[6px] sm:text-[8px] font-extrabold uppercase tracking-widest text-white px-1.5 sm:px-2 py-0.5 rounded-xs shadow-xs"
+            style={{ backgroundColor: product.badgeColor || '#927230' }}
+          >
+            {product.badgeLabel.trim().toUpperCase()}
+          </div>
+        )}
+
         {optimizedUrl && (optimizedUrl.toLowerCase().split('?')[0].endsWith('.mp4') || optimizedUrl.toLowerCase().split('?')[0].endsWith('.mov') || optimizedUrl.toLowerCase().split('?')[0].endsWith('.webm') || optimizedUrl.toLowerCase().split('?')[0].endsWith('.m4v')) ? (
           <video 
             src={optimizedUrl} 
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-102"
             autoPlay
             loop
             muted
             playsInline
             preload="auto"
-            onEnded={(e) => {
-              e.currentTarget.currentTime = 0;
-              e.currentTarget.play().catch(() => {});
-            }}
           />
         ) : (
           <img 
             src={optimizedUrl || "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&q=80&w=600"} 
             alt={product.name}
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-102"
             referrerPolicy="no-referrer"
           />
         )}
         <div className="absolute inset-0 bg-stone-900/5 group-hover:bg-stone-900/0 transition-colors" />
       </div>
 
-      {/* Attributes Block */}
-      <div className="p-4 flex-1 flex flex-col justify-between">
-        <div className="space-y-1.5">
-          <div className="flex justify-between items-start gap-2">
-            <span className="text-[10px] text-stone-500 font-semibold tracking-wider uppercase">
-              {product.category}
-            </span>
-            <span className="text-[10px] bg-gold-500/10 text-gold-800 px-1.5 py-0.5 rounded font-medium">
-              {product.metalType}
-            </span>
-          </div>
-
-          <h3 className="font-serif font-semibold text-stone-800 text-sm tracking-wide leading-tight group-hover:text-brand-red-600 transition-colors">
+      {/* Content Block below image */}
+      <div className="p-3 sm:p-4 pt-2.5 sm:pt-3 flex-1 flex flex-col justify-between">
+        <div className="space-y-1">
+          {/* 1. Product Name / Title */}
+          <h3 className="font-serif font-semibold text-stone-800 text-xs sm:text-sm tracking-wide leading-tight group-hover:text-[#6B1F2A] transition-colors line-clamp-2">
             {product.name}
           </h3>
 
-          <div className="flex items-center gap-4 text-xs font-medium text-stone-500 py-1 border-y border-stone-100">
-            <div>
-              <span className="text-[10px] block text-stone-400">SKU</span>
-              <span className="font-mono text-stone-700">{product.sku}</span>
-            </div>
-            <div>
-              <span className="text-[10px] block text-stone-400">Approx. Weight</span>
-              <span className="font-semibold text-stone-700">{product.approxWeight}</span>
-            </div>
+          {/* 2. Price Row */}
+          <div className="mt-1 flex items-baseline gap-1.5">
+            {isPriceVisible && finalPrice && finalPrice > 0 ? (
+              <>
+                <span className="text-sm sm:text-base font-extrabold text-stone-900 font-sans tracking-tight">
+                  ₹{Math.round(finalPrice).toLocaleString('en-IN')}
+                </span>
+                {(product.mrp !== undefined && product.mrp !== null && Number(product.mrp) > 0) && (
+                  <span className="text-[11px] sm:text-xs text-stone-400 line-through font-sans">
+                    ₹{Math.round(Number(product.mrp)).toLocaleString('en-IN')}
+                  </span>
+                )}
+              </>
+            ) : (
+              <span className="text-[10px] sm:text-xs font-semibold text-[#6B1F2A]">
+                Contact for Price
+              </span>
+            )}
           </div>
-        </div>
 
-        {/* Action CTAs (Showroom Rule: Direct inquiry only, NO purchase/checkout) */}
-        <div className="mt-4 pt-1 space-y-2">
-          <WhatsAppButton 
-            phoneNumber={whatsappNumber}
-            message={customMessage}
-            className="w-full py-2 text-[10px] font-bold"
-            label="Inquire Price & Stock"
-          />
-          <Link 
-            to={`/product/${product.id}`}
-            className="w-full block text-center border border-stone-300 text-stone-700 hover:bg-stone-50 text-[10px] font-bold tracking-widest uppercase transition-colors rounded py-2"
-          >
-            View Masterpiece
-          </Link>
+          {/* 3. Rating & Wishlist Heart Row */}
+          <div className="flex items-center justify-between pt-0.5 sm:pt-1">
+            {hasRating ? (
+              <div className="flex items-center gap-1">
+                {renderStars(product.rating)}
+                <span className="text-[9px] sm:text-[10px] text-stone-500 font-sans">
+                  ({product.reviewCount || 0})
+                </span>
+              </div>
+            ) : (
+              <div className="h-4" /> // empty filler
+            )}
+
+            <button
+              onClick={handleWishlistClick}
+              className="p-1 text-stone-400 hover:text-red-500 transition-colors focus:outline-hidden cursor-pointer"
+              aria-label="Toggle Wishlist"
+            >
+              <Heart 
+                className={`w-3.5 h-3.5 sm:w-4 sm:h-4 transition-transform duration-200 active:scale-125 ${
+                  isFavorited ? 'fill-red-500 text-red-500' : 'text-stone-400 fill-transparent'
+                }`} 
+              />
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -287,12 +419,14 @@ interface ProductGridProps {
   products: Product[];
   whatsappNumber: string;
   emptyMessage?: string;
+  gridClassName?: string;
 }
 
 export function ProductGrid({ 
   products, 
   whatsappNumber,
-  emptyMessage = "No signature masterpieces match your query. Contact our master artisan for customized designs."
+  emptyMessage = "No signature masterpieces match your query. Contact our master artisan for customized designs.",
+  gridClassName = "grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6"
 }: ProductGridProps): React.JSX.Element {
   if (products.length === 0) {
     return (
@@ -311,10 +445,120 @@ export function ProductGrid({
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" id="showroom-products-grid">
+    <div className={gridClassName} id="showroom-products-grid">
       {products.map((p) => (
         <ProductCard key={p.id} product={p} whatsappNumber={whatsappNumber} />
       ))}
+    </div>
+  );
+}
+
+export function ProductHorizontalCarousel({
+  products,
+  whatsappNumber,
+  emptyMessage = "No signature masterpieces match your query. Contact our master artisan for customized designs."
+}: ProductGridProps): React.JSX.Element {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
+  const [dragMoved, setDragMoved] = useState(false);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!containerRef.current) return;
+    setIsDragging(true);
+    setStartX(e.pageX - containerRef.current.offsetLeft);
+    setScrollLeft(containerRef.current.scrollLeft);
+    setDragMoved(false);
+  };
+
+  const handleMouseLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+    // Use setTimeout to ensure click capture runs before resetting dragMoved
+    setTimeout(() => {
+      setDragMoved(false);
+    }, 50);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || !containerRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - containerRef.current.offsetLeft;
+    const walk = (x - startX) * 1.5; // multiplier for scrolling speed
+    if (Math.abs(x - startX) > 5) {
+      setDragMoved(true);
+    }
+    containerRef.current.scrollLeft = scrollLeft - walk;
+  };
+
+  const handleClickCapture = (e: React.MouseEvent) => {
+    if (dragMoved) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  };
+
+  const scroll = (direction: 'left' | 'right') => {
+    if (containerRef.current) {
+      const scrollAmount = direction === 'left' ? -350 : 350;
+      containerRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    }
+  };
+
+  if (products.length === 0) {
+    return (
+      <div className="text-center py-12 px-6 border border-dashed border-stone-300 rounded bg-stone-50 max-w-xl mx-auto">
+        <Info className="w-8 h-8 text-stone-400 mx-auto mb-3" />
+        <p className="text-stone-600 text-sm font-serif italic">{emptyMessage}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative group/carousel w-full">
+      {/* Left Navigation Arrow */}
+      <button
+        onClick={() => scroll('left')}
+        className="absolute -left-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white border border-stone-200 text-stone-800 rounded-full flex items-center justify-center shadow-md hover:bg-[#6B1F2A] hover:text-white hover:border-[#6B1F2A] opacity-0 group-hover/carousel:opacity-100 transition-all duration-300 pointer-events-auto cursor-pointer"
+        aria-label="Scroll Left"
+      >
+        <ChevronLeft className="w-5 h-5" />
+      </button>
+
+      {/* Scrollable Row */}
+      <div
+        ref={containerRef}
+        onMouseDown={handleMouseDown}
+        onMouseLeave={handleMouseLeave}
+        onMouseUp={handleMouseUp}
+        onMouseMove={handleMouseMove}
+        onClickCapture={handleClickCapture}
+        className="flex flex-row overflow-x-auto overflow-y-hidden gap-4 sm:gap-6 pb-4 sm:pb-6 select-none cursor-grab active:cursor-grabbing snap-x snap-mandatory scrollbar-none scroll-smooth touch-pan-x"
+        style={{
+          WebkitOverflowScrolling: 'touch',
+          scrollbarWidth: 'none',
+          msOverflowStyle: 'none'
+        }}
+      >
+        {products.map((p) => (
+          <div key={p.id} className="w-[180px] sm:w-[260px] md:w-[calc((100%-72px)/4)] shrink-0 snap-start">
+            <ProductCard product={p} whatsappNumber={whatsappNumber} />
+          </div>
+        ))}
+      </div>
+
+      {/* Right Navigation Arrow */}
+      <button
+        onClick={() => scroll('right')}
+        className="absolute -right-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white border border-stone-200 text-stone-800 rounded-full flex items-center justify-center shadow-md hover:bg-[#6B1F2A] hover:text-white hover:border-[#6B1F2A] opacity-0 group-hover/carousel:opacity-100 transition-all duration-300 pointer-events-auto cursor-pointer"
+        aria-label="Scroll Right"
+      >
+        <ChevronRight className="w-5 h-5" />
+      </button>
     </div>
   );
 }
@@ -516,7 +760,7 @@ export function BannerSlider({ banners }: BannerSliderProps): React.JSX.Element 
                   setCurrentIndex((prev) => prev + (index - virtualIndex));
                 }
               }}
-              className={`flex-shrink-0 h-[460px] md:h-[650px] relative px-1.5 md:px-3.5 transition-all duration-700 ease-out select-none ${
+              className={`flex-shrink-0 aspect-[14/9] md:aspect-[18/7] w-full h-auto relative px-1.5 md:px-3.5 transition-all duration-700 ease-out select-none ${
                 isActive 
                   ? 'scale-100 z-10 opacity-100' 
                   : 'scale-95 z-0 opacity-40 brightness-50 hover:opacity-60 hover:brightness-75 cursor-pointer'
@@ -560,12 +804,12 @@ export function BannerSlider({ banners }: BannerSliderProps): React.JSX.Element 
                 {/* Readable Text Overlay - Only rendered on the central active card if text content exists */}
                 {isActive && (banner.title?.trim() || banner.subtitle?.trim() || banner.buttonText?.trim()) && (
                   <div 
-                    className="absolute inset-0 flex items-end md:items-center px-8 md:px-24 pb-16 md:pb-0 bg-transparent transition-opacity duration-500"
+                    className="absolute inset-0 flex items-end lg:items-center px-4 sm:px-6 md:px-8 lg:px-16 xl:px-24 pb-5 sm:pb-5 md:pb-6 lg:pb-0 bg-transparent transition-opacity duration-500"
                   >
-                    <div className="max-w-xl md:max-w-2xl space-y-4 md:space-y-6 text-left select-text">
+                    <div className="max-w-sm sm:max-w-md md:max-w-lg lg:max-w-2xl space-y-1 sm:space-y-1.5 md:space-y-2 lg:space-y-4 xl:space-y-6 text-left select-text">
                       {banner.title?.trim() && (
                         <h2 
-                          className={`text-3xl md:text-5xl lg:text-6xl font-normal tracking-wide leading-[1.15] drop-shadow-lg`}
+                          className="text-[13px] sm:text-[14px] md:text-[16px] lg:text-[28px] xl:text-[38px] font-normal tracking-wide leading-[1.15] drop-shadow-lg animate-fade-in"
                           style={{
                             fontFamily: banner.titleFont === 'sans' ? "'Inter', 'Plus Jakarta Sans', sans-serif" : "'Playfair Display', Georgia, serif",
                             color: banner.titleColor || '#ffffff'
@@ -576,7 +820,7 @@ export function BannerSlider({ banners }: BannerSliderProps): React.JSX.Element 
                       )}
                       {banner.subtitle?.trim() && (
                         <p 
-                          className={`text-sm md:text-lg lg:text-xl tracking-wide opacity-95 font-normal drop-shadow-md`}
+                          className="text-[8px] sm:text-[9px] md:text-[10px] lg:text-xs xl:text-sm tracking-wide opacity-95 font-normal drop-shadow-md line-clamp-2 lg:line-clamp-none"
                           style={{
                             fontFamily: banner.subtitleFont === 'serif' ? "'Playfair Display', Georgia, serif" : "'Inter', 'Plus Jakarta Sans', sans-serif",
                             color: banner.subtitleColor || '#f5f5f4'
@@ -586,10 +830,10 @@ export function BannerSlider({ banners }: BannerSliderProps): React.JSX.Element 
                         </p>
                       )}
                       {banner.buttonText?.trim() && (
-                        <div className="pt-2 md:pt-4">
+                        <div className="pt-0.5 sm:pt-1 md:pt-1.5 lg:pt-3 xl:pt-4">
                           <Link
                             to={banner.buttonLink || '/catalog'}
-                            className="inline-flex h-11 md:h-12 px-6 md:px-8 text-xs md:text-sm font-semibold tracking-wide rounded-md items-center justify-center cursor-pointer shadow-lg transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98]"
+                            className="inline-flex h-[22px] sm:h-[24px] md:h-[28px] lg:h-10 xl:h-11 px-2 sm:px-3 md:px-4 lg:px-6 xl:px-8 text-[7px] sm:text-[8px] md:text-[9px] lg:text-[11px] xl:text-xs font-semibold tracking-wide rounded-md items-center justify-center cursor-pointer shadow-lg transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98]"
                             style={{
                               backgroundColor: banner.buttonColor || '#ffffff',
                               color: banner.buttonTextColor || '#991b1b'
@@ -610,7 +854,7 @@ export function BannerSlider({ banners }: BannerSliderProps): React.JSX.Element 
 
       {/* Navigation Indicators */}
       {banners.length > 1 && (
-        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-20 flex gap-2">
+        <div className="absolute bottom-3 sm:bottom-4 md:bottom-8 lg:bottom-10 left-1/2 -translate-x-1/2 z-20 flex gap-2">
           {banners.map((_, index) => (
             <button
               key={index}

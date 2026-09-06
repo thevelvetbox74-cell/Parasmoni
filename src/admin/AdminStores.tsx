@@ -103,7 +103,7 @@ export function AdminStores(): React.JSX.Element {
           pincode: '700012',
           phone: s.phone || '',
           whatsapp: s.whatsapp || '',
-          email: 'info@parasmonijewellers.com',
+          email: 'info@parasmoni.in',
           googleMapsUrl: s.mapUrl || '',
           mapUrl: s.mapUrl || '',
           latitude: s.latitude || 22.5726,
@@ -444,7 +444,7 @@ export function AdminStores(): React.JSX.Element {
                 </label>
                 <input
                   type="email"
-                  placeholder="e.g. bowbazar@parasmoni.com"
+                  placeholder="e.g. bowbazar@parasmoni.in"
                   value={currentStore.email}
                   onChange={(e) => handleFieldChange('email', e.target.value)}
                   className="w-full bg-stone-950 border border-stone-800 rounded px-3 py-2 text-xs text-stone-200 focus:outline-hidden focus:border-amber-500 font-medium"

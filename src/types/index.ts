@@ -73,6 +73,7 @@ export interface Product {
   makingChargesPerGram?: number;
   makingChargesPercent?: number;
   isFeatured: boolean;
+  mrp?: number;
   isActive: boolean;
   viewCount: number;
   createdAt: string | Date;

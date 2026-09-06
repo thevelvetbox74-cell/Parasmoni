@@ -8,6 +8,8 @@ import { uploadToImageKit } from '../imagekit/upload';
 import { IMAGEKIT_FOLDERS } from '../imagekit/client';
 import { UploadCloud, X, ImageIcon, AlertCircle, CheckCircle, FolderOpen } from 'lucide-react';
 import { MediaLibraryDrawer } from './MediaLibraryDrawer';
+import { isSvgFile, convertToWebP } from '../utils/imageConverter';
+import { UploadChoiceModal } from './UploadChoiceModal';
 
 interface ImageUploaderProps {
   id: string;
@@ -31,38 +33,80 @@ export function ImageUploader({
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Optimization Prompt States
+  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+  const [isChoiceModalOpen, setIsChoiceModalOpen] = useState(false);
+
   // Cast values correctly
   const images = multiple 
     ? (Array.isArray(value) ? value : (value ? [value] : [])) 
     : (typeof value === 'string' ? (value ? [value] : []) : []);
 
-  const handleFiles = async (files: FileList) => {
+  const handleFiles = (files: FileList) => {
     if (files.length === 0) return;
+    
+    const filesArray = Array.from(files);
+    const filesToProcess = multiple ? filesArray : [filesArray[0]];
+
+    // Check if there are any images in the selection
+    const hasImages = filesToProcess.some(f => f.type.startsWith('image/'));
+
+    if (hasImages) {
+      setPendingFiles(filesToProcess);
+      setIsChoiceModalOpen(true);
+    } else {
+      // Direct upload (e.g. for videos)
+      executeUpload(filesToProcess, 'raw');
+    }
+  };
+
+  const handleChoiceDecision = async (mode: 'raw' | 'webp') => {
+    setIsChoiceModalOpen(false);
+    const filesToUpload = [...pendingFiles];
+    setPendingFiles([]);
+    await executeUpload(filesToUpload, mode);
+  };
+
+  const handleChoiceCancel = () => {
+    setIsChoiceModalOpen(false);
+    setPendingFiles([]);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const executeUpload = async (filesToUpload: File[], mode: 'raw' | 'webp') => {
     setUploading(true);
     setError(null);
     setSuccessMsg(null);
     setProgress(10); // Start progress bar
 
-    const filesArray = Array.from(files);
     const uploadedUrls: string[] = [];
-
-    // Limit files array if not multiple
-    const filesToUpload = multiple ? filesArray : [filesArray[0]];
 
     try {
       const stepValue = Math.floor(80 / filesToUpload.length);
       
       for (let i = 0; i < filesToUpload.length; i++) {
-        const file = filesToUpload[i];
+        let file = filesToUpload[i];
         
         // Validate file type
-        if (!file.type.startsWith('image/')) {
-          throw new Error(`File "${file.name}" is not a valid image format.`);
+        const isImage = file.type.startsWith('image/');
+        const isVideo = file.type.startsWith('video/');
+        
+        if (!isImage && !isVideo) {
+          throw new Error(`File "${file.name}" is not a supported format.`);
         }
 
-        // Validate size (limit to 5MB for fast uploads in preview)
-        if (file.size > 5 * 1024 * 1024) {
-          throw new Error(`Image "${file.name}" exceeds the 5MB file size limit.`);
+        // Validate size (limit image to 5MB, video to 15MB)
+        const limitSize = isVideo ? 15 * 1024 * 1024 : 5 * 1024 * 1024;
+        if (file.size > limitSize) {
+          throw new Error(`File "${file.name}" exceeds the allowed size limit.`);
+        }
+
+        // Apply WebP conversion on client-side if selected & convertible
+        if (mode === 'webp' && isImage && !isSvgFile(file)) {
+          setProgress(prev => Math.min(prev + 5, 95));
+          file = await convertToWebP(file);
         }
 
         const result = await uploadToImageKit(file, folder);
@@ -253,6 +297,14 @@ export function ImageUploader({
         }}
         currentValue={value}
         defaultFolder={folder}
+      />
+
+      {/* Image Optimization Selector Modal */}
+      <UploadChoiceModal
+        isOpen={isChoiceModalOpen}
+        files={pendingFiles}
+        onChoose={handleChoiceDecision}
+        onCancel={handleChoiceCancel}
       />
     </div>
   );

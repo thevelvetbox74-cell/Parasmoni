@@ -99,7 +99,7 @@ export function AdminUsers(): React.JSX.Element {
             {
               id: 'mock-editor-1',
               name: 'Amit Mukherjee (Studio Designer)',
-              email: 'amit.designer@parasmoni.com',
+              email: 'amit.designer@parasmoni.in',
               role: 'editor',
               isActive: true,
               createdAt: '2026-03-15T09:45:00Z',
@@ -108,7 +108,7 @@ export function AdminUsers(): React.JSX.Element {
             {
               id: 'mock-editor-2',
               name: 'Joydeep Sen (Showroom Assistant)',
-              email: 'joydeep.assistant@parasmoni.com',
+              email: 'joydeep.assistant@parasmoni.in',
               role: 'editor',
               isActive: false,
               createdAt: '2026-05-20T14:30:00Z',
@@ -507,7 +507,7 @@ export function AdminUsers(): React.JSX.Element {
                   type="email"
                   id="staff-email"
                   required
-                  placeholder="e.g. roy@parasmoni.com"
+                  placeholder="e.g. roy@parasmoni.in"
                   value={newAdmin.email}
                   onChange={(e) => setNewAdmin({ ...newAdmin, email: e.target.value })}
                   className="w-full pl-9 pr-3 py-2 bg-stone-950 border border-stone-800 focus:border-amber-600 focus:outline-hidden text-xs rounded text-stone-200 placeholder-stone-600 font-sans"

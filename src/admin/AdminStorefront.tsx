@@ -81,11 +81,11 @@ const TEMPLATE_SECTIONS = [
   },
   {
     type: 'Shop The Look',
-    description: 'Interactive editorial image with clickable gold hotspots',
+    description: 'High-density portrait layout highlighting style combinations',
     wireframe: (
-      <div className="w-16 h-12 bg-stone-800 border border-stone-700 rounded p-1 flex items-center justify-center relative shrink-0">
-        <div className="w-3 h-3 rounded-full bg-amber-500/80 border border-amber-300"></div>
-        <div className="w-2 h-2 rounded-full bg-amber-500/50 absolute top-2 right-3"></div>
+      <div className="w-16 h-12 bg-stone-800 border border-stone-700 rounded p-1 flex gap-1 shrink-0">
+        <div className="flex-1 bg-stone-700 rounded-xs"></div>
+        <div className="flex-1 bg-stone-700 rounded-xs"></div>
       </div>
     )
   },
@@ -137,6 +137,110 @@ const TEMPLATE_SECTIONS = [
         </div>
       </div>
     )
+  },
+  {
+    type: 'Quick Category Strip',
+    description: 'Compact horizontally-scrolling row of circular category tiles with labels',
+    wireframe: (
+      <div className="w-16 h-12 bg-stone-800 border border-stone-700 rounded flex gap-1 items-center justify-center p-1 shrink-0">
+        <div className="w-3.5 h-3.5 rounded-full bg-stone-700"></div>
+        <div className="w-3.5 h-3.5 rounded-full bg-stone-700"></div>
+        <div className="w-3.5 h-3.5 rounded-full bg-stone-700"></div>
+        <div className="w-3.5 h-3.5 rounded-full bg-stone-700"></div>
+      </div>
+    )
+  },
+  {
+    type: 'Testimonials',
+    description: 'Genuine customer review cards with verified badges and optional linked product previews',
+    wireframe: (
+      <div className="w-16 h-12 bg-stone-800 border border-stone-700 rounded p-1 flex flex-col justify-between shrink-0 gap-1">
+        <div className="flex gap-1 items-center">
+          <div className="w-2.5 h-2.5 rounded-full bg-stone-600"></div>
+          <div className="h-1 w-6 bg-stone-600 rounded"></div>
+        </div>
+        <div className="h-1.5 w-full bg-stone-700 rounded"></div>
+        <div className="h-2 w-full bg-stone-700 rounded-xs"></div>
+      </div>
+    )
+  },
+  {
+    type: 'Promo Callout Card',
+    description: 'Promotional box with an icon, bold heading, subtext, button and customizable background/text colors',
+    wireframe: (
+      <div className="w-16 h-12 bg-stone-800 border border-stone-700 rounded p-1.5 flex flex-col justify-between shrink-0 gap-1">
+        <div className="flex gap-1 items-center">
+          <div className="w-2.5 h-2.5 rounded bg-amber-500"></div>
+          <div className="h-1 w-8 bg-stone-500 rounded"></div>
+        </div>
+        <div className="h-1 w-full bg-stone-600 rounded"></div>
+        <div className="h-1.5 w-8 bg-stone-500 rounded-xs self-end"></div>
+      </div>
+    )
+  },
+  {
+    type: 'In-Store Redemption Code',
+    description: 'Showroom visit coupon blocks with copyable coupon codes and copy button',
+    wireframe: (
+      <div className="w-16 h-12 bg-stone-800 border border-stone-700 rounded p-1 flex items-center justify-around shrink-0 gap-1">
+        <div className="w-6 h-8 bg-stone-700 rounded-xs flex flex-col justify-between p-0.5">
+          <div className="h-1 w-full bg-stone-600 rounded"></div>
+          <div className="h-2 w-full bg-stone-500 rounded-xs"></div>
+        </div>
+        <div className="w-6 h-8 bg-stone-700 rounded-xs flex flex-col justify-between p-0.5">
+          <div className="h-1 w-full bg-stone-600 rounded"></div>
+          <div className="h-2 w-full bg-stone-500 rounded-xs"></div>
+        </div>
+      </div>
+    )
+  },
+  {
+    type: 'Offer Banner B1',
+    description: 'Promotional section with 3 side-by-side banner tiles and a thin trust-badge strip beneath',
+    wireframe: (
+      <div className="w-16 h-12 bg-stone-800 border border-stone-700 rounded p-1 flex flex-col justify-between shrink-0 gap-0.5" id="wireframe-offer-banner-b1">
+        <div className="grid grid-cols-3 gap-0.5 flex-1">
+          <div className="bg-stone-700 rounded-xs"></div>
+          <div className="bg-stone-600 rounded-xs"></div>
+          <div className="bg-stone-700 rounded-xs"></div>
+        </div>
+        <div className="h-1.5 w-full bg-stone-500 rounded-xs"></div>
+      </div>
+    )
+  },
+  {
+    type: 'Paragraph Document',
+    description: 'Formatted legal policies, Terms & Conditions, and About Us text blocks with headers',
+    wireframe: (
+      <div className="w-16 h-12 bg-stone-800 border border-stone-700 rounded p-1 flex flex-col justify-around shrink-0">
+        <div className="h-1.5 w-10 bg-amber-500 rounded-xs"></div>
+        <div className="h-1 w-full bg-stone-600 rounded-xs"></div>
+        <div className="h-1 w-full bg-stone-600 rounded-xs"></div>
+        <div className="h-1 w-3/4 bg-stone-600 rounded-xs"></div>
+      </div>
+    )
+  },
+  {
+    type: 'Blog Article',
+    description: 'Rich editorial article layout with cover photo, author badge, quotes & paragraph blocks',
+    wireframe: (
+      <div className="w-16 h-12 bg-stone-800 border border-stone-700 rounded p-1 flex flex-col gap-1 shrink-0">
+        <div className="h-4 w-full bg-stone-700 rounded-xs"></div>
+        <div className="h-1 w-12 bg-amber-500 rounded-xs"></div>
+        <div className="h-1 w-full bg-stone-600 rounded-xs"></div>
+      </div>
+    )
+  },
+  {
+    type: 'Inquiries & Commissions',
+    description: 'WhatsApp & Showroom Call CTA banner with custom commission messaging and business hours',
+    wireframe: (
+      <div className="w-16 h-12 bg-stone-800 border border-stone-700 rounded p-1 flex flex-col items-center justify-center gap-1 shrink-0">
+        <div className="h-1 w-8 bg-amber-500 rounded-xs"></div>
+        <div className="h-1.5 w-12 bg-stone-500 rounded-xs"></div>
+        <div className="h-3 w-10 bg-emerald-700 rounded-xs"></div>
+      </div>
+    )
   }
 ];
 
@@ -151,9 +255,9 @@ export function AdminStorefront(): React.JSX.Element {
   const [activePageSlug, setActivePageSlug] = useState<string>('home');
   const [activePageStatus, setActivePageStatus] = useState<'published' | 'draft'>('published');
   const [pageSeo, setPageSeo] = useState<PageSeoObject>({
-    title: 'Premium Sterling Silver Jewelry | VelvetBox Official',
+    title: 'Parasmoni Jewellers & Brothers | Premium Gold Jewellery Showroom Since 1974',
     slug: 'home',
-    description: 'Shop premium sterling silver jewelry at VelvetBox. Discover rings, necklaces, earrings, and bracelets with timeless designs, brilliant finish, and pure hallmark silver.',
+    description: 'Parasmoni Jewellers & Brothers – a trusted West Bengal gold jewellery showroom established in 1974. Discover handcrafted gold jewellery, bridal collections, and traditional Bengali designs crafted with authenticity and heritage craftsmanship.',
     ogImage: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&q=80&w=1200'
   });
 
@@ -162,9 +266,9 @@ export function AdminStorefront(): React.JSX.Element {
   const [savedPageSlug, setSavedPageSlug] = useState<string>('home');
   const [savedPageStatus, setSavedPageStatus] = useState<'published' | 'draft'>('published');
   const [savedPageSeo, setSavedPageSeo] = useState<PageSeoObject>({
-    title: 'Premium Sterling Silver Jewelry | VelvetBox Official',
+    title: 'Parasmoni Jewellers & Brothers | Premium Gold Jewellery Showroom Since 1974',
     slug: 'home',
-    description: 'Shop premium sterling silver jewelry at VelvetBox. Discover rings, necklaces, earrings, and bracelets with timeless designs, brilliant finish, and pure hallmark silver.',
+    description: 'Parasmoni Jewellers & Brothers – a trusted West Bengal gold jewellery showroom established in 1974. Discover handcrafted gold jewellery, bridal collections, and traditional Bengali designs crafted with authenticity and heritage craftsmanship.',
     ogImage: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&q=80&w=1200'
   });
 
@@ -541,7 +645,203 @@ export function AdminStorefront(): React.JSX.Element {
         };
       case 'Category Cards':
       case 'Our Boutiques':
+      case 'Quick Category Strip':
+        return {
+          title: 'Browse Popular Categories',
+          titleColor: '#1c1917',
+          selectedIds: []
+        };
       case 'Shop The Look':
+        return {
+          title: 'Shop Curated Looks',
+          titleColor: '#1c1917',
+          images: [
+            {
+              url: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&q=80&w=600',
+              linkUrl: '/catalog'
+            },
+            {
+              url: 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&q=80&w=600',
+              linkUrl: '/catalog'
+            }
+          ]
+        };
+      case 'Promo Callout Card':
+        return {
+          image: 'https://img.icons8.com/isometric/512/gift.png',
+          heading: "We've got you a birthday surprise!",
+          subtitle: 'Add your birthday & unlock a coupon!',
+          buttonLabel: 'Unlock Surprise',
+          buttonLink: '/contact',
+          bgColor: '#FAF7F2',
+          textColor: '#6B1F2A'
+        };
+      case 'In-Store Redemption Code':
+        return {
+          title: 'New Launch Exclusive Offers',
+          titleColor: '#1c1917',
+          description: '*Present these coupons at our physical showroom during your visit to redeem.',
+          bgImage: '',
+          bgVideo: '',
+          disclaimer: '💡 In-Store Notice: These offers are valid only for transactions completed in our physical showroom. We do not support online checkouts or direct digital shipping.',
+          offers: [
+            {
+              discount: '10% OFF',
+              code: 'MENSILVER',
+              promoText: '10% ON MAKING CHARGES',
+              linkUrl: '/catalog',
+              terms: '*Valid in-store only. T&C Apply.'
+            },
+            {
+              discount: '20% OFF',
+              code: 'GENTLEMAN',
+              promoText: '20% ON MAKING CHARGES',
+              linkUrl: '/catalog',
+              terms: '*Valid in-store only. T&C Apply.'
+            }
+          ]
+        };
+      case 'Offer Banner B1':
+        return {
+          tiles: [
+            {
+              id: 'tile-1',
+              eyebrow: 'SPECIAL OFFER',
+              eyebrowColor: '#be9023',
+              eyebrowFont: 'sans',
+              heading: 'Get 15% OFF on your first order',
+              headingColor: '#ffffff',
+              headingFont: 'serif',
+              headingSize: 'text-lg',
+              buttonLabel: 'SHOP NOW',
+              buttonLink: '/catalog',
+              buttonBgColor: '#be9023',
+              buttonTextColor: '#ffffff',
+              buttonBorderColor: 'transparent',
+              bgColor: '#022b17',
+              desktopImage: 'https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&q=80&w=600',
+              mobileImage: 'https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&q=80&w=400',
+              overlayColor: 'transparent'
+            },
+            {
+              id: 'tile-2',
+              eyebrow: 'NEW COLLECTION',
+              eyebrowColor: '#9c7a1e',
+              eyebrowFont: 'sans',
+              heading: 'Timeless Designs For Every You',
+              headingColor: '#1c1917',
+              headingFont: 'serif',
+              headingSize: 'text-lg',
+              buttonLabel: 'EXPLORE NOW',
+              buttonLink: '/catalog',
+              buttonBgColor: 'transparent',
+              buttonTextColor: '#1c1917',
+              buttonBorderColor: '#1c1917',
+              bgColor: '#fbf8f3',
+              desktopImage: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&q=80&w=600',
+              mobileImage: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&q=80&w=400',
+              overlayColor: 'transparent'
+            },
+            {
+              id: 'tile-3',
+              eyebrow: 'PERFECT GIFT',
+              eyebrowColor: '#be9023',
+              eyebrowFont: 'sans',
+              heading: 'Gift Love, Gift Forever',
+              headingColor: '#ffffff',
+              headingFont: 'serif',
+              headingSize: 'text-lg',
+              buttonLabel: 'SHOP GIFT SETS',
+              buttonLink: '/catalog',
+              buttonBgColor: 'transparent',
+              buttonTextColor: '#ffffff',
+              buttonBorderColor: '#ffffff',
+              bgColor: '#022b17',
+              desktopImage: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?auto=format&fit=crop&q=80&w=600',
+              mobileImage: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?auto=format&fit=crop&q=80&w=400',
+              overlayColor: 'transparent'
+            }
+          ],
+          badges: [
+            { id: 'badge-1', icon: 'truck', title: 'FREE SHIPRING', subtitle: 'On Orders Over ₹999', useCustomIcon: false, customIconSvg: '' },
+            { id: 'badge-2', icon: 'rotate-ccw', title: '30 DAYS RETURNS', subtitle: 'Hassle-Free Returns', useCustomIcon: false, customIconSvg: '' },
+            { id: 'badge-3', icon: 'lock', title: 'SECURE PAYMENT', subtitle: '100% Safe & Secure', useCustomIcon: false, customIconSvg: '' },
+            { id: 'badge-4', icon: 'award', title: 'LIFETIME WARRANTY', subtitle: 'On Plating & Polish', useCustomIcon: false, customIconSvg: '' },
+            { id: 'badge-5', icon: 'headphones', title: '24/7 CUSTOMER SUPPORT', subtitle: "We're Here to Help", useCustomIcon: false, customIconSvg: '' }
+          ]
+        };
+      case 'Testimonials':
+        return {
+          title: 'What Our Customers Say',
+          subtitle: 'Discover why generations of families trust Parasmoni Jewellers for their most precious milestones.',
+          titleColor: '#1c1917',
+          subtitleColor: '#78716c'
+        };
+      case 'Paragraph Document':
+        return {
+          title: 'About Us & Legal Guidelines',
+          subtitle: 'PARASMONI JEWELLERS & BROTHERS • INFORMATION DOCUMENT',
+          lastUpdated: 'Updated September 2026',
+          sections: [
+            {
+              heading: '1. Brand Legacy & Craftsmanship',
+              paragraphs: [
+                'Established in 1974 in Kolkata, Parasmoni Jewellers & Brothers has grown from a traditional Bowbazar artisan workshop into West Bengal’s premier destination for fine hallmarked gold and diamond jewellery.',
+                'We specialize in traditional 22K (916) Bengali gold ornaments, handcrafted bridal chokers, Nakashi necklaces, and certified solitaire mountings.'
+              ],
+              bulletPoints: [
+                '100% BIS Hallmarked gold with laser-engraved HUID code verification',
+                'Transparent itemized pricing with real-time daily gold rate calculation',
+                'Complimentary lifetime gold maintenance and ultrasonic polishing'
+              ]
+            },
+            {
+              heading: '2. Privacy & Customer Rights',
+              paragraphs: [
+                'We respect customer privacy and maintain strict confidentiality regarding order records, custom bridal designs, and personal information.'
+              ]
+            }
+          ],
+          contactNotice: 'For inquiries or custom order consultations, please reach out to our Customer Relations team at support@parasmoni.in or visit our Bowbazar showroom.'
+        };
+      case 'Blog Article':
+        return {
+          title: 'The Timeless Art of Bengali Gold Filigree',
+          subtitle: 'PARASMONI HERITAGE JOURNAL • CRAFTSMANSHIP',
+          authorName: 'Parasmoni Master Craftsman',
+          authorRole: 'Chief Goldsmith',
+          authorAvatar: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&q=80&w=200',
+          publishDate: 'September 2026',
+          readTime: '5 min read',
+          coverImage: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&q=80&w=1200',
+          excerpt: 'Explore how centuries-old Bengali temple jewellery techniques survive today in Kolkata’s historic Bowbazar lanes.',
+          blocks: [
+            {
+              type: 'paragraph',
+              heading: 'Centuries of Royal Patronage',
+              text: 'The art of Nakashi and Rupa-Kaj involves meticulous hand-embossing on pure 22K gold sheets, filling the interior with natural lac to create three-dimensional divine motifs without adding excess weight.'
+            },
+            {
+              type: 'quote',
+              text: 'True Nakashi work is not produced by machines—every crease and feather on a bridal choker is forged by hand using miniature steel chisels.'
+            },
+            {
+              type: 'image_paragraph',
+              heading: 'Preserving Bowbazar Heritage',
+              imageUrl: 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&q=80&w=1200',
+              caption: 'A master goldsmith detailing a 22K gold peacock pendant at Parasmoni workshop.',
+              text: 'At Parasmoni Jewellers, our artisans inherit tools passed down through three generations. Each ornament undergoes 40+ hours of hand sculpting before hallmarking.'
+            }
+          ]
+        };
+      case 'Inquiries & Commissions':
+        return {
+          tag: 'INQUIRIES & COMMISSIONS',
+          title: 'Commission a Custom Legacy Piece',
+          subtitle: 'Have a specific weight, profile, or design layout in mind? Connect directly with our showroom team on phone or WhatsApp. We build bespoke masterpieces customized to your budget.',
+          openHours: 'Open Mon - Sat',
+          location: 'Kolkata Bowbazar & Gariahat'
+        };
       default:
         return {};
     }

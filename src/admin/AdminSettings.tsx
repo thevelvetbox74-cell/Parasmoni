@@ -104,7 +104,7 @@ export function AdminSettings(): React.JSX.Element {
     setContactNumber(data.contactNumber || data.contactPhone || data.primaryPhone || data.phone || '+91 33 2241 9876');
     setWhatsappNumber(data.whatsappNumber || '+91 9831023456');
     setWhatsappMessage(data.whatsappMessage || 'Hello! I would like to inquire about certified gold showroom jewellery.');
-    setEmailAddress(data.emailAddress || data.contactEmail || data.email || 'info@parasmonijewellers.com');
+    setEmailAddress(data.emailAddress || data.contactEmail || data.email || 'info@parasmoni.in');
     setAddress(data.address || '123, Bowbazar Street, Kolkata - 700012, West Bengal, India');
     setCustomerCareNumber(data.customerCareNumber || data.contactPhone || '+91 33 2241 9876');
     setGoogleMapUrl(data.googleMapUrl || data.googleMapsUrl || 'https://maps.google.com/?q=Bowbazar+Kolkata');

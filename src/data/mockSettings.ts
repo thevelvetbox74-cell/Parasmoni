@@ -71,14 +71,14 @@ export interface WebsiteSettings {
 }
 
 export const mockWebsiteSettings: WebsiteSettings = {
-  brandName: "PARASMONI JEWELLERS & BROTHERS",
+  brandName: "Parasmoni Jewellers and Brothers",
   tagline: "Exquisite Handcrafted Gold, Diamond, Polki, & Antique Masterpieces Since 1974",
   establishedYear: 1974,
-  logoUrl: "https://ik.imagekit.io/ugm0ru2xm/Screenshot%202026-08-25%20135242.jpg?updatedAt=1787646387697",
+  logoUrl: "https://ik.imagekit.io/ugm0ru2xm/parasmoni/branding/JEWLLERS___GRAND_BROTHERS__6__5ekGzNryJ.png",
   contactNumber: "+91 33 2241 9876",
   whatsappNumber: "+91 9876543210",
   whatsappMessage: "Hello Parasmoni Jewellers, I would like to inquire about your premium gold and diamond collections.",
-  emailAddress: "info@parasmonijewellers.com",
+  emailAddress: "info@parasmoni.in",
   address: "123, Bowbazar Street, Near Lalbazar, Kolkata, West Bengal 700012, India",
   googleMapUrl: "https://maps.google.com",
   socials: {

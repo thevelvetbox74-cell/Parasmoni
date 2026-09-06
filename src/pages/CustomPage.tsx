@@ -79,9 +79,9 @@ export function CustomPage(): React.JSX.Element {
               }
             ],
             seo: {
-              title: 'Royal Bridal Heritage Jewellery Collection | VelvetBox',
+              title: 'Royal Bridal Heritage Jewellery Collection | Parasmoni Jewellers & Brothers',
               slug: 'bridal-collection',
-              description: 'Explore the royal wedding bridal jewelry collection in 22K pure hallmarked gold and uncut Polki diamonds at VelvetBox Parasmoni.',
+              description: 'Explore the royal wedding bridal jewelry collection in 22K pure hallmarked gold and uncut Polki diamonds at Parasmoni Jewellers & Brothers.',
               ogImage: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&q=80&w=1200'
             }
           };
@@ -111,7 +111,7 @@ export function CustomPage(): React.JSX.Element {
               }
             ],
             seo: {
-              title: 'Legacy & Craftsmanship Since 1974 | VelvetBox Parasmoni',
+              title: 'Legacy & Craftsmanship Since 1974 | Parasmoni Jewellers & Brothers',
               slug: 'about-us',
               description: 'Learn about our 50-year heritage of Kolkata goldsmith craftsmanship, hallmarked purity, and bespoke bridal service.',
               ogImage: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&q=80&w=1200'
@@ -173,7 +173,7 @@ export function CustomPage(): React.JSX.Element {
         <div className="text-center space-y-4">
           <div className="w-10 h-10 border-2 border-stone-800 border-t-transparent rounded-full animate-spin mx-auto" />
           <div className="space-y-1">
-            <span className="block text-xs uppercase tracking-widest font-bold text-stone-600">VelvetBox Showroom</span>
+            <span className="block text-xs uppercase tracking-widest font-bold text-stone-600">Parasmoni Showroom</span>
             <span className="block text-xs text-stone-400 font-serif">Curating bespoke jewelry layout...</span>
           </div>
         </div>

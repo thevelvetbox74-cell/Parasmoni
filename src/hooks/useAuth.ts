@@ -36,10 +36,10 @@ export function useAuth(): AuthState {
       try {
         const parsed = JSON.parse(mockSession);
         setState({
-          user: { uid: 'mock-admin-id', email: parsed.email || 'admin@parasmoni.com' } as any,
+          user: { uid: 'mock-admin-id', email: parsed.email || 'admin@parasmoni.in' } as any,
           adminProfile: {
             uid: 'mock-admin-id',
-            email: parsed.email || 'admin@parasmoni.com',
+            email: parsed.email || 'admin@parasmoni.in',
             name: parsed.name || 'Demo Administrator',
             role: 'super_admin',
             isActive: true,
@@ -118,7 +118,7 @@ export function useAuth(): AuthState {
           user: firebaseUser,
           adminProfile: {
             uid: firebaseUser.uid,
-            email: firebaseUser.email || 'admin@parasmoni.com',
+            email: firebaseUser.email || 'admin@parasmoni.in',
             name: firebaseUser.displayName || (firebaseUser.email ? firebaseUser.email.split('@')[0].toUpperCase() : 'ADMINISTRATOR'),
             role: 'super_admin',
             isActive: true,

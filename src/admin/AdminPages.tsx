@@ -53,9 +53,9 @@ const DEFAULT_PAGES_SEED: PageDocument[] = [
     status: 'published',
     sections: DEFAULT_PAGE_SECTIONS,
     seo: {
-      title: 'Premium Sterling Silver Jewelry | VelvetBox Official',
+      title: 'Parasmoni Jewellers & Brothers | Premium Gold Jewellery Showroom Since 1974',
       slug: 'home',
-      description: 'Shop premium sterling silver jewelry at VelvetBox. Discover rings, necklaces, earrings, and bracelets with timeless designs, brilliant finish, and pure hallmark silver.',
+      description: 'Parasmoni Jewellers & Brothers – a trusted West Bengal gold jewellery showroom established in 1974. Discover handcrafted gold jewellery, bridal collections, and traditional Bengali designs crafted with authenticity and heritage craftsmanship.',
       ogImage: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&q=80&w=1200'
     },
     updatedAt: new Date().toISOString(),
@@ -96,9 +96,9 @@ const DEFAULT_PAGES_SEED: PageDocument[] = [
       }
     ],
     seo: {
-      title: 'Royal Bridal Heritage Jewellery Collection | VelvetBox',
+      title: 'Royal Bridal Heritage Jewellery Collection | Parasmoni Jewellers & Brothers',
       slug: 'bridal-collection',
-      description: 'Explore the royal wedding bridal jewelry collection in 22K pure hallmarked gold and uncut Polki diamonds at VelvetBox Parasmoni.',
+      description: 'Explore the royal wedding bridal jewelry collection in 22K pure hallmarked gold and uncut Polki diamonds at Parasmoni Jewellers & Brothers.',
       ogImage: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&q=80&w=1200'
     },
     updatedAt: new Date().toISOString(),
@@ -130,7 +130,7 @@ const DEFAULT_PAGES_SEED: PageDocument[] = [
       }
     ],
     seo: {
-      title: 'Legacy & Craftsmanship Since 1974 | VelvetBox Parasmoni',
+      title: 'Legacy & Craftsmanship Since 1974 | Parasmoni Jewellers & Brothers',
       slug: 'about-us',
       description: 'Learn about our 50-year heritage of Kolkata goldsmith craftsmanship, hallmarked purity, and bespoke bridal service.',
       ogImage: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&q=80&w=1200'
@@ -151,7 +151,7 @@ export function AdminPages(): React.JSX.Element {
   const [newPageName, setNewPageName] = useState('');
   const [newPageSlug, setNewPageSlug] = useState('');
   const [newPageStatus, setNewPageStatus] = useState<'published' | 'draft'>('published');
-  const [newPageTemplate, setNewPageTemplate] = useState<'empty' | 'showcase' | 'editorial'>('showcase');
+  const [newPageTemplate, setNewPageTemplate] = useState<'empty' | 'showcase' | 'editorial' | 'paragraph' | 'article'>('showcase');
   const [creating, setCreating] = useState(false);
 
   // SEO Drawer State
@@ -309,6 +309,96 @@ export function AdminPages(): React.JSX.Element {
           }
         }
       ];
+    } else if (newPageTemplate === 'paragraph') {
+      initialSections = [
+        {
+          id: `sec-hero-doc-${pageId}`,
+          type: 'Hero Banner',
+          content: {
+            subtitle: 'PARASMONI SHOWROOM • OFFICIAL DOCUMENT',
+            title: newPageName,
+            description: `Official guidelines, policy framework, and transparency documentation for ${newPageName}.`,
+            primaryButton: { label: 'Contact Showroom', linkUrl: '/contact', styleType: 'filled' },
+            secondaryButton: { label: 'Explore Collections', linkUrl: '/catalog', styleType: 'outlined' }
+          }
+        },
+        {
+          id: `sec-doc-${pageId}`,
+          type: 'Paragraph Document',
+          content: {
+            title: newPageName,
+            subtitle: 'PARASMONI JEWELLERS & BROTHERS • LEGAL & INFORMATION DOCUMENTATION',
+            lastUpdated: 'Updated September 2026',
+            sections: [
+              {
+                heading: '1. Overview & Heritage Commitment',
+                paragraphs: [
+                  `Parasmoni Jewellers & Brothers ("we", "our", or "us") is dedicated to establishing absolute trust, transparency, and uncompromising hallmark purity across all our jewelry creations.`,
+                  `This ${newPageName} outlines our operational principles, customer protections, and commitment to master Bengali goldsmithing standards established in 1974.`
+                ],
+                bulletPoints: [
+                  '100% BIS Hallmarked 22K (916) and 18K gold with unique HUID laser code',
+                  'Itemized digital valuation certificates for gold weight, gemstone carat, and making charges',
+                  'Direct showroom support across Bowbazar and regional heritage boutiques'
+                ]
+              },
+              {
+                heading: '2. Customer Assurance & Security Standards',
+                paragraphs: [
+                  'Every ornament delivered or collected from our boutiques undergoes strict ultrasonic inspection, caratometer purity testing, and certified security sealing.',
+                  'We maintain full confidentiality for all custom bridal consultations, private viewing appointments, and bespoke ornament blueprints.'
+                ],
+                bulletPoints: [
+                  'Secure doorstep delivery with insured courier transit for online showroom reservations',
+                  'Complimentary lifetime ultrasonic cleaning and prongs inspection at all Parasmoni boutiques'
+                ]
+              }
+            ],
+            contactNotice: 'For questions regarding this document or custom order verification, please reach out to our Customer Relations team at support@parasmoni.in or visit our Bowbazar main showroom.'
+          }
+        }
+      ];
+    } else if (newPageTemplate === 'article') {
+      initialSections = [
+        {
+          id: `sec-article-${pageId}`,
+          type: 'Blog Article',
+          content: {
+            title: newPageName,
+            subtitle: 'PARASMONI HERITAGE JOURNAL • GOLDSMITHING CHRONICLES',
+            authorName: 'Parasmoni Master Craftsman',
+            authorRole: 'Chief Artisan & Goldsmith',
+            authorAvatar: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&q=80&w=200',
+            publishDate: 'September 2026',
+            readTime: '5 min read',
+            coverImage: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&q=80&w=1200',
+            excerpt: `An in-depth exploration into the art, symbolism, and timeless craftsmanship behind ${newPageName}.`,
+            blocks: [
+              {
+                type: 'paragraph',
+                heading: 'Generational Artistry in Every Curve',
+                text: 'Centuries of royal Bengali heritage live on in Kolkata’s historic Bowbazar lanes. Handcrafting fine gold jewelry is not merely a manufacturing process—it is an act of devotion where master goldsmiths shape pure 22K gold sheets into sacred motifs using hand chisels and traditional lac moulding.'
+              },
+              {
+                type: 'quote',
+                text: 'True luxury lies in the unseen details—the delicate engraving on the back of a pendant, the rhythm of hand-hammered beads, and the warmth of genuine 22K hallmarked gold.'
+              },
+              {
+                type: 'image_paragraph',
+                heading: 'The Sacred Precision of Nakashi & Filigree',
+                imageUrl: 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&q=80&w=1200',
+                caption: 'A Parasmoni master goldsmith meticulously hand-engraving a bridal Nakashi choker.',
+                text: 'Each ornament requires upwards of 40 to 60 hours of focused labor. From selecting certified solitaires and uncut Polki diamonds to executing microscopic wirework, our artisans blend ancestral techniques with modern HUID purity standards.'
+              }
+            ]
+          }
+        },
+        {
+          id: `sec-carousel-art-${pageId}`,
+          type: 'Product Carousel',
+          content: { title: 'Featured Heirloom Creations', productsType: 'featured' }
+        }
+      ];
     }
 
     const newPageObj: PageDocument = {
@@ -319,9 +409,9 @@ export function AdminPages(): React.JSX.Element {
       status: newPageStatus,
       sections: initialSections,
       seo: {
-        title: `${newPageName.trim()} | VelvetBox Parasmoni Jewellers`,
+        title: `${newPageName.trim()} | Parasmoni Jewellers & Brothers`,
         slug: safeSlug,
-        description: `Explore exclusive ${newPageName.trim()} jewellery designs at VelvetBox. Handcrafted in pure 925 sterling silver and 22K hallmarked gold.`,
+        description: `Explore exclusive ${newPageName.trim()} jewellery designs at Parasmoni Jewellers & Brothers. Handcrafted in pure 22K hallmarked gold.`,
         ogImage: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&q=80&w=1200'
       },
       updatedAt: new Date().toISOString(),
@@ -726,7 +816,7 @@ export function AdminPages(): React.JSX.Element {
                 </label>
                 <div className="flex rounded-lg overflow-hidden border border-stone-800 bg-stone-950 focus-within:border-amber-500 transition-colors">
                   <span className="px-3 py-2.5 bg-stone-900 text-stone-500 text-xs font-mono select-none border-r border-stone-800">
-                    velvetbox.in/pages/
+                    parasmoni.in/pages/
                   </span>
                   <input 
                     type="text"
@@ -744,7 +834,7 @@ export function AdminPages(): React.JSX.Element {
                 <label className="text-xs font-bold uppercase tracking-wider text-stone-200 block">
                   Initial Section Template
                 </label>
-                <div className="grid grid-cols-3 gap-2.5">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
                   <button
                     type="button"
                     onClick={() => setNewPageTemplate('showcase')}
@@ -769,6 +859,32 @@ export function AdminPages(): React.JSX.Element {
                   >
                     <span className="block text-xs font-bold text-stone-200 mb-1">Editorial</span>
                     <span className="block text-[10px] text-stone-400 leading-tight">Split Media + Heritage Story</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setNewPageTemplate('paragraph')}
+                    className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                      newPageTemplate === 'paragraph'
+                        ? 'bg-amber-500/10 border-amber-500 text-stone-100 shadow-sm'
+                        : 'bg-stone-950 border-stone-800 text-stone-400 hover:border-stone-700'
+                    }`}
+                  >
+                    <span className="block text-xs font-bold text-stone-200 mb-1">Paragraph Document</span>
+                    <span className="block text-[10px] text-stone-400 leading-tight">About Us / Privacy Policy Formatted Text</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setNewPageTemplate('article')}
+                    className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                      newPageTemplate === 'article'
+                        ? 'bg-amber-500/10 border-amber-500 text-stone-100 shadow-sm'
+                        : 'bg-stone-950 border-stone-800 text-stone-400 hover:border-stone-700'
+                    }`}
+                  >
+                    <span className="block text-xs font-bold text-stone-200 mb-1">Blog Article</span>
+                    <span className="block text-[10px] text-stone-400 leading-tight">Image + Article Story + Quotes</span>
                   </button>
 
                   <button

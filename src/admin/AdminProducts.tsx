@@ -101,6 +101,7 @@ export function AdminProducts(): React.JSX.Element {
     makingCharge: '',
     makingChargeType: 'fixed' as 'fixed' | 'percentage' | 'fixed_per_gram',
     wastagePercent: '',
+    mrp: '',
     priceVisibility: 'on_enquiry' as 'visible' | 'hidden' | 'on_enquiry',
     images: [] as string[],
     thumbnail: '',
@@ -114,7 +115,11 @@ export function AdminProducts(): React.JSX.Element {
     ogTitle: '',
     ogDescription: '',
     ogImage: '',
-    imageAltText: ''
+    imageAltText: '',
+    badgeLabel: '',
+    badgeColor: '#927230',
+    rating: '',
+    reviewCount: ''
   });
 
   // Fetch products and list metadata on mount
@@ -338,6 +343,7 @@ export function AdminProducts(): React.JSX.Element {
       makingCharge: '',
       makingChargeType: 'fixed',
       wastagePercent: '',
+      mrp: '',
       priceVisibility: 'on_enquiry',
       images: [],
       thumbnail: '',
@@ -351,7 +357,11 @@ export function AdminProducts(): React.JSX.Element {
       ogTitle: '',
       ogDescription: '',
       ogImage: '',
-      imageAltText: ''
+      imageAltText: '',
+      badgeLabel: '',
+      badgeColor: '#927230',
+      rating: '',
+      reviewCount: ''
     });
     setError(null);
     setSuccess(null);
@@ -377,6 +387,7 @@ export function AdminProducts(): React.JSX.Element {
       makingCharge: prod.makingCharge !== undefined ? String(prod.makingCharge) : '',
       makingChargeType: prod.makingChargeType || 'fixed',
       wastagePercent: prod.wastagePercent !== undefined ? String(prod.wastagePercent) : '',
+      mrp: prod.mrp !== undefined && prod.mrp !== null ? String(prod.mrp) : '',
       priceVisibility: prod.priceVisibility || 'on_enquiry',
       images: prod.images || [],
       thumbnail: prod.thumbnail || '',
@@ -390,7 +401,11 @@ export function AdminProducts(): React.JSX.Element {
       ogTitle: prod.ogTitle || '',
       ogDescription: prod.ogDescription || '',
       ogImage: prod.ogImage || '',
-      imageAltText: prod.imageAltText || ''
+      imageAltText: prod.imageAltText || '',
+      badgeLabel: prod.badgeLabel || '',
+      badgeColor: prod.badgeColor || '#927230',
+      rating: prod.rating !== undefined && prod.rating !== null ? String(prod.rating) : '',
+      reviewCount: prod.reviewCount !== undefined && prod.reviewCount !== null ? String(prod.reviewCount) : ''
     });
     setError(null);
     setSuccess(null);
@@ -417,6 +432,7 @@ export function AdminProducts(): React.JSX.Element {
       makingCharge: prod.makingCharge !== undefined ? String(prod.makingCharge) : '',
       makingChargeType: prod.makingChargeType || 'fixed',
       wastagePercent: prod.wastagePercent !== undefined ? String(prod.wastagePercent) : '',
+      mrp: prod.mrp !== undefined && prod.mrp !== null ? String(prod.mrp) : '',
       priceVisibility: prod.priceVisibility || 'on_enquiry',
       images: [...(prod.images || [])],
       thumbnail: prod.thumbnail || '',
@@ -430,7 +446,11 @@ export function AdminProducts(): React.JSX.Element {
       ogTitle: prod.ogTitle || '',
       ogDescription: prod.ogDescription || '',
       ogImage: prod.ogImage || '',
-      imageAltText: prod.imageAltText || ''
+      imageAltText: prod.imageAltText || '',
+      badgeLabel: prod.badgeLabel || '',
+      badgeColor: prod.badgeColor || '#927230',
+      rating: prod.rating !== undefined && prod.rating !== null ? String(prod.rating) : '',
+      reviewCount: prod.reviewCount !== undefined && prod.reviewCount !== null ? String(prod.reviewCount) : ''
     });
     setError(null);
     setSuccess(`Duplicated properties of "${prod.productName}". Please verify code, slug, and save.`);
@@ -517,6 +537,7 @@ export function AdminProducts(): React.JSX.Element {
         makingCharge: Number(formData.makingCharge || 0),
         makingChargeType: formData.makingChargeType,
         wastagePercent: Number(formData.wastagePercent || 0),
+        mrp: formData.mrp && formData.mrp.trim() !== '' ? Number(formData.mrp) : null,
         priceVisibility: formData.priceVisibility,
         images: formData.images,
         thumbnail: formData.images[0] || formData.thumbnail || '',
@@ -531,6 +552,10 @@ export function AdminProducts(): React.JSX.Element {
         ogDescription: formData.ogDescription.trim() || formData.seoDescription.trim() || formData.shortDescription.trim(),
         ogImage: formData.ogImage.trim() || formData.images[0] || '',
         imageAltText: formData.imageAltText.trim() || formData.productName,
+        badgeLabel: formData.badgeLabel.trim(),
+        badgeColor: formData.badgeColor.trim(),
+        rating: formData.rating && formData.rating.trim() !== '' ? Number(formData.rating) : null,
+        reviewCount: formData.reviewCount && formData.reviewCount.trim() !== '' ? Number(formData.reviewCount) : null,
         updatedAt: new Date().toISOString(),
         updatedBy: user?.email || 'admin'
       } as any;
@@ -1327,6 +1352,25 @@ export function AdminProducts(): React.JSX.Element {
                   />
                 </div>
 
+                {/* Optional MRP */}
+                <div className="space-y-1.5">
+                  <label htmlFor="form-mrp" className="font-bold text-stone-400 uppercase tracking-wider text-[10px] block">
+                    Optional MRP / Original Price (₹)
+                  </label>
+                  <input
+                    type="number"
+                    id="form-mrp"
+                    name="mrp"
+                    value={formData.mrp || ''}
+                    onChange={handleInputChange}
+                    placeholder="e.g. 48000"
+                    className="w-full bg-stone-900 border border-stone-800 text-stone-100 p-3 rounded focus:outline-hidden focus:border-amber-500 font-mono text-xs"
+                  />
+                  <p className="text-[10px] text-stone-500 font-sans leading-tight">
+                    If set, the selling price will show with this original MRP slashed out.
+                  </p>
+                </div>
+
                 {/* Live Calculated Price Preview */}
                 {(() => {
                   const weight = Number(formData.weight || 0);
@@ -1499,6 +1543,98 @@ export function AdminProducts(): React.JSX.Element {
                       />
                       <div className="w-9 h-5 bg-stone-800 peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-stone-400 after:border-stone-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-600 peer-checked:after:bg-stone-950 peer-checked:after:border-stone-950"></div>
                     </label>
+                  </div>
+                </div>
+              </div>
+
+              {/* Block I: Custom Badge & Star Rating Settings */}
+              <div className="bg-stone-950 border border-stone-800 rounded p-6 space-y-4">
+                <h3 className="font-serif font-bold text-stone-100 text-sm border-b border-stone-900 pb-2 flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-amber-500" />
+                  <span>Custom Badge & Star Rating</span>
+                </h3>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Badge Label */}
+                  <div className="space-y-1.5">
+                    <label htmlFor="form-badgeLabel" className="font-bold text-stone-400 uppercase tracking-wider text-[10px] block">
+                      Badge Label Text
+                    </label>
+                    <input
+                      type="text"
+                      id="form-badgeLabel"
+                      name="badgeLabel"
+                      value={formData.badgeLabel}
+                      onChange={handleInputChange}
+                      placeholder="e.g., BEST SELLER"
+                      className="w-full bg-stone-900 border border-stone-800 text-stone-100 p-3 rounded focus:outline-hidden focus:border-amber-500 text-xs"
+                    />
+                    <span className="text-[9px] text-stone-500 block">Leave blank to hide corner badge completely.</span>
+                  </div>
+
+                  {/* Badge Color */}
+                  <div className="space-y-1.5">
+                    <label htmlFor="form-badgeColor" className="font-bold text-stone-400 uppercase tracking-wider text-[10px] block">
+                      Badge Color
+                    </label>
+                    <div className="flex gap-2">
+                      <input
+                        type="color"
+                        id="form-badgeColor-picker"
+                        value={formData.badgeColor}
+                        onChange={(e) => setFormData(prev => ({ ...prev, badgeColor: e.target.value }))}
+                        className="bg-stone-900 border border-stone-800 w-11 h-11 p-1 rounded cursor-pointer"
+                      />
+                      <input
+                        type="text"
+                        id="form-badgeColor"
+                        name="badgeColor"
+                        value={formData.badgeColor}
+                        onChange={handleInputChange}
+                        className="flex-1 bg-stone-900 border border-stone-800 text-stone-100 p-3 rounded focus:outline-hidden focus:border-amber-500 text-xs font-mono"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Star Rating */}
+                  <div className="space-y-1.5">
+                    <label htmlFor="form-rating" className="font-bold text-stone-400 uppercase tracking-wider text-[10px] block">
+                      Star Rating (0 to 5)
+                    </label>
+                    <input
+                      type="number"
+                      id="form-rating"
+                      name="rating"
+                      value={formData.rating}
+                      onChange={handleInputChange}
+                      step="0.1"
+                      min="0"
+                      max="5"
+                      placeholder="e.g., 4.5"
+                      className="w-full bg-stone-900 border border-stone-800 text-stone-100 p-3 rounded focus:outline-hidden focus:border-amber-500 text-xs"
+                    />
+                    <span className="text-[9px] text-stone-500 block">Enter 0 or leave empty to hide star rating row.</span>
+                  </div>
+
+                  {/* Review Count */}
+                  <div className="space-y-1.5">
+                    <label htmlFor="form-reviewCount" className="font-bold text-stone-400 uppercase tracking-wider text-[10px] block">
+                      Review Count
+                    </label>
+                    <input
+                      type="number"
+                      id="form-reviewCount"
+                      name="reviewCount"
+                      value={formData.reviewCount}
+                      onChange={handleInputChange}
+                      step="1"
+                      min="0"
+                      placeholder="e.g., 256"
+                      className="w-full bg-stone-900 border border-stone-800 text-stone-100 p-3 rounded focus:outline-hidden focus:border-amber-500 text-xs"
+                    />
+                    <span className="text-[9px] text-stone-500 block">Displayed in parentheses next to stars.</span>
                   </div>
                 </div>
               </div>
