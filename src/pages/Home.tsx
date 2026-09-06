@@ -503,7 +503,7 @@ const AboutCollectionSection = ({ content = {} }: { content: any }) => {
 
             {/* Overlapping Small Arch Image (Bottom-Left) */}
             <div 
-              className="absolute bottom-[-1%] left-[-22%] w-[50%] aspect-[3/4] rounded-t-full border p-0.5 bg-stone-900/95 shadow-2xl z-20 hover:scale-105 hover:-translate-y-1 transition-all duration-300 ease-out group/sub"
+              className="absolute bottom-[-1%] left-[-10%] sm:left-[-22%] w-[50%] aspect-[3/4] rounded-t-full border p-0.5 bg-stone-900/95 shadow-2xl z-20 hover:scale-105 hover:-translate-y-1 transition-all duration-300 ease-out group/sub"
               style={{ borderColor: archBorderColor }}
             >
               <div className="w-full h-full rounded-t-full overflow-hidden relative">
@@ -2433,7 +2433,7 @@ export function Home({
     const titleStyle = getTextStyle(content.titleStyle, titleColor, 'serif');
 
     return (
-      <section className="py-16 px-4 sm:px-6 bg-stone-50" id="shop-the-look-section">
+      <section className="py-16 px-4 sm:px-6 bg-stone-50 overflow-hidden w-full max-w-full" id="shop-the-look-section">
         <div className="max-w-7xl mx-auto space-y-8">
           <SectionHeader
             title={title}

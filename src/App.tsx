@@ -114,7 +114,7 @@ export default function App(): React.JSX.Element {
   return (
     <WebsiteSettingsProvider>
       <BrowserRouter>
-        <div className="min-h-screen bg-stone-50 flex flex-col font-sans selection:bg-stone-200 selection:text-stone-900" id="showroom-app-root">
+        <div className="min-h-screen bg-stone-50 flex flex-col font-sans selection:bg-stone-200 selection:text-stone-900 w-full max-w-full overflow-x-clip" id="showroom-app-root">
           <Routes>
             {/* Public Showroom Catalog Routes */}
             <Route

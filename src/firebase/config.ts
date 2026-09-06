@@ -5,7 +5,14 @@
 
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { 
+  initializeFirestore, 
+  getFirestore, 
+  persistentLocalCache, 
+  persistentMultipleTabManager,
+  enableMultiTabIndexedDbPersistence,
+  enableIndexedDbPersistence 
+} from 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -27,7 +34,29 @@ let auth: any = null;
 if (isFirebaseConfigured) {
   try {
     app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
-    db = getFirestore(app);
+    
+    // Enable Firestore IndexedDB offline persistence for instant loads & background sync
+    try {
+      db = initializeFirestore(app, {
+        localCache: persistentLocalCache({
+          tabManager: persistentMultipleTabManager()
+        })
+      });
+    } catch (cacheErr) {
+      db = getFirestore(app);
+      if (typeof window !== 'undefined') {
+        enableMultiTabIndexedDbPersistence(db).catch((err) => {
+          if (err.code === 'failed-precondition') {
+            enableIndexedDbPersistence(db).catch((singleTabErr) => {
+              console.warn('Firestore single tab persistence notice:', singleTabErr);
+            });
+          } else if (err.code === 'unimplemented') {
+            console.warn('Browser does not support Firestore IndexedDB persistence.');
+          }
+        });
+      }
+    }
+
     auth = getAuth(app);
   } catch (error) {
     console.error('Failed to initialize Firebase SDK:', error);

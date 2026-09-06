@@ -211,7 +211,7 @@ export function Navigation({
   };
 
   return (
-    <header className="bg-brand-red-600 border-b border-brand-red-700/50 font-sans sticky top-0 z-50 shadow-sm text-white" id="main-navigation">
+    <header className="bg-brand-red-600 border-b border-brand-red-700/50 font-sans sticky top-0 z-50 shadow-sm text-white w-full max-w-full" id="main-navigation">
       {/* Search Dropdown / Overlay */}
       {searchBarOpen && (
         <div className="bg-stone-50 border-b border-stone-200 py-4 px-6 animate-fade-in-up" id="header-search-bar">

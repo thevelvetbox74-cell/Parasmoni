@@ -34,7 +34,7 @@ export const PREMIUM_FONTS = [
 
 export const UniversalStyleControl: React.FC<UniversalStyleControlProps> = ({
   label,
-  value = {},
+  value = {} as StyleObject,
   onChange,
   defaultFontFamily = 'sans',
   defaultFontSize = 14,
