@@ -24,7 +24,9 @@ export interface MetalPrice {
 export interface Category {
   id: string;
   name: string; // e.g., "Necklaces", "Bangles", "Rings"
-  slug: string;
+  slug?: string;
+  linkedCollectionSlug?: string; // Slug of collection linked directly to category
+  collectionSlug?: string;
   description?: string;
   coverImageUrl?: string;
   isActive: boolean;

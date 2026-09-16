@@ -34,11 +34,11 @@ import {
 
 // Default metals array to seed or fallback to in local mode
 const DEFAULT_METALS = [
-  { id: 'gold-24k', metalName: 'Gold 24K', purity: '99.9% Pure', price: 7470, unit: '1g', currency: 'INR', status: 'active' },
-  { id: 'gold-22k', metalName: 'Gold 22K', purity: '91.6% Hallmark (916)', price: 6850, unit: '1g', currency: 'INR', status: 'active' },
-  { id: 'gold-18k', metalName: 'Gold 18K', purity: '75.0% Hallmark (750)', price: 5630, unit: '1g', currency: 'INR', status: 'active' },
-  { id: 'silver-sterling', metalName: 'Sterling Silver', purity: '92.5% Pure Silver', price: 89, unit: '1g', currency: 'INR', status: 'active' },
-  { id: 'platinum-950', metalName: 'Platinum 950', purity: '95.0% Pure Platinum', price: 3450, unit: '1g', currency: 'INR', status: 'active' }
+  { id: 'gold-24k', metalName: 'Gold 24K', purity: '99.9% Pure', price: 7470, lowPrice: 7400, highPrice: 7550, unit: '1g', currency: 'INR', status: 'active' },
+  { id: 'gold-22k', metalName: 'Gold 22K', purity: '91.6% Hallmark (916)', price: 6850, lowPrice: 6800, highPrice: 6920, unit: '1g', currency: 'INR', status: 'active' },
+  { id: 'gold-18k', metalName: 'Gold 18K', purity: '75.0% Hallmark (750)', price: 5630, lowPrice: 5580, highPrice: 5680, unit: '1g', currency: 'INR', status: 'active' },
+  { id: 'silver-sterling', metalName: 'Sterling Silver', purity: '92.5% Pure Silver', price: 89, lowPrice: 85, highPrice: 95, unit: '1g', currency: 'INR', status: 'active' },
+  { id: 'platinum-950', metalName: 'Platinum 950', purity: '95.0% Pure Platinum', price: 3450, lowPrice: 3400, highPrice: 3500, unit: '1g', currency: 'INR', status: 'active' }
 ];
 
 export function AdminMetalPrices(): React.JSX.Element {
@@ -61,6 +61,8 @@ export function AdminMetalPrices(): React.JSX.Element {
     metalName: '',
     purity: '',
     price: 0,
+    lowPrice: 0,
+    highPrice: 0,
     unit: '1g',
     currency: 'INR',
     effectiveDate: '',
@@ -142,11 +144,14 @@ export function AdminMetalPrices(): React.JSX.Element {
               updateDateStr = new Date().toISOString();
             }
 
+            const currentPrice = Number(data.price || data.pricePerGram || data.ratePerGram || 0);
             return {
               id: docSnapshot.id,
               metalName: data.metalName || data.metal || '',
               purity: data.purity || '',
-              price: Number(data.price || data.pricePerGram || data.ratePerGram || 0),
+              price: currentPrice,
+              lowPrice: data.lowPrice !== undefined ? Number(data.lowPrice) : (currentPrice > 0 ? Math.floor(currentPrice * 0.98) : 0),
+              highPrice: data.highPrice !== undefined ? Number(data.highPrice) : (currentPrice > 0 ? Math.ceil(currentPrice * 1.02) : 0),
               unit: data.unit || '1g',
               currency: data.currency || 'INR',
               effectiveDate: data.effectiveDate || new Date().toISOString().substring(0, 16),
@@ -196,11 +201,16 @@ export function AdminMetalPrices(): React.JSX.Element {
 
   // Open Form in Edit mode
   const handleStartEdit = (item: any) => {
+    const defaultLow = item.lowPrice !== undefined ? item.lowPrice : (item.price > 0 ? Math.floor(item.price * 0.98) : 0);
+    const defaultHigh = item.highPrice !== undefined ? item.highPrice : (item.price > 0 ? Math.ceil(item.price * 1.02) : 0);
+    
     setFormData({
       id: item.id,
       metalName: item.metalName,
       purity: item.purity,
       price: item.price,
+      lowPrice: defaultLow,
+      highPrice: defaultHigh,
       unit: item.unit,
       currency: item.currency,
       effectiveDate: item.effectiveDate || new Date().toISOString().substring(0, 16),
@@ -219,6 +229,8 @@ export function AdminMetalPrices(): React.JSX.Element {
       metalName: '',
       purity: '',
       price: 0,
+      lowPrice: 0,
+      highPrice: 0,
       unit: '1g',
       currency: 'INR',
       effectiveDate: new Date().toISOString().substring(0, 16),
@@ -313,6 +325,9 @@ export function AdminMetalPrices(): React.JSX.Element {
         displayOrder = maxOrder + 1;
       }
 
+      const lowVal = Number(formData.lowPrice || (formData.price ? Math.floor(formData.price * 0.98) : 0));
+      const highVal = Number(formData.highPrice || (formData.price ? Math.ceil(formData.price * 1.02) : 0));
+
       // 2. Format precise payload satisfying both custom parameters and home page component models
       const payload: any = {
         metalName: formData.metalName,
@@ -320,6 +335,8 @@ export function AdminMetalPrices(): React.JSX.Element {
         purity: formData.purity,
         price: Number(formData.price),
         pricePerGram: Number(formData.price), // homepage mapping compatibility
+        lowPrice: lowVal,
+        highPrice: highVal,
         unit: formData.unit,
         currency: formData.currency,
         effectiveDate: formData.effectiveDate,
@@ -641,10 +658,17 @@ export function AdminMetalPrices(): React.JSX.Element {
                         <span className="text-xs text-stone-300 font-sans">{item.purity}</span>
                       </td>
                       <td className="p-4 text-center">
-                        <span className="font-mono text-xs text-amber-500 font-bold">
-                          {item.currency === 'INR' ? '₹' : item.currency}{item.price.toLocaleString('en-IN')}
-                          <span className="text-[10px] text-stone-500 font-normal">/{item.unit}</span>
-                        </span>
+                        <div className="flex flex-col items-center">
+                          <span className="font-mono text-xs text-amber-500 font-bold">
+                            {item.currency === 'INR' ? '₹' : item.currency}{item.price.toLocaleString('en-IN')}
+                            <span className="text-[10px] text-stone-500 font-normal">/{item.unit}</span>
+                          </span>
+                          {(item.lowPrice || item.highPrice) && (
+                            <span className="text-[9px] text-stone-400 font-mono mt-0.5" title="Live Fluctuation Bounds">
+                              Low: ₹{Number(item.lowPrice || 0).toLocaleString('en-IN')} | High: ₹{Number(item.highPrice || 0).toLocaleString('en-IN')}
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="p-4 text-center">
                         <span className={`inline-flex items-center gap-0.5 text-[9px] font-mono font-bold px-1.5 py-0.5 rounded ${
@@ -758,9 +782,69 @@ export function AdminMetalPrices(): React.JSX.Element {
                     step={0.01}
                     placeholder="7470"
                     value={formData.price || ''}
-                    onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
+                    onChange={(e) => {
+                      const newPrice = parseFloat(e.target.value) || 0;
+                      setFormData({ 
+                        ...formData, 
+                        price: newPrice,
+                        lowPrice: formData.lowPrice || (newPrice > 0 ? Math.floor(newPrice * 0.98) : 0),
+                        highPrice: formData.highPrice || (newPrice > 0 ? Math.ceil(newPrice * 1.02) : 0)
+                      });
+                    }}
                     className="w-full pl-8 pr-3 py-2 bg-stone-900 border border-stone-800 focus:border-amber-600 focus:outline-hidden text-xs rounded text-stone-200 font-mono font-bold"
                   />
+                </div>
+              </div>
+
+              {/* Ticker Live Animation Fluctuation Limits */}
+              <div className="space-y-1.5 p-3.5 bg-stone-900/60 border border-amber-500/20 rounded-md col-span-1 md:col-span-2">
+                <div className="flex items-center gap-2 mb-2">
+                  <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                  <span className="text-[11px] font-bold text-amber-400 uppercase tracking-wider">
+                    Live Fluctuation Bounds (Low Price & High Price for Ticker Animation)
+                  </span>
+                </div>
+                <p className="text-[10px] text-stone-400 mb-3">
+                  Website top ticker bar mein live animation ke dauran price in do values ke beech hi up & down fluctuate karega (rightmost 3 digits animate honge).
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Low Price */}
+                  <div className="space-y-1">
+                    <label className="text-[10px] text-emerald-400 font-bold uppercase tracking-wider block">
+                      Low Price (Min Fluctuation Limit)
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-2 text-stone-500 text-xs font-bold font-mono">
+                        {formData.currency === 'INR' ? '₹' : formData.currency}
+                      </span>
+                      <input
+                        type="number"
+                        placeholder="e.g. 7400"
+                        value={formData.lowPrice || ''}
+                        onChange={(e) => setFormData({ ...formData, lowPrice: parseFloat(e.target.value) || 0 })}
+                        className="w-full pl-8 pr-3 py-2 bg-stone-950 border border-stone-800 focus:border-emerald-500 focus:outline-hidden text-xs rounded text-emerald-300 font-mono font-bold"
+                      />
+                    </div>
+                  </div>
+
+                  {/* High Price */}
+                  <div className="space-y-1">
+                    <label className="text-[10px] text-rose-400 font-bold uppercase tracking-wider block">
+                      High Price (Max Fluctuation Limit)
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-2 text-stone-500 text-xs font-bold font-mono">
+                        {formData.currency === 'INR' ? '₹' : formData.currency}
+                      </span>
+                      <input
+                        type="number"
+                        placeholder="e.g. 7550"
+                        value={formData.highPrice || ''}
+                        onChange={(e) => setFormData({ ...formData, highPrice: parseFloat(e.target.value) || 0 })}
+                        className="w-full pl-8 pr-3 py-2 bg-stone-950 border border-stone-800 focus:border-rose-500 focus:outline-hidden text-xs rounded text-rose-300 font-mono font-bold"
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
 

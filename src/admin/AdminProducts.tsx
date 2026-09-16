@@ -40,7 +40,9 @@ import {
   HelpCircle,
   BadgeAlert,
   Image as ImageIcon,
-  Settings
+  Settings,
+  History,
+  RotateCcw
 } from 'lucide-react';
 import { ImageUploader } from '../components/ImageUploader';
 import { mockProducts, mockStores, mockCollections, mockMetalPrices } from '../data/mockData';
@@ -72,11 +74,13 @@ export function AdminProducts(): React.JSX.Element {
 
   // Static Metadata Dropdowns (Populated dynamically or from fallback lists)
   const [categories, setCategories] = useState<any[]>([
-    { id: 'cat-necklaces', name: 'Necklaces & Chokers' },
-    { id: 'cat-bangles', name: 'Bangles & Kadas' },
-    { id: 'cat-rings', name: 'Rings & Solitaires' },
-    { id: 'cat-earrings', name: 'Premium Jhumkas & Earrings' },
-    { id: 'cat-pendants', name: 'Pendants & Chains' }
+    { id: 'Necklaces', name: 'Necklaces' },
+    { id: 'Earrings', name: 'Earrings' },
+    { id: 'Rings', name: 'Rings' },
+    { id: 'Bangles', name: 'Bangles' },
+    { id: 'Bridal Accessories', name: 'Bridal Accessories' },
+    { id: 'Chokers', name: 'Chokers' },
+    { id: 'Pendants', name: 'Pendants' }
   ]);
   const [collections, setCollections] = useState<any[]>(mockCollections);
   const [stores, setStores] = useState<any[]>(mockStores);
@@ -90,7 +94,7 @@ export function AdminProducts(): React.JSX.Element {
     slug: '',
     shortDescription: '',
     description: '',
-    category: 'cat-necklaces',
+    category: 'Necklaces',
     subcategory: '',
     collection: 'col-1',
     metal: 'gold' as 'gold' | 'silver' | 'platinum' | 'diamond_setting',
@@ -121,6 +125,53 @@ export function AdminProducts(): React.JSX.Element {
     rating: '',
     reviewCount: ''
   });
+
+  // Local Storage Product Listing Draft state
+  const DRAFT_STORAGE_KEY = 'jewellery_product_listing_draft';
+  const [hasSavedDraft, setHasSavedDraft] = useState(false);
+  const [draftRestoredNotice, setDraftRestoredNotice] = useState(false);
+
+  // Check if draft exists on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(DRAFT_STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && (parsed.formData?.productName || parsed.formData?.images?.length > 0 || parsed.formData?.description || parsed.formData?.weight)) {
+          setHasSavedDraft(true);
+        }
+      }
+    } catch (e) {
+      console.error('Error reading product draft from localStorage:', e);
+    }
+  }, []);
+
+  // Auto-save draft to localStorage whenever user edits in 'add' view
+  useEffect(() => {
+    if (view === 'add') {
+      const hasContent = 
+        formData.productName.trim() !== '' || 
+        formData.description.trim() !== '' ||
+        formData.shortDescription.trim() !== '' ||
+        formData.images.length > 0 || 
+        formData.weight.trim() !== '' ||
+        formData.makingCharge.trim() !== '' ||
+        formData.tags.trim() !== '';
+
+      if (hasContent) {
+        try {
+          const draftPayload = {
+            formData,
+            savedAt: new Date().toISOString()
+          };
+          localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(draftPayload));
+          setHasSavedDraft(true);
+        } catch (e) {
+          console.error('Error saving product draft to localStorage:', e);
+        }
+      }
+    }
+  }, [formData, view]);
 
   // Fetch products and list metadata on mount
   useEffect(() => {
@@ -160,7 +211,7 @@ export function AdminProducts(): React.JSX.Element {
               slug: generateSlug(item.name),
               shortDescription: item.description.substring(0, 100) + '...',
               description: item.description,
-              category: item.category === 'Necklaces' ? 'cat-necklaces' : (item.category === 'Bangles' ? 'cat-bangles' : 'cat-rings'),
+              category: item.category || 'Necklaces',
               subcategory: 'Traditional',
               collection: item.collection === 'Royal Kundan & Polki' ? 'col-1' : 'col-2',
               metal: 'gold',
@@ -243,7 +294,7 @@ export function AdminProducts(): React.JSX.Element {
           slug: generateSlug(p.name),
           shortDescription: p.description.substring(0, 100),
           description: p.description,
-          category: p.category === 'Necklaces' ? 'cat-necklaces' : (p.category === 'Bangles' ? 'cat-bangles' : 'cat-rings'),
+          category: p.category || 'Necklaces',
           subcategory: 'Classic',
           collection: p.collection === 'Royal Kundan & Polki' ? 'col-1' : 'col-2',
           metal: 'gold',
@@ -325,50 +376,128 @@ export function AdminProducts(): React.JSX.Element {
 
   // Switch to Form Modes
   const openAddForm = () => {
-    setFormData({
-      id: '',
-      productCode: `PM-GOLD-${Math.floor(100 + Math.random() * 900)}`,
-      productName: '',
-      slug: '',
-      shortDescription: '',
-      description: '',
-      category: categories[0]?.id || 'cat-necklaces',
-      subcategory: '',
-      collection: collections[0]?.id || 'col-1',
-      metal: 'gold',
-      purity: '22k',
-      weight: '',
-      price: '',
-      metalRef: '',
-      makingCharge: '',
-      makingChargeType: 'fixed',
-      wastagePercent: '',
-      mrp: '',
-      priceVisibility: 'on_enquiry',
-      images: [],
-      thumbnail: '',
-      featured: false,
-      newArrival: false,
-      status: 'draft',
-      availableStores: ['store-1', 'store-2'],
-      tags: '',
-      seoTitle: '',
-      seoDescription: '',
-      ogTitle: '',
-      ogDescription: '',
-      ogImage: '',
-      imageAltText: '',
-      badgeLabel: '',
-      badgeColor: '#927230',
-      rating: '',
-      reviewCount: ''
-    });
+    // Check if there is an existing draft to restore
+    let restored = false;
+    try {
+      const saved = localStorage.getItem(DRAFT_STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && parsed.formData && (parsed.formData.productName || parsed.formData.images?.length > 0 || parsed.formData.description || parsed.formData.weight)) {
+          setFormData(parsed.formData);
+          restored = true;
+          setDraftRestoredNotice(true);
+        }
+      }
+    } catch (e) {
+      console.error('Error auto-restoring draft:', e);
+    }
+
+    if (!restored) {
+      setFormData({
+        id: '',
+        productCode: `PM-GOLD-${Math.floor(100 + Math.random() * 900)}`,
+        productName: '',
+        slug: '',
+        shortDescription: '',
+        description: '',
+        category: categories[0]?.id || 'Necklaces',
+        subcategory: '',
+        collection: collections[0]?.id || '',
+        metal: 'gold',
+        purity: '22K Gold (916)',
+        weight: '',
+        price: '',
+        metalRef: '',
+        makingCharge: '',
+        makingChargeType: 'fixed',
+        wastagePercent: '',
+        mrp: '',
+        priceVisibility: 'on_enquiry',
+        images: [],
+        thumbnail: '',
+        featured: false,
+        newArrival: false,
+        status: 'draft',
+        availableStores: ['store-1', 'store-2'],
+        tags: '',
+        seoTitle: '',
+        seoDescription: '',
+        ogTitle: '',
+        ogDescription: '',
+        ogImage: '',
+        imageAltText: '',
+        badgeLabel: '',
+        badgeColor: '#927230',
+        rating: '',
+        reviewCount: ''
+      });
+      setDraftRestoredNotice(false);
+    }
+
     setError(null);
     setSuccess(null);
     setView('add');
   };
 
+  const handleDiscardDraft = () => {
+    try {
+      localStorage.removeItem(DRAFT_STORAGE_KEY);
+      setHasSavedDraft(false);
+      setDraftRestoredNotice(false);
+      setFormData({
+        id: '',
+        productCode: `PM-GOLD-${Math.floor(100 + Math.random() * 900)}`,
+        productName: '',
+        slug: '',
+        shortDescription: '',
+        description: '',
+        category: categories[0]?.id || 'Necklaces',
+        subcategory: '',
+        collection: collections[0]?.id || '',
+        metal: 'gold',
+        purity: '22K Gold (916)',
+        weight: '',
+        price: '',
+        metalRef: '',
+        makingCharge: '',
+        makingChargeType: 'fixed',
+        wastagePercent: '',
+        mrp: '',
+        priceVisibility: 'on_enquiry',
+        images: [],
+        thumbnail: '',
+        featured: false,
+        newArrival: false,
+        status: 'draft',
+        availableStores: ['store-1', 'store-2'],
+        tags: '',
+        seoTitle: '',
+        seoDescription: '',
+        ogTitle: '',
+        ogDescription: '',
+        ogImage: '',
+        imageAltText: '',
+        badgeLabel: '',
+        badgeColor: '#927230',
+        rating: '',
+        reviewCount: ''
+      });
+    } catch (e) {
+      console.error('Error clearing draft:', e);
+    }
+  };
+
   const openEditForm = (prod: any) => {
+    // Normalize purity name for the select input
+    let normPurity = prod.purity || '22K Gold (916)';
+    if (normPurity.toLowerCase().includes('22k') || normPurity.includes('916')) {
+      normPurity = '22K Gold (916)';
+    } else if (normPurity.toLowerCase().includes('18k')) {
+      normPurity = '18K Gold';
+    } else if (normPurity.toLowerCase().includes('925') || normPurity.toLowerCase().includes('silver')) {
+      normPurity = '925 Silver';
+    }
+
     setFormData({
       id: prod.id,
       productCode: prod.productCode || '',
@@ -376,11 +505,11 @@ export function AdminProducts(): React.JSX.Element {
       slug: prod.slug || '',
       shortDescription: prod.shortDescription || '',
       description: prod.description || '',
-      category: prod.category || 'cat-necklaces',
+      category: prod.category || 'Necklaces',
       subcategory: prod.subcategory || '',
-      collection: prod.collection || 'col-1',
+      collection: prod.collection || '',
       metal: prod.metal || 'gold',
-      purity: prod.purity || '22k',
+      purity: normPurity,
       weight: prod.weight || '',
       price: prod.price || '',
       metalRef: prod.metalRef || '',
@@ -414,6 +543,16 @@ export function AdminProducts(): React.JSX.Element {
 
   // Duplicate Product Action
   const handleDuplicateProduct = (prod: any) => {
+    // Normalize purity name for the select input
+    let normPurity = prod.purity || '22K Gold (916)';
+    if (normPurity.toLowerCase().includes('22k') || normPurity.includes('916')) {
+      normPurity = '22K Gold (916)';
+    } else if (normPurity.toLowerCase().includes('18k')) {
+      normPurity = '18K Gold';
+    } else if (normPurity.toLowerCase().includes('925') || normPurity.toLowerCase().includes('silver')) {
+      normPurity = '925 Silver';
+    }
+
     setFormData({
       id: '', // Empty ID represents new product creation
       productCode: `${prod.productCode || 'PM'}-COPY`,
@@ -421,11 +560,11 @@ export function AdminProducts(): React.JSX.Element {
       slug: `${prod.slug || 'product'}-copy`,
       shortDescription: prod.shortDescription || '',
       description: prod.description || '',
-      category: prod.category || 'cat-necklaces',
+      category: prod.category || 'Necklaces',
       subcategory: prod.subcategory || '',
-      collection: prod.collection || 'col-1',
+      collection: prod.collection || '',
       metal: prod.metal || 'gold',
-      purity: prod.purity || '22k',
+      purity: normPurity,
       weight: prod.weight || '',
       price: prod.price || '',
       metalRef: prod.metalRef || '',
@@ -530,6 +669,7 @@ export function AdminProducts(): React.JSX.Element {
         subcategory: formData.subcategory.trim(),
         collection: formData.collection,
         metal: formData.metal,
+        metalType: formData.metal === 'gold' ? 'Gold' : formData.metal === 'silver' ? 'Silver' : formData.metal === 'platinum' ? 'Platinum' : formData.metal === 'diamond_setting' ? 'Diamond' : 'Gold',
         purity: formData.purity,
         weight: formData.weight.trim(),
         price: '0', // Exclude frozen price from the document
@@ -569,6 +709,14 @@ export function AdminProducts(): React.JSX.Element {
           // Offline mock add
           const id = `mock-prod-${Math.floor(Math.random() * 10000)}`;
           setProducts(prev => [{ id, ...payload }, ...prev]);
+        }
+        // Successfully published - clear the draft from localStorage
+        try {
+          localStorage.removeItem(DRAFT_STORAGE_KEY);
+          setHasSavedDraft(false);
+          setDraftRestoredNotice(false);
+        } catch (e) {
+          console.error('Error clearing draft on publish:', e);
         }
         setSuccess(`Successfully added and catalogued "${payload.productName}".`);
       } else {
@@ -667,6 +815,20 @@ export function AdminProducts(): React.JSX.Element {
                 <option value="published">Published</option>
                 <option value="draft">Drafts</option>
               </select>
+
+              {/* Draft indicator if a draft is pending in browser */}
+              {hasSavedDraft && (
+                <button
+                  onClick={openAddForm}
+                  type="button"
+                  className="inline-flex items-center gap-1.5 bg-stone-900 hover:bg-stone-850 border border-amber-600/40 text-amber-400 font-bold uppercase tracking-wider text-[11px] py-2 px-3 rounded cursor-pointer transition-all shadow-xs"
+                  id="resume-draft-btn"
+                  title="A draft listing was auto-saved on this device. Click to resume."
+                >
+                  <History className="w-3.5 h-3.5 text-amber-500 animate-pulse" />
+                  <span>Resume Saved Draft</span>
+                </button>
+              )}
 
               {/* Add Button */}
               <button
@@ -890,17 +1052,37 @@ export function AdminProducts(): React.JSX.Element {
         <form onSubmit={handleSaveProduct} className="space-y-6 text-xs text-stone-300" id="product-form-workspace">
           
           {/* Header Action Row */}
-          <div className="flex items-center justify-between border-b border-stone-800 pb-4">
-            <button
-              type="button"
-              onClick={() => setView('list')}
-              className="inline-flex items-center gap-1.5 text-stone-400 hover:text-stone-100 font-bold uppercase tracking-wider text-[10px] transition-colors"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span>Back to Listing</span>
-            </button>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-stone-800 pb-4">
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setView('list')}
+                className="inline-flex items-center gap-1.5 text-stone-400 hover:text-stone-100 font-bold uppercase tracking-wider text-[10px] transition-colors"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span>Back to Listing</span>
+              </button>
+
+              {view === 'add' && (
+                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-stone-900 border border-stone-800 text-[10px] text-stone-400 font-mono">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  <span>Auto-saving draft locally</span>
+                </div>
+              )}
+            </div>
             
             <div className="inline-flex items-center gap-2">
+              {view === 'add' && hasSavedDraft && (
+                <button
+                  type="button"
+                  onClick={handleDiscardDraft}
+                  className="inline-flex items-center gap-1 px-3 py-2 bg-stone-900 hover:bg-red-950/20 hover:border-red-900/40 border border-stone-800 text-stone-400 hover:text-red-400 font-bold uppercase tracking-wider text-[10px] rounded transition-colors"
+                  title="Clear auto-saved draft data from this device"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  <span>Discard Draft</span>
+                </button>
+              )}
               <button
                 type="button"
                 onClick={() => setView('list')}
@@ -927,6 +1109,26 @@ export function AdminProducts(): React.JSX.Element {
               </button>
             </div>
           </div>
+
+          {/* Draft Restored Banner */}
+          {view === 'add' && draftRestoredNotice && (
+            <div className="p-3.5 bg-amber-950/30 border border-amber-500/30 text-amber-300 rounded text-xs flex items-center justify-between gap-3 animate-fade-in" id="draft-restored-banner">
+              <div className="flex items-center gap-2.5">
+                <History className="w-4 h-4 text-amber-500 shrink-0" />
+                <span>
+                  <strong>Draft Restored:</strong> Previously entered text and selected images have been automatically recovered on this device.
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setDraftRestoredNotice(false)}
+                className="text-stone-400 hover:text-stone-200 p-1 rounded"
+                title="Dismiss notice"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          )}
 
           {/* Form Layout Split Blocks */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -1234,13 +1436,23 @@ export function AdminProducts(): React.JSX.Element {
                     onChange={(e) => {
                       const selectedId = e.target.value;
                       const matched = metalPrices.find(m => m.id === selectedId);
-                      setFormData(prev => ({
-                        ...prev,
-                        metalRef: selectedId,
-                        // Maintain backwards category and purity mapping
-                        metal: (matched ? matched.metalName.toLowerCase().includes('silver') ? 'silver' : matched.metalName.toLowerCase().includes('platinum') ? 'platinum' : 'gold' : prev.metal) as any,
-                        purity: matched ? matched.purity || '22k' : prev.purity
-                      }));
+                      setFormData(prev => {
+                        let normPurity = matched ? (matched.purity || '22k') : prev.purity;
+                        if (normPurity.toLowerCase().includes('22k') || normPurity.includes('916')) {
+                          normPurity = '22K Gold (916)';
+                        } else if (normPurity.toLowerCase().includes('18k')) {
+                          normPurity = '18K Gold';
+                        } else if (normPurity.toLowerCase().includes('925') || normPurity.toLowerCase().includes('silver')) {
+                          normPurity = '925 Silver';
+                        }
+
+                        return {
+                          ...prev,
+                          metalRef: selectedId,
+                          metal: (matched ? (matched.metalName.toLowerCase().includes('silver') ? 'silver' : matched.metalName.toLowerCase().includes('platinum') ? 'platinum' : 'gold') : prev.metal) as any,
+                          purity: normPurity
+                        };
+                      });
                     }}
                     className="w-full bg-stone-900 border border-stone-800 text-stone-200 p-3 rounded focus:outline-hidden focus:border-amber-500 cursor-pointer text-xs font-semibold"
                   >
@@ -1250,6 +1462,56 @@ export function AdminProducts(): React.JSX.Element {
                         {m.metalName} ({m.purity || 'Standard Purity'}) - ₹{m.pricePerGram || m.price}/g {m.status === 'inactive' ? '[INACTIVE]' : ''}
                       </option>
                     ))}
+                  </select>
+                </div>
+
+                {/* Storefront Metal Type Filter Mapping */}
+                <div className="space-y-1.5">
+                  <label htmlFor="form-metal" className="font-bold text-stone-400 uppercase tracking-wider text-[10px] block">
+                    Storefront Metal Type Filter
+                  </label>
+                  <select
+                    id="form-metal"
+                    name="metal"
+                    value={formData.metal}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setFormData(prev => ({
+                        ...prev,
+                        metal: val as any,
+                        purity: val === 'silver' ? '925 Silver' : val === 'diamond_setting' ? '18K Gold' : '22K Gold (916)'
+                      }));
+                    }}
+                    className="w-full bg-stone-900 border border-stone-800 text-stone-200 p-3 rounded focus:outline-hidden focus:border-amber-500 cursor-pointer text-xs font-semibold"
+                  >
+                    <option value="gold">Gold</option>
+                    <option value="diamond_setting">Diamond</option>
+                    <option value="silver">Silver</option>
+                    <option value="platinum">Platinum</option>
+                  </select>
+                </div>
+
+                {/* Storefront Purity Standard Filter Mapping */}
+                <div className="space-y-1.5">
+                  <label htmlFor="form-purity" className="font-bold text-stone-400 uppercase tracking-wider text-[10px] block">
+                    Storefront Purity Standard Filter
+                  </label>
+                  <select
+                    id="form-purity"
+                    name="purity"
+                    value={formData.purity}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setFormData(prev => ({
+                        ...prev,
+                        purity: val
+                      }));
+                    }}
+                    className="w-full bg-stone-900 border border-stone-800 text-stone-200 p-3 rounded focus:outline-hidden focus:border-amber-500 cursor-pointer text-xs font-semibold"
+                  >
+                    <option value="22K Gold (916)">22K Gold (916)</option>
+                    <option value="18K Gold">18K Gold</option>
+                    <option value="925 Silver">925 Silver</option>
                   </select>
                 </div>
 

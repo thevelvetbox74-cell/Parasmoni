@@ -39,6 +39,24 @@ const PRODUCT_CATEGORIES = [
   "Pendants"
 ];
 
+// Normalize category names (supporting legacy IDs and casing mismatches)
+const normalizeCategory = (cat: string): string => {
+  if (!cat) return 'Necklaces';
+  const clean = cat.toLowerCase().trim();
+  if (clean.includes('necklace') || clean === 'cat-necklaces') return 'Necklaces';
+  if (clean.includes('earring') || clean === 'cat-earrings') return 'Earrings';
+  if (clean.includes('ring') || clean === 'cat-rings') return 'Rings';
+  if (clean.includes('bangle') || clean === 'cat-bangles') return 'Bangles';
+  if (clean.includes('bridal') || clean.includes('accessory') || clean === 'cat-bridal' || clean.includes('bridal accessories')) return 'Bridal Accessories';
+  if (clean.includes('choker') || clean === 'cat-chokers') return 'Chokers';
+  if (clean.includes('pendant') || clean === 'cat-pendants') return 'Pendants';
+  
+  const found = PRODUCT_CATEGORIES.find(c => c.toLowerCase() === clean || clean.includes(c.toLowerCase()));
+  if (found) return found;
+
+  return cat.charAt(0).toUpperCase() + cat.slice(1);
+};
+
 // Purity standards
 const PURITY_STANDARDS = [
   "22K Gold (916)",
@@ -71,6 +89,7 @@ export function Catalog(): React.JSX.Element {
   // Unified Products State
   const [products, setProducts] = useState<any[]>([]);
   const [collectionsList, setCollectionsList] = useState<any[]>([]);
+  const [categoriesList, setCategoriesList] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [fallbackActive, setFallbackActive] = useState(!isFirebaseConfigured);
 
@@ -105,29 +124,93 @@ export function Catalog(): React.JSX.Element {
     }
   }, [searchParams]);
 
-  // Read route parameters (SEO-friendly slugs e.g. /collections/heritage or /category/rings)
+  // Read route parameters & hashes (SEO-friendly slugs e.g. /collections/heritage or /collection/kundan or ?collection=kundan or #collection/kundan or @kundan)
   useEffect(() => {
-    if (location.pathname.startsWith('/collections/') && slug) {
-      // Find the corresponding collection name from slug
-      const foundCol = mockCollections.find(c => c.slug === slug);
+    let rawCollectionRef = '';
+
+    if ((location.pathname.startsWith('/collections/') || location.pathname.startsWith('/collection/')) && slug) {
+      rawCollectionRef = slug;
+    } else if (searchParams.get('collection')) {
+      rawCollectionRef = searchParams.get('collection') || '';
+    } else if (searchParams.get('type')) {
+      rawCollectionRef = searchParams.get('type') || '';
+    } else if (location.hash && location.hash.includes('collection/')) {
+      rawCollectionRef = location.hash.split('collection/')[1] || '';
+    } else if (location.hash && location.hash.startsWith('#@')) {
+      rawCollectionRef = location.hash.substring(2);
+    } else if (location.hash && location.hash.startsWith('#')) {
+      rawCollectionRef = location.hash.substring(1);
+    }
+
+    // Parse category from URL query parameters (e.g. ?category=Earrings) or route slugs
+    let rawCategoryRef = '';
+    if (location.pathname.startsWith('/category/') && slug) {
+      rawCategoryRef = slug;
+    } else if (searchParams.get('category')) {
+      rawCategoryRef = searchParams.get('category') || '';
+    } else if (searchParams.get('cat')) {
+      rawCategoryRef = searchParams.get('cat') || '';
+    }
+
+    if (rawCategoryRef) {
+      const cleanCat = rawCategoryRef.toLowerCase().trim();
+      // Look up if this category is linked to a collection
+      const foundCategoryObj = categoriesList.find(c => 
+        c.slug?.toLowerCase() === cleanCat || 
+        c.id?.toLowerCase() === cleanCat || 
+        c.name?.toLowerCase() === cleanCat
+      );
+
+      if (foundCategoryObj && foundCategoryObj.linkedCollectionSlug) {
+        rawCollectionRef = foundCategoryObj.linkedCollectionSlug;
+      }
+    }
+
+    if (rawCollectionRef) {
+      const clean = rawCollectionRef.toLowerCase().trim().replace(/^@/, '').replace(/^#/, '');
+      const foundCol = collectionsList.find(c => 
+        c.slug?.toLowerCase() === clean || 
+        c.id?.toLowerCase() === clean || 
+        c.name?.toLowerCase() === clean
+      );
+
       if (foundCol) {
         setSelectedCollection(foundCol.name);
       } else {
-        // Try mapping directly or capitalized
-        const capitalized = slug.charAt(0).toUpperCase() + slug.slice(1);
+        const capitalized = clean.charAt(0).toUpperCase() + clean.slice(1);
         setSelectedCollection(capitalized);
       }
-    } else if (location.pathname.startsWith('/category/') && slug) {
-      // Find corresponding category
-      const matchedCat = PRODUCT_CATEGORIES.find(c => c.toLowerCase() === slug.toLowerCase() || c.toLowerCase().includes(slug.toLowerCase()));
-      if (matchedCat) {
+    } else {
+      setSelectedCollection('all');
+    }
+
+    if (rawCategoryRef) {
+      const cleanCat = rawCategoryRef.toLowerCase().trim();
+      const matchedCat = PRODUCT_CATEGORIES.find(c => 
+        c.toLowerCase() === cleanCat || 
+        c.toLowerCase().includes(cleanCat) || 
+        cleanCat.includes(c.toLowerCase())
+      );
+      
+      const foundCategoryObj = categoriesList.find(c => 
+        c.slug?.toLowerCase() === cleanCat || 
+        c.id?.toLowerCase() === cleanCat || 
+        c.name?.toLowerCase() === cleanCat
+      );
+
+      if (foundCategoryObj && foundCategoryObj.linkedCollectionSlug) {
+        // Since it's linked to a collection, we select all categories so we show the whole collection!
+        setSelectedCategory('all');
+      } else if (matchedCat) {
         setSelectedCategory(matchedCat);
       } else {
-        const capitalized = slug.charAt(0).toUpperCase() + slug.slice(1);
+        const capitalized = rawCategoryRef.charAt(0).toUpperCase() + rawCategoryRef.slice(1);
         setSelectedCategory(capitalized);
       }
+    } else {
+      setSelectedCategory('all');
     }
-  }, [location.pathname, slug]);
+  }, [location.pathname, location.hash, searchParams, slug, collectionsList, categoriesList]);
 
   // Firestore Fetching Core
   useEffect(() => {
@@ -135,6 +218,12 @@ export function Catalog(): React.JSX.Element {
       if (!isFirebaseConfigured) {
         setProducts(mockProducts);
         setCollectionsList(mockCollections);
+        setCategoriesList(PRODUCT_CATEGORIES.map(cat => ({
+          id: `cat-${cat.toLowerCase().replace(/\s+/g, '-')}`,
+          name: cat,
+          slug: cat.toLowerCase().replace(/\s+/g, '-'),
+          linkedCollectionSlug: ''
+        })));
         setLoading(false);
         setFallbackActive(true);
         return;
@@ -179,9 +268,9 @@ export function Catalog(): React.JSX.Element {
             name: data.name || data.productName || '',
             sku: data.sku || data.productCode || '',
             description: data.description || '',
-            category: data.category || '',
+            category: normalizeCategory(data.category || ''),
             collection: data.collection || '',
-            metalType: priceInfo.metalName || data.metalType || data.purity || '',
+            metalType: priceInfo.metalName || (data.metalType && data.purity ? `${data.metalType} (${data.purity})` : (data.metalType || data.purity || '')),
             approxWeight: weight > 0 ? `${weight}g` : (data.approxWeight || ''),
             imageUrl: data.imageUrl || data.thumbnailUrl || (data.images && data.images[0]) || '',
             featured: !!data.featured,
@@ -206,18 +295,50 @@ export function Catalog(): React.JSX.Element {
             id: doc.id,
             name: data.name || '',
             slug: data.slug || '',
-            status: data.status || 'active'
+            description: data.description || '',
+            productIds: Array.isArray(data.productIds) ? data.productIds : [],
+            status: data.status || (data.isActive ? 'published' : 'draft')
           };
-        }).filter(c => c.status === 'active');
+        }).filter(c => c.status === 'published' || c.status === 'active');
+
+        // 3. Fetch Categories to resolve linked collections
+        let fetchedCategories: any[] = [];
+        try {
+          const catRef = collection(db, 'categories');
+          const catSnapshot = await getDocs(catRef);
+          fetchedCategories = catSnapshot.docs.map(doc => {
+            const data = doc.data();
+            return {
+              id: doc.id,
+              name: data.name || '',
+              slug: data.slug || '',
+              linkedCollectionSlug: data.linkedCollectionSlug || ''
+            };
+          });
+        } catch (catErr) {
+          console.warn("Failed to fetch categories:", catErr);
+        }
 
         // Update states
         setProducts(fetchedProducts.length > 0 ? fetchedProducts : mockProducts);
         setCollectionsList(fetchedCollections.length > 0 ? fetchedCollections : mockCollections);
+        setCategoriesList(fetchedCategories.length > 0 ? fetchedCategories : PRODUCT_CATEGORIES.map(cat => ({
+          id: `cat-${cat.toLowerCase().replace(/\s+/g, '-')}`,
+          name: cat,
+          slug: cat.toLowerCase().replace(/\s+/g, '-'),
+          linkedCollectionSlug: ''
+        })));
         setLoading(false);
       } catch (err) {
         console.error('Firestore Catalog Read Failed. Reverting to Offline Cache:', err);
         setProducts(mockProducts);
         setCollectionsList(mockCollections);
+        setCategoriesList(PRODUCT_CATEGORIES.map(cat => ({
+          id: `cat-${cat.toLowerCase().replace(/\s+/g, '-')}`,
+          name: cat,
+          slug: cat.toLowerCase().replace(/\s+/g, '-'),
+          linkedCollectionSlug: ''
+        })));
         setLoading(false);
         setFallbackActive(true);
       }
@@ -272,7 +393,25 @@ export function Catalog(): React.JSX.Element {
 
       // 3. Collection Filter
       if (selectedCollection !== 'all') {
-        if (product.collection !== selectedCollection) return false;
+        const selClean = selectedCollection.toLowerCase().trim();
+        const activeColObj = collectionsList.find(c => 
+          (c.name && c.name.toLowerCase() === selClean) || 
+          (c.slug && c.slug.toLowerCase() === selClean) || 
+          (c.id && c.id.toLowerCase() === selClean)
+        );
+
+        if (activeColObj && Array.isArray(activeColObj.productIds)) {
+          // Check if product ID is explicitly in collection productIds list
+          const isIdIncluded = activeColObj.productIds.includes(product.id);
+          if (!isIdIncluded) return false;
+        } else {
+          // Fallback string matching on product.collection
+          const match = product.collection && (
+            product.collection.toLowerCase() === selClean ||
+            product.collection.toLowerCase().includes(selClean)
+          );
+          if (!match) return false;
+        }
       }
 
       // 4. Metal Filter
@@ -538,32 +677,8 @@ export function Catalog(): React.JSX.Element {
               )}
             </div>
 
-            {/* Category Filter Group */}
-            <div className="space-y-3">
-              <h4 className="text-xs font-bold text-stone-900 tracking-wider font-sans uppercase">Category</h4>
-              <div className="space-y-2 flex flex-col items-start">
-                <button
-                  onClick={() => setSelectedCategory('all')}
-                  className={`text-left text-xs py-0.5 transition-colors flex items-center gap-2 font-sans ${selectedCategory === 'all' ? 'text-gold-700 font-bold' : 'text-stone-500 hover:text-stone-900'}`}
-                >
-                  <span className={`w-1.5 h-1.5 rounded-full transition-all shrink-0 ${selectedCategory === 'all' ? 'bg-gold-600 scale-100' : 'bg-transparent scale-0'}`} />
-                  <span>All Categories</span>
-                </button>
-                {PRODUCT_CATEGORIES.map((cat) => (
-                  <button
-                    key={cat}
-                    onClick={() => setSelectedCategory(cat)}
-                    className={`text-left text-xs py-0.5 transition-colors flex items-center gap-2 font-sans ${selectedCategory === cat ? 'text-gold-700 font-bold' : 'text-stone-500 hover:text-stone-900'}`}
-                  >
-                    <span className={`w-1.5 h-1.5 rounded-full transition-all shrink-0 ${selectedCategory === cat ? 'bg-gold-600 scale-100' : 'bg-transparent scale-0'}`} />
-                    <span>{cat}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
             {/* Collection Filter Group */}
-            <div className="space-y-3 pt-4 border-t border-stone-200/60">
+            <div className="space-y-3">
               <h4 className="text-xs font-bold text-stone-900 tracking-wider font-sans uppercase">Showroom Collection</h4>
               <div className="space-y-2 flex flex-col items-start">
                 <button
@@ -737,28 +852,6 @@ export function Catalog(): React.JSX.Element {
             {/* Drawer scrollable content */}
             <div className="flex-1 overflow-y-auto p-5 space-y-6">
               
-              {/* Category */}
-              <div className="space-y-2">
-                <h4 className="text-[10px] text-stone-400 font-bold uppercase tracking-wider">Category</h4>
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    onClick={() => setSelectedCategory('all')}
-                    className={`text-xs py-2 px-3 rounded border text-center transition-all ${selectedCategory === 'all' ? 'border-gold-500 bg-gold-500/10 text-gold-800 font-bold' : 'border-stone-200 text-stone-600'}`}
-                  >
-                    All Categories
-                  </button>
-                  {PRODUCT_CATEGORIES.map((cat) => (
-                    <button
-                      key={cat}
-                      onClick={() => setSelectedCategory(cat)}
-                      className={`text-xs py-2 px-3 rounded border text-center transition-all truncate ${selectedCategory === cat ? 'border-gold-500 bg-gold-500/10 text-gold-800 font-bold' : 'border-stone-200 text-stone-600'}`}
-                    >
-                      {cat}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
               {/* Collections */}
               <div className="space-y-2">
                 <h4 className="text-[10px] text-stone-400 font-bold uppercase tracking-wider">Collection</h4>

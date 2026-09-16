@@ -1517,7 +1517,9 @@ export function Home({
               `}
             >
               {displayCategories.map((cat) => {
-                const itemLink = `/category/${cat.slug || cat.id}`;
+                const itemLink = cat.linkedCollectionSlug 
+                  ? `/collections/${cat.linkedCollectionSlug}` 
+                  : `/category/${cat.slug || cat.id}`;
                 return (
                   <Link
                     key={cat.id}
@@ -1661,7 +1663,9 @@ export function Home({
             style={{ WebkitOverflowScrolling: 'touch' }}
           >
             {displayCategories.map((cat) => {
-              const itemLink = `/category/${cat.slug || cat.id}`;
+              const itemLink = cat.linkedCollectionSlug 
+                ? `/collections/${cat.linkedCollectionSlug}` 
+                : `/category/${cat.slug || cat.id}`;
               const imageSrc = cat.imageUrl || cat.image || "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&q=80&w=150";
               return (
                 <Link

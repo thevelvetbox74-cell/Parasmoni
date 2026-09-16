@@ -101,8 +101,11 @@ export interface Banner {
 }
 
 export interface MetalPrice {
+  id?: string;
   metal: string; // e.g., 'Gold (22K)', 'Gold (24K)', 'Silver'
   pricePerGram: number;
+  lowPrice?: number;
+  highPrice?: number;
   change: number; // Percentage change e.g., +0.25
   unit: string; // e.g., '1g' or '10g'
 }
@@ -882,12 +885,133 @@ interface MetalPriceBarProps {
   prices: MetalPrice[];
 }
 
+function formatPriceParts(val: number) {
+  const str = Math.round(val).toLocaleString('en-IN');
+  if (str.length <= 3) {
+    return { prefix: '₹', last3: str };
+  }
+  const prefix = '₹' + str.slice(0, str.length - 3);
+  const last3 = str.slice(str.length - 3);
+  return { prefix, last3 };
+}
+
+// Up-scroll rolling slot digit component
+function RollingDigits({ value, isUp }: { value: string; isUp: boolean }): React.JSX.Element {
+  const [current, setCurrent] = useState(value);
+  const [prev, setPrev] = useState(value);
+  const [animating, setAnimating] = useState(false);
+
+  useEffect(() => {
+    if (value !== current) {
+      setPrev(current);
+      setCurrent(value);
+      setAnimating(true);
+      const timer = setTimeout(() => {
+        setAnimating(false);
+      }, 650);
+      return () => clearTimeout(timer);
+    }
+  }, [value, current]);
+
+  return (
+    <span className="relative inline-block overflow-hidden h-[1.35em] leading-[1.35em] align-middle font-mono font-bold text-gold-300">
+      {animating ? (
+        <span className="inline-flex flex-col animate-scroll-up-digits">
+          <span className="h-[1.35em] leading-[1.35em] block">{prev}</span>
+          <span className="h-[1.35em] leading-[1.35em] block">{current}</span>
+        </span>
+      ) : (
+        <span className="h-[1.35em] leading-[1.35em] inline-block">{current}</span>
+      )}
+    </span>
+  );
+}
+
 export function MetalPriceBar({ prices }: MetalPriceBarProps): React.JSX.Element {
+  // Live tick state map
+  const [livePrices, setLivePrices] = useState<{
+    [key: string]: {
+      currentPrice: number;
+      changePercent: number;
+      direction: 'up' | 'down' | 'none';
+    };
+  }>({});
+
+  // Initialize and sync base prices from props
+  useEffect(() => {
+    if (!prices || prices.length === 0) return;
+    setLivePrices(prev => {
+      const next = { ...prev };
+      prices.forEach(p => {
+        const key = p.id || p.metal;
+        const base = p.pricePerGram || 0;
+        if (!next[key]) {
+          next[key] = {
+            currentPrice: base,
+            changePercent: p.change || 0,
+            direction: 'none'
+          };
+        }
+      });
+      return next;
+    });
+  }, [prices]);
+
+  // Simulated Live Market Ticker Loop (ticks random metal rates within Admin [lowPrice, highPrice] bounds)
+  useEffect(() => {
+    if (!prices || prices.length === 0) return;
+
+    const interval = setInterval(() => {
+      // Pick 1 to 2 random metal items to tick
+      const countToUpdate = Math.min(prices.length, Math.floor(Math.random() * 2) + 1);
+      const shuffled = [...prices].sort(() => 0.5 - Math.random()).slice(0, countToUpdate);
+
+      setLivePrices(prev => {
+        const updatedState = { ...prev };
+
+        shuffled.forEach(p => {
+          const key = p.id || p.metal;
+          const basePrice = p.pricePerGram || 0;
+          if (basePrice <= 0) return;
+
+          // Admin bounds or defaults (+/- 2%)
+          const minLimit = p.lowPrice !== undefined && p.lowPrice > 0 ? p.lowPrice : Math.floor(basePrice * 0.98);
+          const maxLimit = p.highPrice !== undefined && p.highPrice > 0 ? p.highPrice : Math.ceil(basePrice * 1.02);
+          const actualMin = Math.min(minLimit, maxLimit);
+          const actualMax = Math.max(minLimit, maxLimit);
+
+          const current = updatedState[key]?.currentPrice || basePrice;
+
+          // Fluctuate the last digits with a step bounded inside [actualMin, actualMax]
+          const stepRange = Math.max(2, Math.floor((actualMax - actualMin) * 0.1));
+          const randomDelta = Math.floor(Math.random() * (stepRange * 2 + 1)) - stepRange;
+          let nextVal = current + randomDelta;
+
+          if (nextVal < actualMin) nextVal = actualMin + Math.floor(Math.random() * stepRange);
+          if (nextVal > actualMax) nextVal = actualMax - Math.floor(Math.random() * stepRange);
+
+          const dir = nextVal >= current ? 'up' : 'down';
+          const calculatedChange = Number((((nextVal - basePrice) / basePrice) * 100).toFixed(2));
+
+          updatedState[key] = {
+            currentPrice: nextVal,
+            changePercent: calculatedChange,
+            direction: dir
+          };
+        });
+
+        return updatedState;
+      });
+    }, 2800); // Ticks every 2.8 seconds for smooth realistic bullion trading experience
+
+    return () => clearInterval(interval);
+  }, [prices]);
+
   const duplicatedPrices = prices && prices.length > 0 ? [...prices, ...prices, ...prices] : [];
 
   return (
     <div 
-      className="bg-stone-950 text-stone-200 py-2 border-b border-gold-500/10 text-xs tracking-wider overflow-hidden relative select-none w-full" 
+      className="bg-stone-950 text-stone-200 py-1.5 border-b border-gold-500/10 text-xs tracking-wider overflow-hidden relative select-none w-full" 
       id="metal-announcement-bar" 
       style={{ fontFamily: "'Arial Narrow', 'Arial', sans-serif" }}
     >
@@ -899,26 +1023,42 @@ export function MetalPriceBar({ prices }: MetalPriceBarProps): React.JSX.Element
         .ticker-container-animate {
           display: flex;
           width: max-content;
-          animation: ticker-scroll 35s linear infinite;
+          animation: ticker-scroll 45s linear infinite;
         }
         .ticker-container-animate:hover {
           animation-play-state: paused;
+        }
+        @keyframes scroll-up-digits {
+          0% { transform: translateY(0); }
+          100% { transform: translateY(-50%); }
+        }
+        .animate-scroll-up-digits {
+          animation: scroll-up-digits 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
       `}</style>
       <div className="flex items-center w-full">
         {duplicatedPrices.length > 0 ? (
           <div className="ticker-container-animate">
             {duplicatedPrices.map((p, idx) => {
-              const isUp = p.change >= 0;
+              const key = p.id || p.metal;
+              const liveState = livePrices[key];
+              const displayPrice = liveState ? liveState.currentPrice : (p.pricePerGram || 0);
+              const displayChange = liveState ? liveState.changePercent : (p.change || 0);
+              const isUp = displayChange >= 0;
+
+              const { prefix, last3 } = formatPriceParts(displayPrice);
+
               return (
                 <div key={idx} className="flex items-center gap-2 px-6 border-r border-stone-900 shrink-0 whitespace-nowrap">
                   <span className="text-stone-300 font-bold uppercase whitespace-nowrap">{p.metal}</span>
-                  <span className="text-gold-400 font-mono font-bold whitespace-nowrap">₹{p.pricePerGram.toLocaleString('en-IN')}/{p.unit}</span>
-                  <span className={`inline-flex items-center gap-0.5 text-[10px] font-bold px-1 rounded whitespace-nowrap ${
-                    isUp ? 'bg-emerald-950 text-emerald-400' : 'bg-rose-950 text-rose-400'
-                  }`}>
+                  <span className="font-mono font-bold whitespace-nowrap flex items-center">
+                    <span className="text-gold-400">{prefix}</span>
+                    <RollingDigits value={last3} isUp={isUp} />
+                    <span className="text-stone-400 text-[10px] font-normal ml-0.5">/{p.unit}</span>
+                  </span>
+                  <span className="inline-flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap bg-stone-900 text-amber-400 border border-gold-500/20">
                     <span>{isUp ? '▲' : '▼'}</span>
-                    <span>{isUp ? '+' : ''}{p.change}%</span>
+                    <span>{isUp ? '+' : ''}{displayChange.toFixed(2)}%</span>
                   </span>
                 </div>
               );
@@ -937,6 +1077,46 @@ export function MetalPriceBar({ prices }: MetalPriceBarProps): React.JSX.Element
 interface MetalPriceCardProps {
   key?: string | number;
   price: MetalPrice;
+}
+
+function UpScrollPrice({ value }: { value: string }): React.JSX.Element {
+  const [current, setCurrent] = useState(value);
+  const [prev, setPrev] = useState(value);
+  const [animating, setAnimating] = useState(false);
+
+  useEffect(() => {
+    if (value !== current) {
+      setPrev(current);
+      setCurrent(value);
+      setAnimating(true);
+      const timer = setTimeout(() => {
+        setAnimating(false);
+      }, 550);
+      return () => clearTimeout(timer);
+    }
+  }, [value, current]);
+
+  return (
+    <span className="relative inline-block overflow-hidden h-[1.2em] leading-[1.2em] align-middle">
+      <style>{`
+        @keyframes price-scroll-up {
+          0% { transform: translateY(0); }
+          100% { transform: translateY(-50%); }
+        }
+        .animate-price-scroll-up {
+          animation: price-scroll-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+      `}</style>
+      {animating ? (
+        <span className="inline-flex flex-col animate-price-scroll-up">
+          <span className="h-[1.2em] leading-[1.2em] block">{prev}</span>
+          <span className="h-[1.2em] leading-[1.2em] block">{current}</span>
+        </span>
+      ) : (
+        <span className="h-[1.2em] leading-[1.2em] inline-block">{current}</span>
+      )}
+    </span>
+  );
 }
 
 export function MetalPriceCard({ price }: MetalPriceCardProps): React.JSX.Element {
@@ -961,15 +1141,14 @@ export function MetalPriceCard({ price }: MetalPriceCardProps): React.JSX.Elemen
       <div className="mt-4 pt-3 border-t border-stone-100 flex items-baseline justify-between gap-2">
         <div>
           <span className="text-[10px] text-stone-400 block">Rate per {price.unit}</span>
-          <span className="font-mono text-2xl font-bold text-brand-red-950">
-            ₹{price.pricePerGram.toLocaleString('en-IN')}
+          <span className="font-mono text-2xl font-bold text-brand-red-950 flex items-center">
+            <span>₹</span>
+            <UpScrollPrice value={price.pricePerGram.toLocaleString('en-IN')} />
           </span>
         </div>
 
-        <span className={`inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full ${
-          isUp ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'
-        }`}>
-          <TrendingUp className={`w-3 h-3 ${!isUp && 'rotate-180'}`} />
+        <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-stone-100 text-stone-700 border border-stone-200/50">
+          <TrendingUp className={`w-3 h-3 text-amber-600 ${!isUp && 'rotate-180'}`} />
           <span>{isUp ? '+' : ''}{price.change}%</span>
         </span>
       </div>

@@ -58,15 +58,20 @@ export default function App(): React.JSX.Element {
         try {
           const parsed = JSON.parse(localStored);
           const mapped = parsed
-            .map((p: any) => ({
-              id: p.id,
-              metal: p.metalName || p.metal || '',
-              pricePerGram: Number(p.price || p.pricePerGram || 0),
-              change: Number(p.change || 0),
-              unit: p.unit || '1g',
-              status: p.status || 'active',
-              displayOrder: typeof p.displayOrder === 'number' ? p.displayOrder : 9999
-            }))
+            .map((p: any) => {
+              const basePrice = Number(p.price || p.pricePerGram || 0);
+              return {
+                id: p.id,
+                metal: p.metalName || p.metal || '',
+                pricePerGram: basePrice,
+                lowPrice: p.lowPrice !== undefined ? Number(p.lowPrice) : (basePrice > 0 ? Math.floor(basePrice * 0.98) : 0),
+                highPrice: p.highPrice !== undefined ? Number(p.highPrice) : (basePrice > 0 ? Math.ceil(basePrice * 1.02) : 0),
+                change: Number(p.change || 0),
+                unit: p.unit || '1g',
+                status: p.status || 'active',
+                displayOrder: typeof p.displayOrder === 'number' ? p.displayOrder : 9999
+              };
+            })
             .filter((p: any) => p.status === 'active');
           mapped.sort((a: any, b: any) => a.displayOrder - b.displayOrder);
           setMetalPrices(mapped);
@@ -89,10 +94,13 @@ export default function App(): React.JSX.Element {
       const items = snapshot.docs
         .map(doc => {
           const data = doc.data();
+          const basePrice = Number(data.price || data.pricePerGram || data.ratePerGram || 0);
           return {
             id: doc.id,
             metal: data.metal || data.metalType || data.metalName || '',
-            pricePerGram: Number(data.price || data.pricePerGram || data.ratePerGram || 0),
+            pricePerGram: basePrice,
+            lowPrice: data.lowPrice !== undefined ? Number(data.lowPrice) : (basePrice > 0 ? Math.floor(basePrice * 0.98) : 0),
+            highPrice: data.highPrice !== undefined ? Number(data.highPrice) : (basePrice > 0 ? Math.ceil(basePrice * 1.02) : 0),
             change: Number(data.change || 0),
             unit: data.unit || '1g',
             status: data.status || 'active',

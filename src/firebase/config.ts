@@ -42,18 +42,11 @@ if (isFirebaseConfigured) {
           tabManager: persistentMultipleTabManager()
         })
       });
-    } catch (cacheErr) {
-      db = getFirestore(app);
-      if (typeof window !== 'undefined') {
-        enableMultiTabIndexedDbPersistence(db).catch((err) => {
-          if (err.code === 'failed-precondition') {
-            enableIndexedDbPersistence(db).catch((singleTabErr) => {
-              console.warn('Firestore single tab persistence notice:', singleTabErr);
-            });
-          } else if (err.code === 'unimplemented') {
-            console.warn('Browser does not support Firestore IndexedDB persistence.');
-          }
-        });
+    } catch {
+      try {
+        db = getFirestore(app);
+      } catch (err) {
+        console.warn('Firestore fallback instance load error:', err);
       }
     }
 

@@ -144,3 +144,29 @@ h1, h2, h3, h4, .font-serif {
   font-family: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif !important;
   font-variant-numeric: tabular-nums !important;
 }
+
+/* Hide scrollbar utility for sleek OS cross-platform displays */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+/* Elegant sleek scrollbars for standard windows/mac scroll containers */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #d6d3d1;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a29e;
+}
+

@@ -34,7 +34,7 @@ import {
 import { ImageUploader } from '../components/ImageUploader';
 import { IMAGEKIT_FOLDERS } from '../imagekit/client';
 import { Link } from 'react-router-dom';
-import { mockProducts } from '../data/mockData';
+import { mockProducts, mockCollections } from '../data/mockData';
 
 // Core default category labels based on catalog filter mappings
 const DEFAULT_CATEGORIES = [
@@ -48,6 +48,7 @@ export function AdminCategories(): React.JSX.Element {
   // UI View Mode State
   const [view, setView] = useState<'list' | 'add' | 'edit'>('list');
   const [categories, setCategories] = useState<any[]>([]);
+  const [collectionsList, setCollectionsList] = useState<any[]>([]);
   const [productCounts, setProductCounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState<boolean>(true);
   const [saving, setSaving] = useState<boolean>(false);
@@ -59,6 +60,7 @@ export function AdminCategories(): React.JSX.Element {
     id: '',
     name: '',
     slug: '',
+    linkedCollectionSlug: '',
     description: '',
     imageUrl: '',
     displayOrder: 1,
@@ -187,6 +189,7 @@ export function AdminCategories(): React.JSX.Element {
             id: `cat-${cat.toLowerCase().replace(/\s+/g, '-')}`,
             name: cat,
             slug: cat.toLowerCase().replace(/\s+/g, '-'),
+            linkedCollectionSlug: '',
             description: `Exquisite handpicked selection of fine design ${cat.toLowerCase()}.`,
             imageUrl: '',
             displayOrder: idx + 1,
@@ -202,6 +205,7 @@ export function AdminCategories(): React.JSX.Element {
             overlayShadeColor: '#000000'
           }));
           setCategories(normalizedMocks);
+          setCollectionsList(mockCollections);
           
           const counts: Record<string, number> = {};
           mockProducts.forEach((p: any) => {
@@ -213,6 +217,25 @@ export function AdminCategories(): React.JSX.Element {
           setProductCounts(counts);
           setLoading(false);
           return;
+        }
+
+        // Fetch Collections
+        try {
+          const collRef = collection(db, 'collections');
+          const collSnapshot = await getDocs(collRef);
+          const fetchedCollections = collSnapshot.docs.map(doc => {
+            const data = doc.data();
+            return {
+              id: doc.id,
+              name: data.name || '',
+              slug: data.slug || '',
+              status: data.status || (data.isActive ? 'published' : 'draft')
+            };
+          });
+          setCollectionsList(fetchedCollections);
+        } catch (e) {
+          console.warn("Failed to fetch collections:", e);
+          setCollectionsList(mockCollections);
         }
 
         const catRef = collection(db, 'categories');
@@ -240,6 +263,7 @@ export function AdminCategories(): React.JSX.Element {
             id: doc.id,
             name: data.name || '',
             slug: data.slug || '',
+            linkedCollectionSlug: data.linkedCollectionSlug || '',
             description: data.description || '',
             imageUrl: data.imageUrl || data.coverImageUrl || '',
             displayOrder: typeof data.displayOrder === 'number' ? data.displayOrder : (typeof data.order === 'number' ? data.order : 1),
@@ -321,6 +345,7 @@ export function AdminCategories(): React.JSX.Element {
       id: cat.id,
       name: cat.name,
       slug: cat.slug,
+      linkedCollectionSlug: cat.linkedCollectionSlug || '',
       description: cat.description,
       imageUrl: cat.imageUrl,
       displayOrder: cat.displayOrder,
@@ -356,6 +381,7 @@ export function AdminCategories(): React.JSX.Element {
       id: '',
       name: presetName,
       slug: generateSlug(presetName),
+      linkedCollectionSlug: '',
       description: presetName ? `Explore the finest handcrafted gold and diamond ${presetName.toLowerCase()} collection of Parasmoni.` : '',
       imageUrl: '',
       displayOrder: nextOrder,
@@ -485,6 +511,7 @@ export function AdminCategories(): React.JSX.Element {
     const payload = {
       name: formData.name.trim(),
       slug: formData.slug.trim().toLowerCase(),
+      linkedCollectionSlug: formData.linkedCollectionSlug.trim(),
       description: formData.description.trim(),
       imageUrl: formData.imageUrl,
       coverImageUrl: formData.imageUrl, // dual backward compatibility mapping
@@ -643,10 +670,18 @@ export function AdminCategories(): React.JSX.Element {
                           </span>
                         </div>
                         <p className="text-stone-400 text-[10px] leading-relaxed line-clamp-1">{c.description || 'No description provided.'}</p>
-                        <span className="text-[9px] text-stone-500 font-mono flex items-center gap-1">
-                          <LinkIcon className="w-3 h-3 text-stone-600" />
-                          <span>/category/{c.slug}</span>
-                        </span>
+                        <div className="flex flex-col gap-0.5">
+                          <span className="text-[9px] text-stone-500 font-mono flex items-center gap-1">
+                            <LinkIcon className="w-3 h-3 text-stone-600" />
+                            <span>/category/{c.slug}</span>
+                          </span>
+                          {c.linkedCollectionSlug && (
+                            <span className="text-[9px] text-amber-500/90 font-mono flex items-center gap-1">
+                              <Sparkles className="w-3 h-3 text-amber-600" />
+                              <span>Linked: /collections/{c.linkedCollectionSlug}</span>
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
 
@@ -955,23 +990,44 @@ export function AdminCategories(): React.JSX.Element {
                 />
               </div>
 
-              {/* URL Slug */}
-              <div className="space-y-1.5">
-                <label className="text-[10px] text-stone-400 font-bold uppercase tracking-wider block">
-                  SEO URL Slug (Autogenerated, editable) *
-                </label>
-                <div className="flex items-center">
-                  <span className="inline-flex items-center px-3 py-2 bg-stone-950 border border-r-0 border-stone-800 text-[10px] font-mono text-stone-500 rounded-l select-none">
-                    /category/
-                  </span>
-                  <input
-                    type="text"
+              {/* Linked Product Collection & URL Slug Selection */}
+              <div className="space-y-3 p-4 bg-stone-900 border border-stone-800 rounded">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] text-amber-500 font-bold uppercase tracking-wider block">
+                    Link Product Collection *
+                  </label>
+                  <p className="text-[10px] text-stone-500 leading-normal">
+                    This maps this category directly to one of your active product collections. When a buyer clicks this category, they will view the stock items curated in that collection.
+                  </p>
+                  <select
                     required
-                    placeholder="jhumka-earrings"
-                    value={formData.slug}
-                    onChange={(e) => setFormData({ ...formData, slug: generateSlug(e.target.value) })}
-                    className="w-full px-3 py-2 bg-stone-950 border border-stone-800 focus:border-amber-600 focus:outline-hidden text-xs rounded-r text-stone-300 font-mono"
-                  />
+                    value={formData.linkedCollectionSlug}
+                    onChange={(e) => {
+                      const selectedSlug = e.target.value;
+                      setFormData({ 
+                        ...formData, 
+                        linkedCollectionSlug: selectedSlug,
+                        slug: selectedSlug // Match category slug to collection slug for seamless routing
+                      });
+                    }}
+                    className="w-full px-3 py-2 bg-stone-950 border border-stone-800 focus:border-amber-600 focus:outline-hidden text-xs rounded text-stone-200 font-sans cursor-pointer"
+                  >
+                    <option value="">-- Select a Collection to Map --</option>
+                    {collectionsList.map((col) => (
+                      <option key={col.id || col.slug} value={col.slug}>
+                        {col.name} (Slug: {col.slug})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="space-y-1">
+                  <span className="text-[9px] text-stone-500 uppercase tracking-wider font-bold block">
+                    Resulting Category URL
+                  </span>
+                  <div className="flex items-center text-[11px] font-mono text-amber-600 font-bold">
+                    <span>/collections/{formData.linkedCollectionSlug || '[unselected]'}</span>
+                  </div>
                 </div>
               </div>
 
