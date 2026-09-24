@@ -260,7 +260,11 @@ export function Catalog(): React.JSX.Element {
             weight: weight,
             makingCharge: Number(data.makingCharge || 0),
             makingChargeType: data.makingChargeType || 'fixed',
-            wastagePercent: Number(data.wastagePercent || 0)
+            wastagePercent: Number(data.wastagePercent || 0),
+            otherChargesName: data.otherChargesName,
+            otherChargesAmount: data.otherChargesAmount,
+            hallmarkCharge: data.hallmarkCharge,
+            gstPercent: data.gstPercent
           }, metalPrices);
 
           return {

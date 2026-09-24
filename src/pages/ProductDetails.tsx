@@ -207,7 +207,11 @@ function ProductDetailsInner(): React.JSX.Element {
             weight: weight,
             makingCharge: Number(foundProduct.makingCharge || 0),
             makingChargeType: foundProduct.makingChargeType || 'fixed',
-            wastagePercent: Number(foundProduct.wastagePercent || 0)
+            wastagePercent: Number(foundProduct.wastagePercent || 0),
+            otherChargesName: foundProduct.otherChargesName,
+            otherChargesAmount: foundProduct.otherChargesAmount,
+            hallmarkCharge: foundProduct.hallmarkCharge,
+            gstPercent: foundProduct.gstPercent
           }, metalPrices);
 
           foundProduct = {
@@ -382,7 +386,7 @@ function ProductDetailsInner(): React.JSX.Element {
       ? Number(product.reviewsCount)
       : (Array.isArray(product.reviews) && product.reviews.length > 0 ? product.reviews.length : 18)); // Default fallback to 18 if not defined during listing
 
-  const shortDesc = product.shortDescription || product.description || "A breathtaking long Sita-Har necklace handcrafted in pure 22K gold, featuring a central Laxmi pendant, delicate chain linkages, and intricate nakashi work.";
+  const shortDesc = product.shortDescription || product.description || "Handcrafted premium jewellery piece in pure gold with fine artisan craftsmanship.";
   const grossWeight = product.grossWeight || product.approxWeight || "64.2g";
   const purityVal = product.purity || product.metalType || "22k";
   const craftLegacy = product.collection || product.craftLegacy || "col-2";
@@ -396,34 +400,25 @@ function ProductDetailsInner(): React.JSX.Element {
     tagsArray = product.tags.split(',').map((t: string) => t.trim()).filter((t: string) => t !== '');
   }
   if (tagsArray.length === 0) {
-    tagsArray = ["Parasmoni", "22KGold", "SitaHar", "NakashiWork"];
+    tagsArray = ["Parasmoni", "22KGold", "Jewellery", "Handcrafted"];
   }
 
   return (
-    <div className="min-h-screen bg-[#FAF7F2] py-6 sm:py-8 px-4 sm:px-8 lg:px-12 font-sans" id={`product-details-${product.id}`}>
-      <div className="w-full max-w-[1536px] mx-auto space-y-6 sm:space-y-8">
+    <div className="min-h-screen bg-[#FAF7F2] py-4 sm:py-6 px-3 sm:px-6 lg:pl-4 lg:pr-8 font-sans antialiased" id={`product-details-${product.id}`}>
+      <div className="w-full max-w-full lg:max-w-[1600px] mx-auto">
         
-        {/* Navigation Breadcrumb */}
-        <nav className="flex items-center gap-2 text-xs text-stone-500 tracking-wide font-medium overflow-x-auto whitespace-nowrap pb-1" aria-label="Breadcrumb">
-          <Link to="/" className="hover:text-stone-900 transition-colors">Home</Link>
-          <span className="text-stone-300">/</span>
-          <Link to="/catalog" className="hover:text-stone-900 transition-colors">Catalogue</Link>
-          <span className="text-stone-300">/</span>
-          <span className="text-stone-800 font-semibold truncate max-w-[200px] sm:max-w-md">{productName}</span>
-        </nav>
-
-        {/* Core Product Grid (2 Column Split with Locked Sticky Left Image Section & Expanded Right Column) */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start min-h-0">
+        {/* Core Product Grid (2 Column Split with Sticky Left Image Section & Scrollable Right Column) */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-start">
           
-          {/* LEFT COLUMN: Completely Fixed/Sticky Image Gallery (lg:col-span-7) */}
-          <div className="lg:col-span-7 space-y-4 lg:sticky lg:top-[120px] lg:self-start lg:max-h-[calc(100vh-160px)] lg:overflow-y-auto no-scrollbar z-10">
+          {/* LEFT COLUMN: Fixed Sticky Image Gallery (lg:col-span-7) */}
+          <div className="lg:col-span-7 space-y-4 lg:sticky lg:top-20 lg:self-start pr-1 w-full">
             
             {/* Gallery Flex Row: Thumbnails on the LEFT, Main Image on the RIGHT */}
             <div className="flex flex-col-reverse sm:flex-row gap-3 sm:gap-4 items-start w-full">
               
               {/* Thumbnail List (LEFT SIDE on Desktop) */}
               {galleryImages.length > 1 && (
-                <div className="flex sm:flex-col gap-2.5 overflow-x-auto sm:overflow-y-auto max-h-[620px] w-full sm:w-20 lg:w-24 shrink-0 no-scrollbar py-1 sm:py-0">
+                <div className="flex sm:flex-col gap-2.5 overflow-x-auto sm:overflow-y-auto max-h-[520px] xl:max-h-[600px] w-full sm:w-20 lg:w-24 shrink-0 no-scrollbar py-1 sm:py-0">
                   {galleryImages.map((imgUrl: string, idx: number) => {
                     const isActive = idx === activeImageIndex;
                     return (
@@ -431,7 +426,7 @@ function ProductDetailsInner(): React.JSX.Element {
                         key={idx}
                         onClick={() => setActiveImageIndex(idx)}
                         className={`relative aspect-square w-16 sm:w-full rounded-xl overflow-hidden border-2 transition-all cursor-pointer bg-stone-100 shrink-0 ${
-                          isActive ? 'border-amber-700 ring-2 ring-amber-700/20 shadow-sm' : 'border-stone-300 hover:border-stone-400'
+                          isActive ? 'border-amber-700 ring-2 ring-amber-700/20 shadow-xs' : 'border-stone-300 hover:border-stone-400'
                         }`}
                       >
                         <img 
@@ -446,8 +441,8 @@ function ProductDetailsInner(): React.JSX.Element {
                 </div>
               )}
 
-              {/* Main Showcase Image (Enlarged) */}
-              <div className="relative aspect-square w-full max-h-[620px] bg-stone-200/60 rounded-2xl overflow-hidden border border-stone-300/80 shadow-xs flex-1">
+              {/* Main Showcase Image Container (1080:1080 1:1 Aspect Ratio Uncropped - Expanded to fill gap) */}
+              <div className="relative aspect-square w-full bg-stone-200/60 rounded-2xl overflow-hidden border border-stone-300/80 shadow-xs flex-1">
                 {activeMainImage && (activeMainImage.toLowerCase().split('?')[0].endsWith('.mp4') || activeMainImage.toLowerCase().split('?')[0].endsWith('.mov') || activeMainImage.toLowerCase().split('?')[0].endsWith('.webm')) ? (
                   <video 
                     src={activeMainImage} 
@@ -459,9 +454,9 @@ function ProductDetailsInner(): React.JSX.Element {
                   />
                 ) : (
                   <img 
-                    src={getOptimizedShowroomUrl(activeMainImage, { width: 1200, quality: 92 })} 
+                    src={getOptimizedShowroomUrl(activeMainImage, { width: 1200, quality: 95 })} 
                     alt={productName}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-contain p-0.5"
                     referrerPolicy="no-referrer"
                   />
                 )}
@@ -469,12 +464,12 @@ function ProductDetailsInner(): React.JSX.Element {
 
             </div>
 
-            {/* Hallmarked & Certified Ornaments Card (Matching image.png) */}
-            <div className="bg-[#F5EFE6] border border-[#E3D9C9] rounded-xl p-4 sm:p-4.5 flex items-start gap-3.5 shadow-xs w-full">
-              <div className="w-9 h-9 rounded-full bg-amber-600/10 border border-amber-600/30 flex items-center justify-center text-amber-700 shrink-0 mt-0.5">
+            {/* Hallmarked & Certified Ornaments Card */}
+            <div className="bg-[#F5EFE6] border border-[#E3D9C9] rounded-xl p-3.5 sm:p-4 flex items-start gap-3.5 shadow-xs w-full shrink-0">
+              <div className="w-8.5 h-8.5 rounded-full bg-amber-600/10 border border-amber-600/30 flex items-center justify-center text-amber-700 shrink-0 mt-0.5">
                 <ShieldCheck className="w-5 h-5 text-amber-800" />
               </div>
-              <div className="space-y-1">
+              <div className="space-y-0.5">
                 <h4 className="font-serif font-bold text-xs uppercase tracking-wider text-stone-900">
                   HALLMARKED & CERTIFIED ORNAMENTS
                 </h4>
@@ -487,12 +482,12 @@ function ProductDetailsInner(): React.JSX.Element {
           </div>
 
 
-          {/* RIGHT COLUMN: Scrollable Metadata & Action Deck (lg:col-span-5) */}
-          <div className="lg:col-span-5 space-y-5 sm:space-y-6 w-full lg:max-h-[calc(100vh-160px)] lg:overflow-y-auto pr-3 no-scrollbar hover:no-scrollbar">
+          {/* RIGHT COLUMN: Independently Scrollable Metadata & Action Deck (Hidden Scrollbar) */}
+          <div className="lg:col-span-5 space-y-5 sm:space-y-6 w-full lg:max-h-[calc(100vh-100px)] lg:overflow-y-auto no-scrollbar pr-2 pb-20">
             
             {/* 1. Product Title */}
             <div>
-              <h1 className="font-serif font-bold text-2xl sm:text-3xl text-stone-900 tracking-wide leading-snug">
+              <h1 className="font-sans font-bold text-xl sm:text-2xl text-stone-950 tracking-tight leading-snug">
                 {productName}
               </h1>
 
@@ -559,7 +554,7 @@ function ProductDetailsInner(): React.JSX.Element {
                 <div className="flex items-center justify-between py-1 border-b border-stone-100">
                   <span className="text-stone-500 flex items-center gap-1.5 font-medium">
                     <Scale className="w-3.5 h-3.5 text-stone-400" />
-                    <span>Gross Weight</span>
+                    <span>Net Weight</span>
                   </span>
                   <span className="font-bold text-stone-900 font-mono">{grossWeight}</span>
                 </div>

@@ -51,6 +51,7 @@
   --font-serif: "Cormorant Garamond", "Playfair Display", Georgia, serif;
   --font-display: "Cinzel", "Times New Roman", serif;
   --font-sans: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+  --font-bookman: "Bookman Old Style", "Bookman", "URW Bookman L", "Georgia", serif;
   
   /* Additional customized spacing and layout details */
   --animate-gold-shimmer: gold-shimmer 3s ease-in-out infinite;

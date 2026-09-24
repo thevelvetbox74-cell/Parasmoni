@@ -4,13 +4,14 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { 
   Menu, 
   X, 
   Search, 
   Phone, 
   ChevronRight, 
+  ChevronLeft,
   Sparkles,
   Store,
   MapPin,
@@ -48,6 +49,7 @@ export function Navigation({
   const [activeMobileAccordion, setActiveMobileAccordion] = useState<string | null>(null);
   const [wishlistCount, setWishlistCount] = useState(0);
   const navigate = useNavigate();
+  const location = useLocation();
 
   // Sync wishlist badge count in real-time
   useEffect(() => {
@@ -238,23 +240,39 @@ export function Navigation({
 
       {/* Main Bar */}
       <div className="w-full px-4 md:px-6 h-14 flex items-center justify-between relative">
-        {/* Logo Section */}
-        <Link to="/" className="flex items-center gap-2.5 hover:opacity-95 transition-opacity shrink-0" onClick={() => setMobileMenuOpen(false)}>
-          <img 
-            src={settings.logoUrl || undefined} 
-            alt={`${settings.brandName} Logo`} 
-            className="h-10 w-auto object-contain"
-            referrerPolicy="no-referrer"
-          />
-          <div className="flex flex-col">
-            <span className="font-display text-[11px] md:text-xs tracking-wider text-white font-bold leading-tight uppercase">
-              {settings.brandName.split('&')[0].trim()}
-            </span>
-            <span className="text-[7px] md:text-[8px] text-stone-200 tracking-widest uppercase font-bold">
-              {settings.brandName.includes('&') ? '& ' + settings.brandName.split('&').slice(1).join('&').trim() : 'JEWELLERS'}
-            </span>
-          </div>
-        </Link>
+        {/* Logo or Back Button Section */}
+        {location.pathname.toLowerCase().includes('/product/') || location.pathname.toLowerCase().includes('/products/') ? (
+          <button
+            onClick={() => {
+              if (window.history.state && window.history.state.idx > 0) {
+                navigate(-1);
+              } else {
+                navigate('/catalog');
+              }
+            }}
+            className="flex items-center gap-1.5 text-white hover:text-stone-200 transition-colors py-1.5 font-sans font-bold text-xs tracking-wider uppercase cursor-pointer"
+          >
+            <ChevronLeft className="w-5 h-5 shrink-0" />
+            <span>Back</span>
+          </button>
+        ) : (
+          <Link to="/" className="flex items-center gap-2.5 hover:opacity-95 transition-opacity shrink-0" onClick={() => setMobileMenuOpen(false)}>
+            <img 
+              src={settings.logoUrl || undefined} 
+              alt={`${settings.brandName} Logo`} 
+              className="h-10 w-auto object-contain"
+              referrerPolicy="no-referrer"
+            />
+            <div className="flex flex-col">
+              <span className="font-display text-[11px] md:text-xs tracking-wider text-white font-bold leading-tight uppercase">
+                {settings.brandName.split('&')[0].trim()}
+              </span>
+              <span className="text-[7px] md:text-[8px] text-stone-200 tracking-widest uppercase font-bold">
+                {settings.brandName.includes('&') ? '& ' + settings.brandName.split('&').slice(1).join('&').trim() : 'JEWELLERS'}
+              </span>
+            </div>
+          </Link>
+        )}
 
         {/* Desktop Navigation Links */}
         <nav className="hidden xl:flex items-center gap-6 text-[11px] tracking-widest uppercase text-white/95" style={{ zIndex: 100 }}>

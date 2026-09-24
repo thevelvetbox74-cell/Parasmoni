@@ -196,10 +196,10 @@ export function ImageUploader({
         onDragOver={handleDragOver}
         onDrop={handleDrop}
         onClick={() => !uploading && setIsDrawerOpen(true)}
-        className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-all duration-200 select-none ${
+        className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all duration-200 select-none ${
           uploading 
-            ? 'bg-stone-900/30 border-amber-600/50 cursor-not-allowed' 
-            : 'bg-stone-950/40 border-stone-800 hover:border-stone-700 hover:bg-stone-900/40'
+            ? 'bg-amber-50/50 border-amber-400 cursor-not-allowed' 
+            : 'bg-[#f9f8f6] border-stone-300 hover:border-amber-500 hover:bg-amber-50/20'
         }`}
         id={`dropzone-${id}`}
       >
@@ -215,12 +215,12 @@ export function ImageUploader({
         />
 
         <div className="flex flex-col items-center justify-center gap-3">
-          <div className="p-3 bg-stone-900 border border-stone-800 rounded-full text-stone-400">
-            <UploadCloud className="w-6 h-6 text-amber-500 animate-pulse" />
+          <div className="p-3 bg-white border border-stone-200 rounded-full text-amber-600 shadow-xs">
+            <UploadCloud className="w-6 h-6 text-amber-600 animate-pulse" />
           </div>
           
           <div className="space-y-1">
-            <p className="text-xs font-semibold text-stone-200">
+            <p className="text-xs font-semibold text-stone-800">
               {uploading ? 'Processing & uploading...' : 'Click to choose from Media Library / Drag & Drop'}
             </p>
             <p className="text-[10px] text-stone-500">
@@ -229,22 +229,22 @@ export function ImageUploader({
           </div>
 
           {/* Explicit Recommended Dimension Badge */}
-          <div className="mt-1 inline-flex items-center gap-1.5 px-3 py-1 bg-amber-500/10 border border-amber-500/25 text-amber-300 text-[10px] font-mono rounded-full tracking-wide shadow-2xs">
-            <span className="font-bold uppercase text-amber-400">RECOMMENDED HD SIZE:</span>
-            <span className="text-stone-200 font-semibold">{effectiveDimensions}</span>
+          <div className="mt-1 inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 border border-amber-200 text-amber-900 text-[10px] font-mono rounded-full tracking-wide shadow-2xs">
+            <span className="font-bold uppercase text-amber-700">RECOMMENDED HD SIZE:</span>
+            <span className="text-stone-800 font-semibold">{effectiveDimensions}</span>
           </div>
         </div>
 
         {/* Live Upload Progress */}
         {uploading && (
           <div className="mt-4 max-w-xs mx-auto space-y-1.5" id={`progress-wrapper-${id}`}>
-            <div className="flex items-center justify-between text-[10px] text-stone-400 font-mono">
+            <div className="flex items-center justify-between text-[10px] text-stone-600 font-mono">
               <span>Uploading assets...</span>
               <span>{progress}%</span>
             </div>
-            <div className="w-full bg-stone-900 h-1.5 rounded-full overflow-hidden border border-stone-800">
+            <div className="w-full bg-stone-200 h-1.5 rounded-full overflow-hidden border border-stone-300">
               <div 
-                className="bg-amber-500 h-full transition-all duration-300 rounded-full"
+                className="bg-amber-600 h-full transition-all duration-300 rounded-full"
                 style={{ width: `${progress}%` }}
               />
             </div>
@@ -254,15 +254,15 @@ export function ImageUploader({
 
       {/* Notifications banner */}
       {error && (
-        <div className="p-3 bg-red-950/35 border border-red-500/20 text-red-400 text-[11px] rounded flex items-start gap-2.5">
-          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-red-500" />
+        <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 text-[11px] rounded-lg flex items-start gap-2.5">
+          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-600" />
           <p className="leading-relaxed">{error}</p>
         </div>
       )}
 
       {successMsg && (
-        <div className="p-2.5 bg-emerald-950/20 border border-emerald-500/10 text-emerald-400 text-[11px] rounded flex items-start gap-2.5">
-          <CheckCircle className="w-4 h-4 shrink-0 mt-0.5 text-emerald-500" />
+        <div className="p-2.5 bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px] rounded-lg flex items-start gap-2.5">
+          <CheckCircle className="w-4 h-4 shrink-0 mt-0.5 text-emerald-600" />
           <p className="leading-relaxed">{successMsg}</p>
         </div>
       )}
@@ -274,7 +274,7 @@ export function ImageUploader({
             const isVideo = url.toLowerCase().endsWith('.mp4') || url.toLowerCase().endsWith('.mov') || url.toLowerCase().endsWith('.webm') || url.toLowerCase().endsWith('.m4v');
             
             return (
-              <div key={idx} className="relative group aspect-square rounded-md border border-stone-800 bg-stone-950 overflow-hidden shadow-xs">
+              <div key={idx} className="relative group aspect-square rounded-lg border border-stone-200 bg-stone-100 overflow-hidden shadow-xs">
                 {isVideo ? (
                   <video
                     src={url}
@@ -299,7 +299,7 @@ export function ImageUploader({
                   <button
                     type="button"
                     onClick={() => handleRemoveImage(idx)}
-                    className="p-1.5 bg-red-600 hover:bg-red-700 rounded text-stone-100 cursor-pointer transition-colors"
+                    className="p-1.5 bg-rose-600 hover:bg-rose-700 rounded text-white cursor-pointer transition-colors shadow-xs"
                     title="Remove asset"
                   >
                     <X className="w-4 h-4" />
@@ -308,7 +308,7 @@ export function ImageUploader({
 
                 {/* Tag for thumbnail */}
                 {idx === 0 && (
-                  <span className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-amber-500 text-stone-950 font-sans text-[8px] font-bold uppercase tracking-wider shadow-xs">
+                  <span className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-amber-600 text-white font-sans text-[8px] font-bold uppercase tracking-wider shadow-xs">
                     Cover
                   </span>
                 )}

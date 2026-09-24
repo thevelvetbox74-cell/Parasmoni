@@ -22,6 +22,7 @@ import { AdminMedia } from './AdminMedia';
 import { AdminUsers } from './AdminUsers';
 import { AdminSeo } from './AdminSeo';
 import { AdminStorefront } from './AdminStorefront';
+import { AdminAppFront } from './AdminAppFront';
 import { AdminPages } from './AdminPages';
 import { AdminFooter } from './AdminFooter';
 import { AdminTestimonials } from './AdminTestimonials';
@@ -49,6 +50,7 @@ import {
   ExternalLink,
   ShieldAlert,
   Store,
+  Smartphone,
   FileText,
   Paintbrush,
   Monitor,
@@ -102,6 +104,12 @@ export function AdminLayout({ children }: { children: React.ReactNode }): React.
       path: '/admin/storefront', 
       icon: Store,
       description: 'Live visual page-builder and drag-and-drop editor.'
+    },
+    { 
+      label: 'App Front', 
+      path: '/admin/appfront', 
+      icon: Smartphone,
+      description: 'Web App & Mobile view customizer with live mobile app canvas.'
     },
     { 
       label: 'Pages', 
@@ -300,9 +308,15 @@ export function AdminLayout({ children }: { children: React.ReactNode }): React.
       </aside>
 
       {/* SECTION 2: Main Console Window Container */}
-      {location.pathname === '/admin/storefront' || location.pathname === '/admin/footer' ? (
+      {location.pathname === '/admin/storefront' || location.pathname === '/admin/appfront' || location.pathname === '/admin/footer' ? (
         <div className="flex-1 min-w-0 h-full flex flex-col overflow-hidden relative" id="admin-storefront-viewport">
-          {location.pathname === '/admin/storefront' ? <AdminStorefront /> : <AdminFooter />}
+          {location.pathname === '/admin/storefront' ? (
+            <AdminStorefront />
+          ) : location.pathname === '/admin/appfront' ? (
+            <AdminAppFront />
+          ) : (
+            <AdminFooter />
+          )}
         </div>
       ) : (
         <div className="flex-1 min-w-0 h-full flex flex-col overflow-hidden relative" id="admin-main-viewport">
@@ -402,9 +416,9 @@ export function AdminLayout({ children }: { children: React.ReactNode }): React.
 
             {/* Interactive view panels */}
             <div className={
-              location.pathname === '/admin' || location.pathname === '/admin/dashboard'
+              location.pathname === '/admin' || location.pathname === '/admin/dashboard' || location.pathname === '/admin/products'
                 ? ""
-                : "bg-stone-950 border border-stone-800/80 rounded-xl p-6 sm:p-8"
+                : "bg-white border border-stone-200/80 rounded-xl p-6 sm:p-8 shadow-xs text-stone-800"
             } id="admin-view-payload">
               {location.pathname === '/admin' || location.pathname === '/admin/dashboard' ? (
                 <AdminDashboard />

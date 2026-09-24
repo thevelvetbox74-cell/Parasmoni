@@ -10,6 +10,10 @@ export interface PricingParams {
   makingCharge?: number | string;
   makingChargeType?: 'fixed' | 'percentage' | 'fixed_per_gram' | string;
   wastagePercent?: number | string;
+  otherChargesName?: string;
+  otherChargesAmount?: number | string;
+  gstPercent?: number | string;
+  hallmarkCharge?: number | string;
 }
 
 export interface MetalPriceItem {
@@ -26,6 +30,11 @@ export function calculateProductPrice(
   rawMetalPrice: number;
   wastageValue: number;
   makingChargeValue: number;
+  otherChargesAmount?: number;
+  otherChargesName?: string;
+  hallmarkCharge?: number;
+  gstPercent?: number;
+  gstValue?: number;
   finalPrice: number;
   metalName: string;
   error?: string;
@@ -34,12 +43,21 @@ export function calculateProductPrice(
   const makingCharge = Number(product.makingCharge || 0);
   const makingChargeType = product.makingChargeType || 'fixed';
   const wastagePercent = Number(product.wastagePercent || 0);
+  const otherChargesName = product.otherChargesName || 'Other Charges';
+  const otherChargesAmount = Number(product.otherChargesAmount || 0);
+  const hallmarkCharge = Number(product.hallmarkCharge || 0);
+  const gstPercent = Number(product.gstPercent !== undefined ? product.gstPercent : 3); // 3% default for gold jewellery
 
   if (!product.metalRef) {
     return {
       rawMetalPrice: 0,
       wastageValue: 0,
       makingChargeValue: 0,
+      otherChargesAmount: 0,
+      otherChargesName,
+      hallmarkCharge: 0,
+      gstPercent,
+      gstValue: 0,
       finalPrice: 0,
       metalName: '',
       error: 'Metal price unavailable — reassign metal'
@@ -52,6 +70,11 @@ export function calculateProductPrice(
       rawMetalPrice: 0,
       wastageValue: 0,
       makingChargeValue: 0,
+      otherChargesAmount: 0,
+      otherChargesName,
+      hallmarkCharge: 0,
+      gstPercent,
+      gstValue: 0,
       finalPrice: 0,
       metalName: '',
       error: 'Metal price unavailable — reassign metal'
@@ -63,6 +86,11 @@ export function calculateProductPrice(
       rawMetalPrice: 0,
       wastageValue: 0,
       makingChargeValue: 0,
+      otherChargesAmount: 0,
+      otherChargesName,
+      hallmarkCharge: 0,
+      gstPercent,
+      gstValue: 0,
       finalPrice: 0,
       metalName: matchedMetal.metalName,
       error: 'Metal price unavailable — reassign metal'
@@ -71,7 +99,7 @@ export function calculateProductPrice(
 
   const ratePerGram = matchedMetal.pricePerGram || 0;
   const rawMetalPrice = ratePerGram * weight;
-  const wastageValue = rawMetalPrice * (wastagePercent / 100);
+  const wastageValue = 0;
 
   let makingChargeValue = 0;
   if (makingChargeType === 'percentage') {
@@ -83,12 +111,19 @@ export function calculateProductPrice(
     makingChargeValue = makingCharge;
   }
 
-  const finalPrice = rawMetalPrice + wastageValue + makingChargeValue;
+  const priceBeforeGst = rawMetalPrice + makingChargeValue + otherChargesAmount + hallmarkCharge;
+  const gstValue = priceBeforeGst * (gstPercent / 100);
+  const finalPrice = priceBeforeGst + gstValue;
 
   return {
     rawMetalPrice: Math.round(rawMetalPrice),
     wastageValue: Math.round(wastageValue),
     makingChargeValue: Math.round(makingChargeValue),
+    otherChargesAmount: Math.round(otherChargesAmount),
+    otherChargesName,
+    hallmarkCharge: Math.round(hallmarkCharge),
+    gstPercent,
+    gstValue: Math.round(gstValue),
     finalPrice: Math.round(finalPrice),
     metalName: matchedMetal.metalName
   };

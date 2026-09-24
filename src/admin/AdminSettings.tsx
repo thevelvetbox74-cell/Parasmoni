@@ -25,8 +25,10 @@ import {
   Share2, 
   Info,
   Sliders,
-  Sparkles
+  Sparkles,
+  Eye
 } from 'lucide-react';
+import { LivePreviewWindow } from '../components/LivePreviewWindow';
 
 export function AdminSettings(): React.JSX.Element {
   const { settings: globalSettings } = useWebsiteSettings();
@@ -227,7 +229,10 @@ export function AdminSettings(): React.JSX.Element {
         </div>
       )}
 
-      <form onSubmit={handleSaveSettings} className="space-y-6" id="settings-form">
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
+        {/* Left Column: Settings Form */}
+        <div className="xl:col-span-7">
+          <form onSubmit={handleSaveSettings} className="space-y-6" id="settings-form">
         <div className="bg-stone-900/40 border border-stone-800 rounded p-6 space-y-6">
           {/* Section 1: Basic Identity */}
           <div className="space-y-4">
@@ -556,6 +561,27 @@ export function AdminSettings(): React.JSX.Element {
           </button>
         </div>
       </form>
+    </div>
+
+        {/* Right Column: Real-Time Live Preview Window */}
+        <div className="xl:col-span-5 sticky top-6">
+          <LivePreviewWindow 
+            title="Real-Time Web App Live Preview"
+            subtitle="Live preview window reflects brand & setting changes immediately"
+            activeRoute="/"
+            liveSettings={{
+              brandName,
+              tagline,
+              establishedYear,
+              logoUrl,
+              aboutText,
+              contactNumber,
+              emailAddress,
+              address
+            }}
+          />
+        </div>
+      </div>
     </div>
   );
 }

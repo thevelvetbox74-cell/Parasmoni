@@ -196,7 +196,7 @@ export function StyleGuide(): React.JSX.Element {
                   Technical details & UI Typeface: Plus Jakarta Sans
                 </span>
                 <p className="text-sm font-sans text-stone-800 leading-relaxed max-w-2xl">
-                  Gross Weight: 48.50 grams • Gold Purity: 22 Karat Antique Gold Filigree. Diamond Details: 1.20 ct VVS1 clarity G-H color certified solitaire settings. Standard making charges are calculated at 12% per gram.
+                  Net Weight: 48.50 grams • Gold Purity: 22 Karat Antique Gold Filigree. Diamond Details: 1.20 ct VVS1 clarity G-H color certified solitaire settings. Standard making charges are calculated at 12% per gram.
                 </p>
                 <p className="text-stone-500 text-xs mt-2 font-sans">
                   An exceptionally clean, modern geometric sans-serif tuned for dense UI layouts, specification grids, form fields, and readability on all devices.
@@ -366,7 +366,7 @@ export function StyleGuide(): React.JSX.Element {
                     {/* Specification matrix */}
                     <div className="grid grid-cols-2 gap-4 my-4 py-3 border-y border-stone-100 text-[11px] font-sans text-stone-600">
                       <div>
-                        <span className="block text-stone-400 font-medium">Gross Weight:</span>
+                        <span className="block text-stone-400 font-medium">Net Weight:</span>
                         <span className="font-semibold text-stone-800">42.850 grams</span>
                       </div>
                       <div>

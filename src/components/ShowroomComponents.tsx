@@ -271,17 +271,23 @@ export function ProductCard({
     isPriceVisible = false;
   }
 
-  if ((finalPrice === undefined || finalPrice === null || finalPrice === 0) && product.metalRef) {
+  if (product.metalRef) {
     const rawWeight = Number(product.weight || product.grossWeight || parseFloat(product.approxWeight) || 0);
     const calculated = calculateProductPrice({
       metalRef: product.metalRef,
       weight: rawWeight,
       makingCharge: Number(product.makingCharge || 0),
       makingChargeType: product.makingChargeType || 'fixed',
-      wastagePercent: Number(product.wastagePercent || 0)
+      wastagePercent: Number(product.wastagePercent || 0),
+      otherChargesName: product.otherChargesName,
+      otherChargesAmount: product.otherChargesAmount,
+      hallmarkCharge: product.hallmarkCharge,
+      gstPercent: product.gstPercent
     }, metalRates);
     
-    finalPrice = calculated.finalPrice;
+    if (calculated.finalPrice > 0) {
+      finalPrice = calculated.finalPrice;
+    }
   }
 
   // Weight Display Text
@@ -363,7 +369,7 @@ export function ProductCard({
       <div className="p-3 sm:p-4 pt-2.5 sm:pt-3 flex-1 flex flex-col justify-between">
         <div className="space-y-1">
           {/* 1. Product Name / Title */}
-          <h3 className="font-serif font-semibold text-stone-800 text-xs sm:text-sm tracking-wide leading-tight group-hover:text-[#6B1F2A] transition-colors line-clamp-2">
+          <h3 className="font-sans font-semibold text-stone-900 text-xs sm:text-sm tracking-normal leading-snug group-hover:text-[#6B1F2A] transition-colors line-clamp-2">
             {product.name}
           </h3>
 

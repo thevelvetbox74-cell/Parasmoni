@@ -105,6 +105,10 @@ export function AdminProducts(): React.JSX.Element {
     makingCharge: '',
     makingChargeType: 'fixed' as 'fixed' | 'percentage' | 'fixed_per_gram',
     wastagePercent: '',
+    otherChargesName: 'Hallmarking & Certification',
+    otherChargesAmount: '',
+    hallmarkCharge: '',
+    gstPercent: '3',
     mrp: '',
     priceVisibility: 'on_enquiry' as 'visible' | 'hidden' | 'on_enquiry',
     images: [] as string[],
@@ -411,6 +415,10 @@ export function AdminProducts(): React.JSX.Element {
         makingCharge: '',
         makingChargeType: 'fixed',
         wastagePercent: '',
+        otherChargesName: 'Hallmarking & Certification',
+        otherChargesAmount: '',
+        hallmarkCharge: '',
+        gstPercent: '3',
         mrp: '',
         priceVisibility: 'on_enquiry',
         images: [],
@@ -462,6 +470,10 @@ export function AdminProducts(): React.JSX.Element {
         makingCharge: '',
         makingChargeType: 'fixed',
         wastagePercent: '',
+        otherChargesName: 'Hallmarking & Certification',
+        otherChargesAmount: '',
+        hallmarkCharge: '',
+        gstPercent: '3',
         mrp: '',
         priceVisibility: 'on_enquiry',
         images: [],
@@ -516,6 +528,10 @@ export function AdminProducts(): React.JSX.Element {
       makingCharge: prod.makingCharge !== undefined ? String(prod.makingCharge) : '',
       makingChargeType: prod.makingChargeType || 'fixed',
       wastagePercent: prod.wastagePercent !== undefined ? String(prod.wastagePercent) : '',
+      otherChargesName: prod.otherChargesName || 'Hallmarking & Certification',
+      otherChargesAmount: prod.otherChargesAmount !== undefined ? String(prod.otherChargesAmount) : '',
+      hallmarkCharge: prod.hallmarkCharge !== undefined ? String(prod.hallmarkCharge) : '',
+      gstPercent: prod.gstPercent !== undefined ? String(prod.gstPercent) : '3',
       mrp: prod.mrp !== undefined && prod.mrp !== null ? String(prod.mrp) : '',
       priceVisibility: prod.priceVisibility || 'on_enquiry',
       images: prod.images || [],
@@ -571,6 +587,10 @@ export function AdminProducts(): React.JSX.Element {
       makingCharge: prod.makingCharge !== undefined ? String(prod.makingCharge) : '',
       makingChargeType: prod.makingChargeType || 'fixed',
       wastagePercent: prod.wastagePercent !== undefined ? String(prod.wastagePercent) : '',
+      otherChargesName: prod.otherChargesName || 'Hallmarking & Certification',
+      otherChargesAmount: prod.otherChargesAmount !== undefined ? String(prod.otherChargesAmount) : '',
+      hallmarkCharge: prod.hallmarkCharge !== undefined ? String(prod.hallmarkCharge) : '',
+      gstPercent: prod.gstPercent !== undefined ? String(prod.gstPercent) : '3',
       mrp: prod.mrp !== undefined && prod.mrp !== null ? String(prod.mrp) : '',
       priceVisibility: prod.priceVisibility || 'on_enquiry',
       images: [...(prod.images || [])],
@@ -677,6 +697,10 @@ export function AdminProducts(): React.JSX.Element {
         makingCharge: Number(formData.makingCharge || 0),
         makingChargeType: formData.makingChargeType,
         wastagePercent: Number(formData.wastagePercent || 0),
+        otherChargesName: formData.otherChargesName.trim(),
+        otherChargesAmount: Number(formData.otherChargesAmount || 0),
+        hallmarkCharge: Number(formData.hallmarkCharge || 0),
+        gstPercent: Number(formData.gstPercent !== undefined ? formData.gstPercent : 3),
         mrp: formData.mrp && formData.mrp.trim() !== '' ? Number(formData.mrp) : null,
         priceVisibility: formData.priceVisibility,
         images: formData.images,
@@ -780,15 +804,15 @@ export function AdminProducts(): React.JSX.Element {
         <div className="space-y-4" id="products-list-wrapper">
           
           {/* List action headers */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-between items-center bg-stone-950 p-4 border border-stone-800 rounded">
+          <div className="flex flex-col sm:flex-row gap-4 justify-between items-center bg-white p-4 border border-stone-200/80 rounded-xl shadow-xs">
             <div className="relative w-full sm:max-w-xs">
-              <Search className="absolute left-3 top-2.5 h-4 w-4 text-stone-500" />
+              <Search className="absolute left-3 top-2.5 h-4 w-4 text-stone-400" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search by code, title, tags..."
-                className="w-full bg-stone-900 border border-stone-800 text-xs text-stone-200 pl-9 pr-4 py-2 rounded focus:outline-hidden focus:border-amber-500 font-mono"
+                className="w-full bg-[#f8f7f4] border border-stone-200 text-xs text-stone-900 pl-9 pr-4 py-2.5 rounded-lg focus:outline-hidden focus:border-amber-500 focus:bg-white font-sans placeholder:text-stone-400 transition-all"
               />
             </div>
 
@@ -797,7 +821,7 @@ export function AdminProducts(): React.JSX.Element {
               <select
                 value={categoryFilter}
                 onChange={(e) => setCategoryFilter(e.target.value)}
-                className="bg-stone-900 border border-stone-800 text-[11px] text-stone-300 font-bold uppercase tracking-wider px-3 py-2 rounded focus:outline-hidden cursor-pointer"
+                className="bg-[#f8f7f4] border border-stone-200 text-[11px] text-stone-700 font-bold uppercase tracking-wider px-3.5 py-2.5 rounded-lg focus:outline-hidden focus:bg-white cursor-pointer"
               >
                 <option value="all">All Categories</option>
                 {categories.map(cat => (
@@ -809,7 +833,7 @@ export function AdminProducts(): React.JSX.Element {
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="bg-stone-900 border border-stone-800 text-[11px] text-stone-300 font-bold uppercase tracking-wider px-3 py-2 rounded focus:outline-hidden cursor-pointer"
+                className="bg-[#f8f7f4] border border-stone-200 text-[11px] text-stone-700 font-bold uppercase tracking-wider px-3.5 py-2.5 rounded-lg focus:outline-hidden focus:bg-white cursor-pointer"
               >
                 <option value="all">All Statuses</option>
                 <option value="published">Published</option>
@@ -821,11 +845,11 @@ export function AdminProducts(): React.JSX.Element {
                 <button
                   onClick={openAddForm}
                   type="button"
-                  className="inline-flex items-center gap-1.5 bg-stone-900 hover:bg-stone-850 border border-amber-600/40 text-amber-400 font-bold uppercase tracking-wider text-[11px] py-2 px-3 rounded cursor-pointer transition-all shadow-xs"
+                  className="inline-flex items-center gap-1.5 bg-amber-50 hover:bg-amber-100/80 border border-amber-300 text-amber-800 font-bold uppercase tracking-wider text-[11px] py-2.5 px-3.5 rounded-lg cursor-pointer transition-all shadow-2xs"
                   id="resume-draft-btn"
                   title="A draft listing was auto-saved on this device. Click to resume."
                 >
-                  <History className="w-3.5 h-3.5 text-amber-500 animate-pulse" />
+                  <History className="w-3.5 h-3.5 text-amber-600 animate-pulse" />
                   <span>Resume Saved Draft</span>
                 </button>
               )}
@@ -833,7 +857,7 @@ export function AdminProducts(): React.JSX.Element {
               {/* Add Button */}
               <button
                 onClick={openAddForm}
-                className="inline-flex items-center gap-1.5 bg-amber-600 hover:bg-amber-700 text-stone-950 font-bold uppercase tracking-wider text-[11px] py-2 px-4 rounded cursor-pointer transition-colors"
+                className="inline-flex items-center gap-1.5 bg-stone-900 hover:bg-stone-800 text-white font-bold uppercase tracking-wider text-[11px] py-2.5 px-4 rounded-lg cursor-pointer transition-colors shadow-xs"
                 id="add-product-btn"
               >
                 <Plus className="w-4 h-4" />
@@ -846,55 +870,55 @@ export function AdminProducts(): React.JSX.Element {
           {loading ? (
             <div className="space-y-3" id="products-loading-skeleton">
               {[1, 2, 3, 4].map(idx => (
-                <div key={idx} className="h-20 bg-stone-950 border border-stone-800 animate-pulse rounded flex items-center justify-between px-6">
+                <div key={idx} className="h-20 bg-white border border-stone-200 animate-pulse rounded-xl flex items-center justify-between px-6 shadow-xs">
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-stone-900 rounded" />
+                    <div className="w-12 h-12 bg-stone-100 rounded-lg" />
                     <div className="space-y-2">
-                      <div className="h-4 w-40 bg-stone-900 rounded" />
-                      <div className="h-3 w-20 bg-stone-900 rounded" />
+                      <div className="h-4 w-40 bg-stone-100 rounded" />
+                      <div className="h-3 w-20 bg-stone-100 rounded" />
                     </div>
                   </div>
-                  <div className="h-4 w-12 bg-stone-900 rounded" />
-                  <div className="h-8 w-24 bg-stone-900 rounded" />
+                  <div className="h-4 w-12 bg-stone-100 rounded" />
+                  <div className="h-8 w-24 bg-stone-100 rounded" />
                 </div>
               ))}
             </div>
           ) : filteredProducts.length === 0 ? (
-            <div className="text-center py-16 bg-stone-950 border border-stone-800 rounded p-6" id="empty-products-state">
-              <Gem className="w-12 h-12 text-stone-600 mx-auto mb-3" />
-              <p className="text-stone-300 font-serif text-lg font-bold">No Products Found</p>
+            <div className="text-center py-16 bg-white border border-stone-200/80 rounded-xl p-6 shadow-xs" id="empty-products-state">
+              <Gem className="w-12 h-12 text-stone-400 mx-auto mb-3" />
+              <p className="text-stone-800 font-serif text-lg font-bold">No Products Found</p>
               <p className="text-stone-500 text-xs mt-1 max-w-sm mx-auto leading-relaxed">
                 We couldn't find any products matching your active search queries or filters. Adjust search keywords or register a new ornament.
               </p>
             </div>
           ) : (
             /* Responsive table grid list */
-            <div className="overflow-x-auto bg-stone-950 border border-stone-800 rounded" id="products-table-box">
+            <div className="overflow-x-auto bg-white border border-stone-200/80 rounded-xl shadow-xs" id="products-table-box">
               <table className="w-full text-left border-collapse text-xs">
                 <thead>
-                  <tr className="border-b border-stone-800 text-stone-400 uppercase tracking-widest font-bold bg-stone-950">
+                  <tr className="border-b border-stone-200 text-stone-500 uppercase tracking-widest font-bold bg-stone-50/80 text-[10px]">
                     <th className="p-4 w-16">Preview</th>
                     <th className="p-4 w-28">Code / SKU</th>
                     <th className="p-4">Name / Category</th>
                     <th className="p-4 w-24">Metal</th>
                     <th className="p-4 w-24 text-right">Weight</th>
-                    <th className="p-4 w-28">Price Mode</th>
+                    <th className="p-4 w-28">Price</th>
                     <th className="p-4 w-24 text-center">Featured</th>
                     <th className="p-4 w-24 text-center">Status</th>
                     <th className="p-4 w-32 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-stone-850/60 font-sans text-stone-300">
+                <tbody className="divide-y divide-stone-100 font-sans text-stone-700">
                   {filteredProducts.map(prod => {
                     const matchedCat = categories.find(c => c.id === prod.category)?.name || 'Jewellery';
                     const matchedCollection = collections.find(col => col.id === prod.collection)?.name || '';
 
                     return (
-                      <tr key={prod.id} className="hover:bg-stone-900/35 transition-colors group">
+                      <tr key={prod.id} className="hover:bg-stone-50/60 transition-colors group">
                         
                         {/* Thumbnail */}
                         <td className="p-4">
-                          <div className="w-11 h-11 rounded border border-stone-800 bg-stone-900 overflow-hidden shrink-0">
+                          <div className="w-11 h-11 rounded-lg border border-stone-200 bg-stone-100 overflow-hidden shrink-0">
                             <img
                               src={prod.thumbnail || 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&q=80&w=120'}
                               alt={prod.productName}
@@ -905,13 +929,13 @@ export function AdminProducts(): React.JSX.Element {
                         </td>
 
                         {/* Product Code */}
-                        <td className="p-4 font-mono font-bold text-amber-500/90 tracking-wider">
+                        <td className="p-4 font-mono font-bold text-stone-900 tracking-wider">
                           {prod.productCode}
                         </td>
 
                         {/* Name and Category / Subcategory / Collection */}
                         <td className="p-4">
-                          <span className="block text-stone-100 font-bold truncate max-w-xs">{prod.productName}</span>
+                          <span className="block text-stone-900 font-bold truncate max-w-xs">{prod.productName}</span>
                           <div className="flex flex-wrap gap-1.5 mt-1 text-[9px] text-stone-500 font-semibold tracking-wider uppercase">
                             <span>{matchedCat}</span>
                             {prod.subcategory && (
@@ -923,7 +947,7 @@ export function AdminProducts(): React.JSX.Element {
                             {matchedCollection && (
                               <>
                                 <span>•</span>
-                                <span className="text-amber-600/80">{matchedCollection}</span>
+                                <span className="text-amber-700">{matchedCollection}</span>
                               </>
                             )}
                           </div>
@@ -931,39 +955,43 @@ export function AdminProducts(): React.JSX.Element {
 
                         {/* Metal Type and Purity */}
                         <td className="p-4">
-                          <span className="block text-stone-200 capitalize font-medium">{prod.metal}</span>
+                          <span className="block text-stone-800 capitalize font-medium">{prod.metal}</span>
                           <span className="block text-[10px] text-stone-500 font-semibold font-mono tracking-wider">{prod.purity.toUpperCase()}</span>
                         </td>
 
-                        {/* Gross Weight */}
-                        <td className="p-4 text-right font-mono font-semibold text-stone-200">
+                        {/* Net Weight */}
+                        <td className="p-4 text-right font-mono font-semibold text-stone-800">
                           {prod.weight ? `${parseFloat(prod.weight).toFixed(3)}g` : '--'}
                         </td>
 
                         {/* Price Details and Visibility */}
-                        <td className="p-4 font-mono text-stone-300">
+                        <td className="p-4 font-mono text-stone-800">
                           {(() => {
                             const calculated = calculateProductPrice({
                               metalRef: prod.metalRef,
                               weight: Number(prod.weight || 0),
                               makingCharge: Number(prod.makingCharge || 0),
                               makingChargeType: prod.makingChargeType || 'fixed',
-                              wastagePercent: Number(prod.wastagePercent || 0)
+                              wastagePercent: Number(prod.wastagePercent || 0),
+                              otherChargesName: prod.otherChargesName,
+                              otherChargesAmount: prod.otherChargesAmount,
+                              hallmarkCharge: prod.hallmarkCharge,
+                              gstPercent: prod.gstPercent
                             }, metalPrices);
 
                             if (prod.priceVisibility === 'visible') {
-                              return <span>₹{calculated.finalPrice.toLocaleString('en-IN')}</span>;
+                              return <span className="font-bold text-stone-900">₹{calculated.finalPrice.toLocaleString('en-IN')}</span>;
                             } else if (prod.priceVisibility === 'on_enquiry') {
                               return (
                                 <div className="space-y-0.5">
-                                  <span className="block text-amber-500/80 font-sans text-[10px] font-bold uppercase tracking-wider">On Enquiry</span>
+                                  <span className="inline-block text-amber-800 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider">On Enquiry</span>
                                   {calculated.finalPrice > 0 && (
-                                    <span className="block text-[9px] text-stone-500">Valuation: ₹{calculated.finalPrice.toLocaleString('en-IN')}</span>
+                                    <span className="block text-[9px] text-stone-400 font-sans">₹{calculated.finalPrice.toLocaleString('en-IN')}</span>
                                   )}
                                 </div>
                               );
                             } else {
-                              return <span className="text-stone-500 font-sans text-[10px] font-bold uppercase tracking-wider">Hidden</span>;
+                              return <span className="text-stone-400 font-sans text-[10px] font-bold uppercase tracking-wider">Hidden</span>;
                             }
                           })()}
                         </td>
@@ -972,12 +1000,12 @@ export function AdminProducts(): React.JSX.Element {
                         <td className="p-4 text-center">
                           <div className="flex flex-col items-center justify-center gap-1">
                             {prod.featured && (
-                              <span className="px-1.5 py-0.5 rounded bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[8px] font-bold uppercase tracking-wider">
+                              <span className="px-1.5 py-0.5 rounded bg-amber-50 border border-amber-200 text-amber-800 text-[8px] font-bold uppercase tracking-wider">
                                 Featured
                               </span>
                             )}
                             {prod.newArrival && (
-                              <span className="px-1.5 py-0.5 rounded bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[8px] font-bold uppercase tracking-wider">
+                              <span className="px-1.5 py-0.5 rounded bg-amber-50 border border-amber-200 text-amber-800 text-[8px] font-bold uppercase tracking-wider">
                                 New
                               </span>
                             )}
@@ -988,21 +1016,21 @@ export function AdminProducts(): React.JSX.Element {
                         <td className="p-4 text-center">
                           <button
                             onClick={() => handleTogglePublish(prod)}
-                            className={`px-2 py-1 rounded text-[9px] font-bold uppercase tracking-widest inline-flex items-center gap-1 transition-all ${
+                            className={`px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-widest inline-flex items-center gap-1 transition-all cursor-pointer ${
                               prod.status === 'published' 
-                                ? 'bg-emerald-950/40 hover:bg-emerald-900/30 border border-emerald-500/20 text-emerald-400' 
-                                : 'bg-stone-900 hover:bg-stone-800 border border-stone-800 text-stone-400'
+                                ? 'bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-800' 
+                                : 'bg-stone-100 hover:bg-stone-200 border border-stone-200 text-stone-600'
                             }`}
                             title="Toggle catalog visibility"
                           >
                             {prod.status === 'published' ? (
                               <>
-                                <Eye className="w-3 h-3" />
+                                <Eye className="w-3 h-3 text-emerald-600" />
                                 <span>Published</span>
                               </>
                             ) : (
                               <>
-                                <EyeOff className="w-3 h-3" />
+                                <EyeOff className="w-3 h-3 text-stone-400" />
                                 <span>Draft</span>
                               </>
                             )}
@@ -1014,21 +1042,21 @@ export function AdminProducts(): React.JSX.Element {
                           <div className="inline-flex items-center gap-2">
                             <button
                               onClick={() => openEditForm(prod)}
-                              className="p-1.5 bg-stone-900 hover:bg-stone-800 border border-stone-800 rounded text-stone-300 hover:text-amber-500 transition-colors cursor-pointer"
+                              className="p-1.5 bg-stone-50 hover:bg-stone-100 border border-stone-200 rounded-lg text-stone-600 hover:text-amber-600 transition-colors cursor-pointer shadow-2xs"
                               title="Edit product details"
                             >
                               <Edit className="w-3.5 h-3.5" />
                             </button>
                             <button
                               onClick={() => handleDuplicateProduct(prod)}
-                              className="p-1.5 bg-stone-900 hover:bg-stone-800 border border-stone-800 rounded text-stone-300 hover:text-amber-500 transition-colors cursor-pointer"
+                              className="p-1.5 bg-stone-50 hover:bg-stone-100 border border-stone-200 rounded-lg text-stone-600 hover:text-amber-600 transition-colors cursor-pointer shadow-2xs"
                               title="Duplicate/Clone item"
                             >
                               <Copy className="w-3.5 h-3.5" />
                             </button>
                             <button
                               onClick={() => handleDeleteProduct(prod.id, prod.productName)}
-                              className="p-1.5 bg-stone-900 hover:bg-stone-800 border border-stone-800 hover:border-red-900 hover:bg-red-950/10 rounded text-stone-400 hover:text-red-400 transition-colors cursor-pointer"
+                              className="p-1.5 bg-stone-50 hover:bg-rose-50 border border-stone-200 hover:border-rose-200 rounded-lg text-stone-400 hover:text-rose-600 transition-colors cursor-pointer shadow-2xs"
                               title="Delete record"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
@@ -1049,22 +1077,22 @@ export function AdminProducts(): React.JSX.Element {
 
       {/* VIEW 2 & 3: FORM WORKSPACE (ADD / EDIT) */}
       {(view === 'add' || view === 'edit') && (
-        <form onSubmit={handleSaveProduct} className="space-y-6 text-xs text-stone-300" id="product-form-workspace">
+        <form onSubmit={handleSaveProduct} className="space-y-6 text-xs text-stone-800" id="product-form-workspace">
           
           {/* Header Action Row */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-stone-800 pb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 border border-stone-200/80 rounded-xl shadow-xs">
             <div className="flex items-center gap-3">
               <button
                 type="button"
                 onClick={() => setView('list')}
-                className="inline-flex items-center gap-1.5 text-stone-400 hover:text-stone-100 font-bold uppercase tracking-wider text-[10px] transition-colors"
+                className="inline-flex items-center gap-1.5 text-stone-600 hover:text-stone-900 font-bold uppercase tracking-wider text-[10px] transition-colors cursor-pointer"
               >
                 <ArrowLeft className="w-4 h-4" />
                 <span>Back to Listing</span>
               </button>
 
               {view === 'add' && (
-                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-stone-900 border border-stone-800 text-[10px] text-stone-400 font-mono">
+                <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-stone-100 border border-stone-200 text-[10px] text-stone-600 font-mono">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                   <span>Auto-saving draft locally</span>
                 </div>
@@ -1076,7 +1104,7 @@ export function AdminProducts(): React.JSX.Element {
                 <button
                   type="button"
                   onClick={handleDiscardDraft}
-                  className="inline-flex items-center gap-1 px-3 py-2 bg-stone-900 hover:bg-red-950/20 hover:border-red-900/40 border border-stone-800 text-stone-400 hover:text-red-400 font-bold uppercase tracking-wider text-[10px] rounded transition-colors"
+                  className="inline-flex items-center gap-1 px-3 py-2 bg-white hover:bg-rose-50 hover:border-rose-300 border border-stone-200 text-stone-600 hover:text-rose-600 font-bold uppercase tracking-wider text-[10px] rounded-lg transition-colors shadow-2xs cursor-pointer"
                   title="Clear auto-saved draft data from this device"
                 >
                   <RotateCcw className="w-3.5 h-3.5" />
@@ -1086,18 +1114,18 @@ export function AdminProducts(): React.JSX.Element {
               <button
                 type="button"
                 onClick={() => setView('list')}
-                className="px-4 py-2 bg-stone-900 hover:bg-stone-800 border border-stone-800 text-stone-300 font-bold uppercase tracking-wider text-[10px] rounded transition-colors"
+                className="px-4 py-2 bg-white hover:bg-stone-50 border border-stone-200 text-stone-700 font-bold uppercase tracking-wider text-[10px] rounded-lg transition-colors shadow-2xs cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={saving}
-                className="inline-flex items-center gap-1.5 bg-amber-600 hover:bg-amber-700 disabled:bg-stone-800 text-stone-950 font-bold uppercase tracking-wider text-[10px] px-5 py-2 rounded cursor-pointer transition-colors"
+                className="inline-flex items-center gap-1.5 bg-amber-600 hover:bg-amber-700 disabled:bg-stone-200 text-white font-bold uppercase tracking-wider text-[10px] px-5 py-2.5 rounded-lg cursor-pointer transition-colors shadow-xs"
               >
                 {saving ? (
                   <>
-                    <div className="w-3.5 h-3.5 border-2 border-stone-950 border-t-transparent rounded-full animate-spin" />
+                    <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                     <span>Saving...</span>
                   </>
                 ) : (
@@ -1112,9 +1140,9 @@ export function AdminProducts(): React.JSX.Element {
 
           {/* Draft Restored Banner */}
           {view === 'add' && draftRestoredNotice && (
-            <div className="p-3.5 bg-amber-950/30 border border-amber-500/30 text-amber-300 rounded text-xs flex items-center justify-between gap-3 animate-fade-in" id="draft-restored-banner">
+            <div className="p-3.5 bg-amber-50 border border-amber-200 text-amber-900 rounded-xl text-xs flex items-center justify-between gap-3 shadow-2xs animate-fade-in" id="draft-restored-banner">
               <div className="flex items-center gap-2.5">
-                <History className="w-4 h-4 text-amber-500 shrink-0" />
+                <History className="w-4 h-4 text-amber-600 shrink-0" />
                 <span>
                   <strong>Draft Restored:</strong> Previously entered text and selected images have been automatically recovered on this device.
                 </span>
@@ -1122,7 +1150,7 @@ export function AdminProducts(): React.JSX.Element {
               <button
                 type="button"
                 onClick={() => setDraftRestoredNotice(false)}
-                className="text-stone-400 hover:text-stone-200 p-1 rounded"
+                className="text-stone-500 hover:text-stone-800 p-1 rounded"
                 title="Dismiss notice"
               >
                 <X className="w-4 h-4" />
@@ -1137,17 +1165,17 @@ export function AdminProducts(): React.JSX.Element {
             <div className="lg:col-span-2 space-y-6">
               
               {/* Block A: Core Identity */}
-              <div className="bg-stone-950 border border-stone-800 rounded p-6 space-y-4">
-                <h3 className="font-serif font-bold text-stone-100 text-sm border-b border-stone-900 pb-2 flex items-center gap-2">
-                  <FileText className="w-4 h-4 text-amber-500" />
+              <div className="bg-white border border-stone-200/80 rounded-xl p-6 space-y-4 shadow-xs">
+                <h3 className="font-serif font-bold text-stone-900 text-sm border-b border-stone-100 pb-3 flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-amber-600" />
                   <span>Product Metadata Registry</span>
                 </h3>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Product SKU/Code */}
                   <div className="space-y-1.5">
-                    <label htmlFor="form-productCode" className="font-bold text-stone-400 uppercase tracking-wider text-[10px] block">
-                      Unique Code / SKU <span className="text-amber-500">*</span>
+                    <label htmlFor="form-productCode" className="font-bold text-stone-600 uppercase tracking-wider text-[10px] block">
+                      Unique Code / SKU <span className="text-amber-600">*</span>
                     </label>
                     <input
                       type="text"
@@ -1157,14 +1185,14 @@ export function AdminProducts(): React.JSX.Element {
                       value={formData.productCode}
                       onChange={handleInputChange}
                       placeholder="e.g., PM-GOLD-N204"
-                      className="w-full bg-stone-900 border border-stone-800 text-stone-100 p-3 rounded focus:outline-hidden focus:border-amber-500 font-mono"
+                      className="w-full bg-[#f8f7f4] border border-stone-200 text-stone-900 p-3 rounded-lg focus:outline-hidden focus:border-amber-500 focus:bg-white font-mono text-xs"
                     />
                   </div>
 
                   {/* Slug */}
                   <div className="space-y-1.5">
-                    <label htmlFor="form-slug" className="font-bold text-stone-400 uppercase tracking-wider text-[10px] block">
-                      URL Slug <span className="text-amber-500">*</span>
+                    <label htmlFor="form-slug" className="font-bold text-stone-600 uppercase tracking-wider text-[10px] block">
+                      URL Slug <span className="text-amber-600">*</span>
                     </label>
                     <input
                       type="text"
@@ -1174,15 +1202,15 @@ export function AdminProducts(): React.JSX.Element {
                       value={formData.slug}
                       onChange={handleInputChange}
                       placeholder="e.g., handcrafted-antique-necklace"
-                      className="w-full bg-stone-900 border border-stone-800 text-stone-100 p-3 rounded focus:outline-hidden focus:border-amber-500 font-mono"
+                      className="w-full bg-[#f8f7f4] border border-stone-200 text-stone-900 p-3 rounded-lg focus:outline-hidden focus:border-amber-500 focus:bg-white font-mono text-xs"
                     />
                   </div>
                 </div>
 
                 {/* Product Name */}
                 <div className="space-y-1.5">
-                  <label htmlFor="form-productName" className="font-bold text-stone-400 uppercase tracking-wider text-[10px] block">
-                    Product Title / Name <span className="text-amber-500">*</span>
+                  <label htmlFor="form-productName" className="font-bold text-stone-600 uppercase tracking-wider text-[10px] block">
+                    Product Title / Name <span className="text-amber-600">*</span>
                   </label>
                   <input
                     type="text"
@@ -1192,13 +1220,13 @@ export function AdminProducts(): React.JSX.Element {
                     value={formData.productName}
                     onChange={handleInputChange}
                     placeholder="e.g., Antique Gold Peacock Choker Set"
-                    className="w-full bg-stone-900 border border-stone-800 text-stone-100 p-3 rounded focus:outline-hidden focus:border-amber-500"
+                    className="w-full bg-[#f8f7f4] border border-stone-200 text-stone-900 p-3 rounded-lg focus:outline-hidden focus:border-amber-500 focus:bg-white text-xs font-semibold"
                   />
                 </div>
 
                 {/* Short Description */}
                 <div className="space-y-1.5">
-                  <label htmlFor="form-shortDescription" className="font-bold text-stone-400 uppercase tracking-wider text-[10px] block">
+                  <label htmlFor="form-shortDescription" className="font-bold text-stone-600 uppercase tracking-wider text-[10px] block">
                     Snippet / Short Description
                   </label>
                   <input
@@ -1208,13 +1236,13 @@ export function AdminProducts(): React.JSX.Element {
                     value={formData.shortDescription}
                     onChange={handleInputChange}
                     placeholder="A brief high-level summary that displays on lists..."
-                    className="w-full bg-stone-900 border border-stone-800 text-stone-100 p-3 rounded focus:outline-hidden focus:border-amber-500"
+                    className="w-full bg-[#f8f7f4] border border-stone-200 text-stone-900 p-3 rounded-lg focus:outline-hidden focus:border-amber-500 focus:bg-white text-xs"
                   />
                 </div>
 
                 {/* Full Description */}
                 <div className="space-y-1.5">
-                  <label htmlFor="form-description" className="font-bold text-stone-400 uppercase tracking-wider text-[10px] block">
+                  <label htmlFor="form-description" className="font-bold text-stone-600 uppercase tracking-wider text-[10px] block">
                     Detailed Catalogue Description
                   </label>
                   <textarea
@@ -1224,22 +1252,22 @@ export function AdminProducts(): React.JSX.Element {
                     onChange={handleInputChange}
                     rows={5}
                     placeholder="Detail the filigree work, kundan sets, back clasp configuration, and weight splits..."
-                    className="w-full bg-stone-900 border border-stone-800 text-stone-100 p-3 rounded focus:outline-hidden focus:border-amber-500 leading-relaxed font-sans"
+                    className="w-full bg-[#f8f7f4] border border-stone-200 text-stone-900 p-3 rounded-lg focus:outline-hidden focus:border-amber-500 focus:bg-white leading-relaxed font-sans text-xs"
                   />
                 </div>
               </div>
 
               {/* Block B: Classifications & Categories */}
-              <div className="bg-stone-950 border border-stone-800 rounded p-6 space-y-4">
-                <h3 className="font-serif font-bold text-stone-100 text-sm border-b border-stone-900 pb-2 flex items-center gap-2">
-                  <Tag className="w-4 h-4 text-amber-500" />
+              <div className="bg-white border border-stone-200/80 rounded-xl p-6 space-y-4 shadow-xs">
+                <h3 className="font-serif font-bold text-stone-900 text-sm border-b border-stone-100 pb-3 flex items-center gap-2">
+                  <Tag className="w-4 h-4 text-amber-600" />
                   <span>Taxonomy & Grouping</span>
                 </h3>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {/* Category */}
                   <div className="space-y-1.5">
-                    <label htmlFor="form-category" className="font-bold text-stone-400 uppercase tracking-wider text-[10px] block">
+                    <label htmlFor="form-category" className="font-bold text-stone-600 uppercase tracking-wider text-[10px] block">
                       Main Ornaments Category
                     </label>
                     <select
@@ -1247,7 +1275,7 @@ export function AdminProducts(): React.JSX.Element {
                       name="category"
                       value={formData.category}
                       onChange={handleInputChange}
-                      className="w-full bg-stone-900 border border-stone-800 text-stone-200 p-3 rounded focus:outline-hidden focus:border-amber-500 cursor-pointer"
+                      className="w-full bg-[#f8f7f4] border border-stone-200 text-stone-900 p-3 rounded-lg focus:outline-hidden focus:border-amber-500 focus:bg-white cursor-pointer text-xs font-semibold"
                     >
                       {categories.map(cat => (
                         <option key={cat.id} value={cat.id}>{cat.name}</option>
@@ -1257,7 +1285,7 @@ export function AdminProducts(): React.JSX.Element {
 
                   {/* Subcategory */}
                   <div className="space-y-1.5">
-                    <label htmlFor="form-subcategory" className="font-bold text-stone-400 uppercase tracking-wider text-[10px] block">
+                    <label htmlFor="form-subcategory" className="font-bold text-stone-600 uppercase tracking-wider text-[10px] block">
                       Subcategory / Tag Group
                     </label>
                     <input
@@ -1267,13 +1295,13 @@ export function AdminProducts(): React.JSX.Element {
                       value={formData.subcategory}
                       onChange={handleInputChange}
                       placeholder="e.g., Traditional Jhumka"
-                      className="w-full bg-stone-900 border border-stone-800 text-stone-100 p-3 rounded focus:outline-hidden focus:border-amber-500"
+                      className="w-full bg-[#f8f7f4] border border-stone-200 text-stone-900 p-3 rounded-lg focus:outline-hidden focus:border-amber-500 focus:bg-white text-xs"
                     />
                   </div>
 
                   {/* Collection */}
                   <div className="space-y-1.5">
-                    <label htmlFor="form-collection" className="font-bold text-stone-400 uppercase tracking-wider text-[10px] block">
+                    <label htmlFor="form-collection" className="font-bold text-stone-600 uppercase tracking-wider text-[10px] block">
                       Curated Master Collection
                     </label>
                     <select
@@ -1281,7 +1309,7 @@ export function AdminProducts(): React.JSX.Element {
                       name="collection"
                       value={formData.collection}
                       onChange={handleInputChange}
-                      className="w-full bg-stone-900 border border-stone-800 text-stone-200 p-3 rounded focus:outline-hidden focus:border-amber-500 cursor-pointer"
+                      className="w-full bg-[#f8f7f4] border border-stone-200 text-stone-900 p-3 rounded-lg focus:outline-hidden focus:border-amber-500 focus:bg-white cursor-pointer text-xs font-semibold"
                     >
                       <option value="">No curated collection</option>
                       {collections.map(col => (
@@ -1293,9 +1321,9 @@ export function AdminProducts(): React.JSX.Element {
               </div>
 
               {/* Block C: ImageKit Multi-uploader */}
-              <div className="bg-stone-950 border border-stone-800 rounded p-6 space-y-4">
-                <h3 className="font-serif font-bold text-stone-100 text-sm border-b border-stone-900 pb-2 flex items-center gap-2">
-                  <ImageIcon className="w-4 h-4 text-amber-500" />
+              <div className="bg-white border border-stone-200/80 rounded-xl p-6 space-y-4 shadow-xs">
+                <h3 className="font-serif font-bold text-stone-900 text-sm border-b border-stone-100 pb-3 flex items-center gap-2">
+                  <ImageIcon className="w-4 h-4 text-amber-600" />
                   <span>Jewellery Ornaments Media Library</span>
                 </h3>
                 <p className="text-[10px] text-stone-500 leading-relaxed">
@@ -1311,14 +1339,14 @@ export function AdminProducts(): React.JSX.Element {
               </div>
 
               {/* Block D: SEO Configurations */}
-              <div className="bg-stone-950 border border-stone-800 rounded p-6 space-y-4">
-                <h3 className="font-serif font-bold text-stone-100 text-sm border-b border-stone-900 pb-2 flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-amber-500" />
+              <div className="bg-white border border-stone-200/80 rounded-xl p-6 space-y-4 shadow-xs">
+                <h3 className="font-serif font-bold text-stone-900 text-sm border-b border-stone-100 pb-3 flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-amber-600" />
                   <span>Search Engine Optimization (SEO) & Social Graph</span>
                 </h3>
 
                 <div className="space-y-1.5">
-                  <label htmlFor="form-seoTitle" className="font-bold text-stone-400 uppercase tracking-wider text-[10px] block">
+                  <label htmlFor="form-seoTitle" className="font-bold text-stone-600 uppercase tracking-wider text-[10px] block">
                     Meta Title Tag
                   </label>
                   <input
@@ -1328,12 +1356,12 @@ export function AdminProducts(): React.JSX.Element {
                     value={formData.seoTitle}
                     onChange={handleInputChange}
                     placeholder="Curate an attractive Title for Google Search Index Cards..."
-                    className="w-full bg-stone-900 border border-stone-800 text-stone-100 p-3 rounded focus:outline-hidden focus:border-amber-500"
+                    className="w-full bg-[#f8f7f4] border border-stone-200 text-stone-900 p-3 rounded-lg focus:outline-hidden focus:border-amber-500 focus:bg-white text-xs"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label htmlFor="form-seoDescription" className="font-bold text-stone-400 uppercase tracking-wider text-[10px] block">
+                  <label htmlFor="form-seoDescription" className="font-bold text-stone-600 uppercase tracking-wider text-[10px] block">
                     Meta Description Tag
                   </label>
                   <textarea
@@ -1343,12 +1371,12 @@ export function AdminProducts(): React.JSX.Element {
                     onChange={handleInputChange}
                     rows={3}
                     placeholder="Detail the ornament in 150 characters to hook organic traffic..."
-                    className="w-full bg-stone-900 border border-stone-800 text-stone-100 p-3 rounded focus:outline-hidden focus:border-amber-500"
+                    className="w-full bg-[#f8f7f4] border border-stone-200 text-stone-900 p-3 rounded-lg focus:outline-hidden focus:border-amber-500 focus:bg-white text-xs"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label htmlFor="form-imageAltText" className="font-bold text-stone-400 uppercase tracking-wider text-[10px] block">
+                  <label htmlFor="form-imageAltText" className="font-bold text-stone-600 uppercase tracking-wider text-[10px] block">
                     Product Image Alt Text (for screen readers & image search)
                   </label>
                   <input
@@ -1358,15 +1386,15 @@ export function AdminProducts(): React.JSX.Element {
                     value={formData.imageAltText}
                     onChange={handleInputChange}
                     placeholder="e.g., Heavy Handcrafted 22K Gold Sita Har Wedding Necklace"
-                    className="w-full bg-stone-900 border border-stone-800 text-stone-100 p-3 rounded focus:outline-hidden focus:border-amber-500"
+                    className="w-full bg-[#f8f7f4] border border-stone-200 text-stone-900 p-3 rounded-lg focus:outline-hidden focus:border-amber-500 focus:bg-white text-xs"
                   />
                 </div>
 
-                <div className="pt-2 border-t border-stone-900 space-y-4">
-                  <span className="text-[9px] text-stone-400 font-bold uppercase tracking-wider block">Social Share Custom Meta (Open Graph)</span>
+                <div className="pt-2 border-t border-stone-100 space-y-4">
+                  <span className="text-[9px] text-stone-500 font-bold uppercase tracking-wider block">Social Share Custom Meta (Open Graph)</span>
                   
                   <div className="space-y-1.5">
-                    <label htmlFor="form-ogTitle" className="font-bold text-stone-500 uppercase tracking-wider text-[10px] block">
+                    <label htmlFor="form-ogTitle" className="font-bold text-stone-600 uppercase tracking-wider text-[10px] block">
                       Social Card Title (og:title)
                     </label>
                     <input
@@ -1376,12 +1404,12 @@ export function AdminProducts(): React.JSX.Element {
                       value={formData.ogTitle}
                       onChange={handleInputChange}
                       placeholder="e.g., The Heritage Sita Har - Handcrafted in Pure 22K Gold"
-                      className="w-full bg-stone-900 border border-stone-850 text-stone-300 p-3 rounded focus:outline-hidden focus:border-amber-500"
+                      className="w-full bg-[#f8f7f4] border border-stone-200 text-stone-900 p-3 rounded-lg focus:outline-hidden focus:border-amber-500 focus:bg-white text-xs"
                     />
                   </div>
 
                   <div className="space-y-1.5">
-                    <label htmlFor="form-ogDescription" className="font-bold text-stone-500 uppercase tracking-wider text-[10px] block">
+                    <label htmlFor="form-ogDescription" className="font-bold text-stone-600 uppercase tracking-wider text-[10px] block">
                       Social Card Description (og:description)
                     </label>
                     <textarea
@@ -1391,12 +1419,12 @@ export function AdminProducts(): React.JSX.Element {
                       onChange={handleInputChange}
                       rows={2}
                       placeholder="e.g., Explore Bengal's finest craftsmanship on Bowbazar Street..."
-                      className="w-full bg-stone-900 border border-stone-850 text-stone-300 p-3 rounded focus:outline-hidden focus:border-amber-500"
+                      className="w-full bg-[#f8f7f4] border border-stone-200 text-stone-900 p-3 rounded-lg focus:outline-hidden focus:border-amber-500 focus:bg-white text-xs"
                     />
                   </div>
 
                   <div className="space-y-1.5">
-                    <label htmlFor="form-ogImage" className="font-bold text-stone-500 uppercase tracking-wider text-[10px] block">
+                    <label htmlFor="form-ogImage" className="font-bold text-stone-600 uppercase tracking-wider text-[10px] block">
                       Social Card Custom Image URL (og:image)
                     </label>
                     <input
@@ -1406,7 +1434,7 @@ export function AdminProducts(): React.JSX.Element {
                       value={formData.ogImage}
                       onChange={handleInputChange}
                       placeholder="e.g., ImageKit URL (Defaults to first product image if empty)"
-                      className="w-full bg-stone-900 border border-stone-850 text-stone-300 p-3 rounded focus:outline-hidden focus:border-amber-500 font-mono text-[10px]"
+                      className="w-full bg-[#f8f7f4] border border-stone-200 text-stone-900 p-3 rounded-lg focus:outline-hidden focus:border-amber-500 focus:bg-white font-mono text-[10px]"
                     />
                   </div>
                 </div>
@@ -1418,15 +1446,15 @@ export function AdminProducts(): React.JSX.Element {
             <div className="space-y-6">
               
               {/* Block E: Metal specifications */}
-              <div className="bg-stone-950 border border-stone-800 rounded p-6 space-y-4">
-                <h3 className="font-serif font-bold text-stone-100 text-sm border-b border-stone-900 pb-2 flex items-center gap-2">
-                  <Coins className="w-4 h-4 text-amber-500" />
+              <div className="bg-white border border-stone-200/80 rounded-xl p-6 space-y-4 shadow-xs">
+                <h3 className="font-serif font-bold text-stone-900 text-sm border-b border-stone-100 pb-3 flex items-center gap-2">
+                  <Coins className="w-4 h-4 text-amber-600" />
                   <span>Metal specifications</span>
                 </h3>
 
                 {/* Dynamic Base Metal Selection */}
                 <div className="space-y-1.5">
-                  <label htmlFor="form-metalRef" className="font-bold text-stone-400 uppercase tracking-wider text-[10px] block">
+                  <label htmlFor="form-metalRef" className="font-bold text-stone-600 uppercase tracking-wider text-[10px] block">
                     Assigned Showroom Metal Rate
                   </label>
                   <select
@@ -1454,7 +1482,7 @@ export function AdminProducts(): React.JSX.Element {
                         };
                       });
                     }}
-                    className="w-full bg-stone-900 border border-stone-800 text-stone-200 p-3 rounded focus:outline-hidden focus:border-amber-500 cursor-pointer text-xs font-semibold"
+                    className="w-full bg-[#f8f7f4] border border-stone-200 text-stone-900 p-3 rounded-lg focus:outline-hidden focus:border-amber-500 focus:bg-white cursor-pointer text-xs font-semibold"
                   >
                     <option value="">-- Select Bullion Index --</option>
                     {metalPrices.map(m => (
@@ -1467,7 +1495,7 @@ export function AdminProducts(): React.JSX.Element {
 
                 {/* Storefront Metal Type Filter Mapping */}
                 <div className="space-y-1.5">
-                  <label htmlFor="form-metal" className="font-bold text-stone-400 uppercase tracking-wider text-[10px] block">
+                  <label htmlFor="form-metal" className="font-bold text-stone-600 uppercase tracking-wider text-[10px] block">
                     Storefront Metal Type Filter
                   </label>
                   <select
@@ -1482,7 +1510,7 @@ export function AdminProducts(): React.JSX.Element {
                         purity: val === 'silver' ? '925 Silver' : val === 'diamond_setting' ? '18K Gold' : '22K Gold (916)'
                       }));
                     }}
-                    className="w-full bg-stone-900 border border-stone-800 text-stone-200 p-3 rounded focus:outline-hidden focus:border-amber-500 cursor-pointer text-xs font-semibold"
+                    className="w-full bg-[#f8f7f4] border border-stone-200 text-stone-900 p-3 rounded-lg focus:outline-hidden focus:border-amber-500 focus:bg-white cursor-pointer text-xs font-semibold"
                   >
                     <option value="gold">Gold</option>
                     <option value="diamond_setting">Diamond</option>
@@ -1493,7 +1521,7 @@ export function AdminProducts(): React.JSX.Element {
 
                 {/* Storefront Purity Standard Filter Mapping */}
                 <div className="space-y-1.5">
-                  <label htmlFor="form-purity" className="font-bold text-stone-400 uppercase tracking-wider text-[10px] block">
+                  <label htmlFor="form-purity" className="font-bold text-stone-600 uppercase tracking-wider text-[10px] block">
                     Storefront Purity Standard Filter
                   </label>
                   <select
@@ -1507,7 +1535,7 @@ export function AdminProducts(): React.JSX.Element {
                         purity: val
                       }));
                     }}
-                    className="w-full bg-stone-900 border border-stone-800 text-stone-200 p-3 rounded focus:outline-hidden focus:border-amber-500 cursor-pointer text-xs font-semibold"
+                    className="w-full bg-[#f8f7f4] border border-stone-200 text-stone-900 p-3 rounded-lg focus:outline-hidden focus:border-amber-500 focus:bg-white cursor-pointer text-xs font-semibold"
                   >
                     <option value="22K Gold (916)">22K Gold (916)</option>
                     <option value="18K Gold">18K Gold</option>
@@ -1520,16 +1548,16 @@ export function AdminProducts(): React.JSX.Element {
                   const matched = metalPrices.find(m => m.id === formData.metalRef);
                   if (formData.metalRef && !matched) {
                     return (
-                      <div className="p-2.5 bg-red-950/40 border border-red-900/40 text-red-400 text-[10px] rounded flex items-center gap-1.5 font-bold uppercase tracking-wider animate-pulse">
-                        <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                      <div className="p-2.5 bg-rose-50 border border-rose-200 text-rose-700 text-[10px] rounded-lg flex items-center gap-1.5 font-bold uppercase tracking-wider animate-pulse">
+                        <AlertCircle className="w-3.5 h-3.5 shrink-0 text-rose-600" />
                         <span>Warning: Assigned Metal index is missing!</span>
                       </div>
                     );
                   }
                   if (matched && matched.status === 'inactive') {
                     return (
-                      <div className="p-2.5 bg-amber-950/40 border border-amber-900/40 text-amber-500 text-[10px] rounded flex items-center gap-1.5 font-bold uppercase tracking-wider">
-                        <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                      <div className="p-2.5 bg-amber-50 border border-amber-200 text-amber-800 text-[10px] rounded-lg flex items-center gap-1.5 font-bold uppercase tracking-wider">
+                        <AlertCircle className="w-3.5 h-3.5 shrink-0 text-amber-600" />
                         <span>Warning: Assigned Metal is marked INACTIVE!</span>
                       </div>
                     );
@@ -1537,10 +1565,10 @@ export function AdminProducts(): React.JSX.Element {
                   return null;
                 })()}
 
-                {/* Gross weight */}
+                {/* Net weight */}
                 <div className="space-y-1.5">
-                  <label htmlFor="form-weight" className="font-bold text-stone-400 uppercase tracking-wider text-[10px] block">
-                    Gross Weight (Grams)
+                  <label htmlFor="form-weight" className="font-bold text-stone-600 uppercase tracking-wider text-[10px] block">
+                    Net Weight (Grams)
                   </label>
                   <input
                     type="number"
@@ -1550,22 +1578,22 @@ export function AdminProducts(): React.JSX.Element {
                     value={formData.weight}
                     onChange={handleInputChange}
                     placeholder="e.g., 28.450"
-                    className="w-full bg-stone-900 border border-stone-800 text-stone-100 p-3 rounded focus:outline-hidden focus:border-amber-500 font-mono"
+                    className="w-full bg-[#f8f7f4] border border-stone-200 text-stone-900 p-3 rounded-lg focus:outline-hidden focus:border-amber-500 focus:bg-white font-mono text-xs"
                   />
                 </div>
               </div>
 
               {/* Block F: Price and Tag Config */}
-              <div className="bg-stone-950 border border-stone-800 rounded p-6 space-y-4">
-                <h3 className="font-serif font-bold text-stone-100 text-sm border-b border-stone-900 pb-2 flex items-center gap-2">
-                  <Coins className="w-4 h-4 text-amber-500" />
+              <div className="bg-white border border-stone-200/80 rounded-xl p-6 space-y-4 shadow-xs">
+                <h3 className="font-serif font-bold text-stone-900 text-sm border-b border-stone-100 pb-3 flex items-center gap-2">
+                  <Coins className="w-4 h-4 text-amber-600" />
                   <span>Dynamic Pricing Calculator</span>
                 </h3>
 
                 {/* Making Charge */}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <label htmlFor="form-makingCharge" className="font-bold text-stone-400 uppercase tracking-wider text-[10px] block">
+                    <label htmlFor="form-makingCharge" className="font-bold text-stone-600 uppercase tracking-wider text-[10px] block">
                       Making Charge Rate
                     </label>
                     <input
@@ -1575,48 +1603,97 @@ export function AdminProducts(): React.JSX.Element {
                       value={formData.makingCharge}
                       onChange={handleInputChange}
                       placeholder="e.g. 450"
-                      className="w-full bg-stone-900 border border-stone-800 text-stone-100 p-3 rounded focus:outline-hidden focus:border-amber-500 font-mono text-xs"
+                      className="w-full bg-[#f8f7f4] border border-stone-200 text-stone-900 p-3 rounded-lg focus:outline-hidden focus:border-amber-500 focus:bg-white font-mono text-xs"
                     />
                   </div>
 
                   <div className="space-y-1.5">
-                    <label htmlFor="form-makingChargeType" className="font-bold text-stone-400 uppercase tracking-wider text-[10px] block">
-                      Calculation Type
+                    <label htmlFor="form-makingChargeType" className="font-bold text-stone-600 uppercase tracking-wider text-[10px] block">
+                      CALCULATION TYPE
                     </label>
                     <select
                       id="form-makingChargeType"
                       name="makingChargeType"
                       value={formData.makingChargeType}
                       onChange={handleInputChange}
-                      className="w-full bg-stone-900 border border-stone-800 text-stone-200 p-3 rounded focus:outline-hidden focus:border-amber-500 cursor-pointer text-xs font-semibold"
+                      className="w-full bg-[#f8f7f4] border border-stone-200 text-stone-900 p-3 rounded-lg focus:outline-hidden focus:border-amber-500 focus:bg-white cursor-pointer text-xs font-semibold"
                     >
-                      <option value="fixed">Fixed Absolute (₹)</option>
                       <option value="fixed_per_gram">Per Gram (₹/g)</option>
-                      <option value="percentage">% of Gold Rate</option>
+                      <option value="percentage">Per Gram Amount Percentage (%)</option>
+                      <option value="fixed">Fixed Amount (₹)</option>
                     </select>
                   </div>
                 </div>
 
-                {/* Wastage Percent */}
+                {/* Other Charges Name & Other Charges Amount */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label htmlFor="form-otherChargesName" className="font-bold text-stone-600 uppercase tracking-wider text-[10px] block">
+                      Other Charges Name
+                    </label>
+                    <input
+                      type="text"
+                      id="form-otherChargesName"
+                      name="otherChargesName"
+                      value={formData.otherChargesName}
+                      onChange={handleInputChange}
+                      placeholder="e.g. Hallmarking & Certification"
+                      className="w-full bg-[#f8f7f4] border border-stone-200 text-stone-900 p-3 rounded-lg focus:outline-hidden focus:border-amber-500 focus:bg-white text-xs font-semibold"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label htmlFor="form-otherChargesAmount" className="font-bold text-stone-600 uppercase tracking-wider text-[10px] block">
+                      Other Charges Amount (₹)
+                    </label>
+                    <input
+                      type="number"
+                      id="form-otherChargesAmount"
+                      name="otherChargesAmount"
+                      value={formData.otherChargesAmount}
+                      onChange={handleInputChange}
+                      placeholder="e.g. 1500"
+                      className="w-full bg-[#f8f7f4] border border-stone-200 text-stone-900 p-3 rounded-lg focus:outline-hidden focus:border-amber-500 focus:bg-white font-mono text-xs"
+                    />
+                  </div>
+                </div>
+
+                {/* Hallmark Charge */}
                 <div className="space-y-1.5">
-                  <label htmlFor="form-wastagePercent" className="font-bold text-stone-400 uppercase tracking-wider text-[10px] block">
-                    Wastage / Alloy Loss (%)
+                  <label htmlFor="form-hallmarkCharge" className="font-bold text-stone-600 uppercase tracking-wider text-[10px] block">
+                    Hallmark Charge (₹)
+                  </label>
+                  <input
+                    type="number"
+                    id="form-hallmarkCharge"
+                    name="hallmarkCharge"
+                    value={formData.hallmarkCharge}
+                    onChange={handleInputChange}
+                    placeholder="e.g. 45"
+                    className="w-full bg-[#f8f7f4] border border-stone-200 text-stone-900 p-3 rounded-lg focus:outline-hidden focus:border-amber-500 focus:bg-white font-mono text-xs"
+                  />
+                </div>
+
+                {/* GST Percentage */}
+                <div className="space-y-1.5">
+                  <label htmlFor="form-gstPercent" className="font-bold text-stone-600 uppercase tracking-wider text-[10px] block">
+                    GST (%)
                   </label>
                   <input
                     type="number"
                     step="0.01"
-                    id="form-wastagePercent"
-                    name="wastagePercent"
-                    value={formData.wastagePercent}
+                    id="form-gstPercent"
+                    name="gstPercent"
+                    value={formData.gstPercent}
                     onChange={handleInputChange}
-                    placeholder="e.g. 3.50"
-                    className="w-full bg-stone-900 border border-stone-800 text-stone-100 p-3 rounded focus:outline-hidden focus:border-amber-500 font-mono text-xs"
+                    placeholder="e.g. 3.00"
+                    className="w-full bg-[#f8f7f4] border border-stone-200 text-stone-900 p-3 rounded-lg focus:outline-hidden focus:border-amber-500 focus:bg-white font-mono text-xs"
                   />
                 </div>
 
                 {/* Optional MRP */}
                 <div className="space-y-1.5">
-                  <label htmlFor="form-mrp" className="font-bold text-stone-400 uppercase tracking-wider text-[10px] block">
+                  <label htmlFor="form-mrp" className="font-bold text-stone-600 uppercase tracking-wider text-[10px] block">
                     Optional MRP / Original Price (₹)
                   </label>
                   <input
@@ -1626,7 +1703,7 @@ export function AdminProducts(): React.JSX.Element {
                     value={formData.mrp || ''}
                     onChange={handleInputChange}
                     placeholder="e.g. 48000"
-                    className="w-full bg-stone-900 border border-stone-800 text-stone-100 p-3 rounded focus:outline-hidden focus:border-amber-500 font-mono text-xs"
+                    className="w-full bg-[#f8f7f4] border border-stone-200 text-stone-900 p-3 rounded-lg focus:outline-hidden focus:border-amber-500 focus:bg-white font-mono text-xs"
                   />
                   <p className="text-[10px] text-stone-500 font-sans leading-tight">
                     If set, the selling price will show with this original MRP slashed out.
@@ -1641,36 +1718,54 @@ export function AdminProducts(): React.JSX.Element {
                     weight: weight,
                     makingCharge: Number(formData.makingCharge || 0),
                     makingChargeType: formData.makingChargeType,
-                    wastagePercent: Number(formData.wastagePercent || 0)
+                    wastagePercent: Number(formData.wastagePercent || 0),
+                    otherChargesName: formData.otherChargesName,
+                    otherChargesAmount: Number(formData.otherChargesAmount || 0),
+                    hallmarkCharge: Number(formData.hallmarkCharge || 0),
+                    gstPercent: Number(formData.gstPercent !== undefined ? formData.gstPercent : 3)
                   }, metalPrices);
 
                   return (
-                    <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded space-y-2">
-                      <div className="flex justify-between items-center text-[10px] text-stone-400 uppercase font-bold tracking-wider">
+                    <div className="p-4 bg-[#fbf5ee] border border-amber-200/80 rounded-xl space-y-2 shadow-2xs">
+                      <div className="flex justify-between items-center text-[10px] text-stone-600 uppercase font-bold tracking-wider">
                         <span>Live Calculated Price</span>
-                        <span className="text-amber-500 animate-pulse">● LIVE PREVIEW</span>
+                        <span className="text-amber-700 animate-pulse font-bold">● LIVE PREVIEW</span>
                       </div>
                       <div className="flex justify-between items-baseline">
-                        <span className="text-xl font-mono font-bold text-amber-500">
+                        <span className="text-2xl font-mono font-bold text-amber-700">
                           ₹{priceInfo.finalPrice.toLocaleString('en-IN')}
                         </span>
-                        <span className="text-[10px] text-stone-400 font-sans italic">All parameters applied</span>
+                        <span className="text-[10px] text-stone-500 font-sans italic">All parameters applied</span>
                       </div>
                       
                       {priceInfo.finalPrice > 0 && (
-                        <div className="text-[10px] text-stone-400 space-y-1 font-mono pt-1 border-t border-stone-900/60">
+                        <div className="text-[10px] text-stone-600 space-y-1 font-mono pt-2 border-t border-amber-200/60">
                           <div className="flex justify-between">
                             <span>Base Metal Value:</span>
                             <span>₹{priceInfo.rawMetalPrice.toLocaleString('en-IN')}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span>Wastage Cost:</span>
-                            <span>₹{priceInfo.wastageValue.toLocaleString('en-IN')}</span>
-                          </div>
-                          <div className="flex justify-between">
                             <span>Making Charges:</span>
                             <span>₹{priceInfo.makingChargeValue.toLocaleString('en-IN')}</span>
                           </div>
+                          {Number(formData.otherChargesAmount || 0) > 0 && (
+                            <div className="flex justify-between">
+                              <span>{formData.otherChargesName || 'Other Charges'}:</span>
+                              <span>₹{Number(formData.otherChargesAmount).toLocaleString('en-IN')}</span>
+                            </div>
+                          )}
+                          {Number(formData.hallmarkCharge || 0) > 0 && (
+                            <div className="flex justify-between">
+                              <span>Hallmark Charge:</span>
+                              <span>₹{Number(formData.hallmarkCharge).toLocaleString('en-IN')}</span>
+                            </div>
+                          )}
+                          {Number(priceInfo.gstValue || 0) > 0 && (
+                            <div className="flex justify-between font-semibold text-stone-700">
+                              <span>GST ({priceInfo.gstPercent}%):</span>
+                              <span>₹{priceInfo.gstValue?.toLocaleString('en-IN')}</span>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
@@ -1679,7 +1774,7 @@ export function AdminProducts(): React.JSX.Element {
 
                 {/* Price Visibility */}
                 <div className="space-y-1.5">
-                  <label htmlFor="form-priceVisibility" className="font-bold text-stone-400 uppercase tracking-wider text-[10px] block">
+                  <label htmlFor="form-priceVisibility" className="font-bold text-stone-600 uppercase tracking-wider text-[10px] block">
                     Store Price Visibility
                   </label>
                   <select
@@ -1687,7 +1782,7 @@ export function AdminProducts(): React.JSX.Element {
                     name="priceVisibility"
                     value={formData.priceVisibility}
                     onChange={handleInputChange}
-                    className="w-full bg-stone-900 border border-stone-800 text-stone-200 p-3 rounded focus:outline-hidden focus:border-amber-500 cursor-pointer font-sans text-xs"
+                    className="w-full bg-[#f8f7f4] border border-stone-200 text-stone-900 p-3 rounded-lg focus:outline-hidden focus:border-amber-500 focus:bg-white cursor-pointer font-sans text-xs"
                   >
                     <option value="on_enquiry">Ask for Price (WhatsApp lead)</option>
                     <option value="visible">Show price on website</option>
@@ -1697,7 +1792,7 @@ export function AdminProducts(): React.JSX.Element {
 
                 {/* Tags */}
                 <div className="space-y-1.5">
-                  <label htmlFor="form-tags" className="font-bold text-stone-400 uppercase tracking-wider text-[10px] block">
+                  <label htmlFor="form-tags" className="font-bold text-stone-600 uppercase tracking-wider text-[10px] block">
                     Product Search Tags
                   </label>
                   <input
@@ -1707,16 +1802,16 @@ export function AdminProducts(): React.JSX.Element {
                     value={formData.tags}
                     onChange={handleInputChange}
                     placeholder="e.g., kundan, antique, bridal"
-                    className="w-full bg-stone-900 border border-stone-800 text-stone-100 p-3 rounded focus:outline-hidden focus:border-amber-500"
+                    className="w-full bg-[#f8f7f4] border border-stone-200 text-stone-900 p-3 rounded-lg focus:outline-hidden focus:border-amber-500 focus:bg-white text-xs"
                   />
                   <span className="text-[9px] text-stone-500">Comma separated keywords for internal search engines.</span>
                 </div>
               </div>
 
               {/* Block G: Showroom Stores Sync */}
-              <div className="bg-stone-950 border border-stone-800 rounded p-6 space-y-4">
-                <h3 className="font-serif font-bold text-stone-100 text-sm border-b border-stone-900 pb-2 flex items-center gap-2">
-                  <Store className="w-4 h-4 text-amber-500" />
+              <div className="bg-white border border-stone-200/80 rounded-xl p-6 space-y-4 shadow-xs">
+                <h3 className="font-serif font-bold text-stone-900 text-sm border-b border-stone-100 pb-3 flex items-center gap-2">
+                  <Store className="w-4 h-4 text-amber-600" />
                   <span>Available Showrooms</span>
                 </h3>
 
@@ -1726,20 +1821,20 @@ export function AdminProducts(): React.JSX.Element {
                     return (
                       <label 
                         key={st.id} 
-                        className={`flex items-start gap-3 p-3 rounded border transition-all cursor-pointer ${
+                        className={`flex items-start gap-3 p-3.5 rounded-lg border transition-all cursor-pointer ${
                           isChecked 
-                            ? 'bg-amber-600/5 border-amber-600/30 text-stone-100' 
-                            : 'bg-stone-900/50 border-stone-850 text-stone-400 hover:text-stone-300'
+                            ? 'bg-amber-50/60 border-amber-300 text-stone-900' 
+                            : 'bg-[#f8f7f4] border-stone-200 text-stone-600 hover:text-stone-900 hover:bg-stone-100/60'
                         }`}
                       >
                         <input
                           type="checkbox"
                           checked={isChecked}
                           onChange={() => handleStoreToggle(st.id)}
-                          className="mt-0.5 rounded text-amber-600 focus:ring-amber-500/30 bg-stone-900 border-stone-800 h-3.5 w-3.5 cursor-pointer"
+                          className="mt-0.5 rounded text-amber-600 focus:ring-amber-500/30 border-stone-300 h-3.5 w-3.5 cursor-pointer"
                         />
                         <div>
-                          <span className="block font-bold text-[11px]">{st.name}</span>
+                          <span className="block font-bold text-[11px] text-stone-900">{st.name}</span>
                           <span className="block text-[9px] text-stone-500 mt-0.5 truncate max-w-[180px]">{st.address}</span>
                         </div>
                       </label>
@@ -1749,16 +1844,16 @@ export function AdminProducts(): React.JSX.Element {
               </div>
 
               {/* Block H: Publishing Toggles */}
-              <div className="bg-stone-950 border border-stone-800 rounded p-6 space-y-4">
-                <h3 className="font-serif font-bold text-stone-100 text-sm border-b border-stone-900 pb-2 flex items-center gap-2">
-                  <Settings className="w-4 h-4 text-amber-500" />
+              <div className="bg-white border border-stone-200/80 rounded-xl p-6 space-y-4 shadow-xs">
+                <h3 className="font-serif font-bold text-stone-900 text-sm border-b border-stone-100 pb-3 flex items-center gap-2">
+                  <Settings className="w-4 h-4 text-amber-600" />
                   <span>Publishing Controls</span>
                 </h3>
 
                 <div className="space-y-4">
                   {/* Status selection */}
                   <div className="space-y-1.5">
-                    <label htmlFor="form-status" className="font-bold text-stone-400 uppercase tracking-wider text-[10px] block">
+                    <label htmlFor="form-status" className="font-bold text-stone-600 uppercase tracking-wider text-[10px] block">
                       Moderation Status
                     </label>
                     <select
@@ -1766,7 +1861,7 @@ export function AdminProducts(): React.JSX.Element {
                       name="status"
                       value={formData.status}
                       onChange={handleInputChange}
-                      className="w-full bg-stone-900 border border-stone-800 text-stone-200 p-3 rounded focus:outline-hidden focus:border-amber-500 cursor-pointer font-bold uppercase tracking-wider"
+                      className="w-full bg-[#f8f7f4] border border-stone-200 text-stone-900 p-3 rounded-lg focus:outline-hidden focus:border-amber-500 focus:bg-white cursor-pointer font-bold uppercase tracking-wider text-xs"
                     >
                       <option value="draft">Draft (Private Archive)</option>
                       <option value="published">Published (Live Catalogue)</option>
@@ -1774,9 +1869,9 @@ export function AdminProducts(): React.JSX.Element {
                   </div>
 
                   {/* Featured Toggle */}
-                  <div className="flex items-center justify-between p-3 rounded bg-stone-900/40 border border-stone-850">
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-[#f8f7f4] border border-stone-200/80">
                     <div>
-                      <span className="block font-bold text-stone-200">Featured Masterpiece</span>
+                      <span className="block font-bold text-stone-800 text-xs">Featured Masterpiece</span>
                       <span className="block text-[9px] text-stone-500 mt-0.5">Showcase prominently on home carousel.</span>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer select-none">
@@ -1786,14 +1881,14 @@ export function AdminProducts(): React.JSX.Element {
                         onChange={(e) => handleCheckboxChange('featured', e.target.checked)}
                         className="sr-only peer" 
                       />
-                      <div className="w-9 h-5 bg-stone-800 peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-stone-400 after:border-stone-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-600 peer-checked:after:bg-stone-950 peer-checked:after:border-stone-950"></div>
+                      <div className="w-9 h-5 bg-stone-300 peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-stone-200 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-600"></div>
                     </label>
                   </div>
 
                   {/* New Arrival Toggle */}
-                  <div className="flex items-center justify-between p-3 rounded bg-stone-900/40 border border-stone-850">
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-[#f8f7f4] border border-stone-200/80">
                     <div>
-                      <span className="block font-bold text-stone-200">New Arrival Banner</span>
+                      <span className="block font-bold text-stone-800 text-xs">New Arrival Banner</span>
                       <span className="block text-[9px] text-stone-500 mt-0.5">Mark item with dynamic visual ribbons.</span>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer select-none">
@@ -1803,23 +1898,23 @@ export function AdminProducts(): React.JSX.Element {
                         onChange={(e) => handleCheckboxChange('newArrival', e.target.checked)}
                         className="sr-only peer" 
                       />
-                      <div className="w-9 h-5 bg-stone-800 peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-stone-400 after:border-stone-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-600 peer-checked:after:bg-stone-950 peer-checked:after:border-stone-950"></div>
+                      <div className="w-9 h-5 bg-stone-300 peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-stone-200 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-600"></div>
                     </label>
                   </div>
                 </div>
               </div>
 
               {/* Block I: Custom Badge & Star Rating Settings */}
-              <div className="bg-stone-950 border border-stone-800 rounded p-6 space-y-4">
-                <h3 className="font-serif font-bold text-stone-100 text-sm border-b border-stone-900 pb-2 flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-amber-500" />
+              <div className="bg-white border border-stone-200/80 rounded-xl p-6 space-y-4 shadow-xs">
+                <h3 className="font-serif font-bold text-stone-900 text-sm border-b border-stone-100 pb-3 flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-amber-600" />
                   <span>Custom Badge & Star Rating</span>
                 </h3>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {/* Badge Label */}
                   <div className="space-y-1.5">
-                    <label htmlFor="form-badgeLabel" className="font-bold text-stone-400 uppercase tracking-wider text-[10px] block">
+                    <label htmlFor="form-badgeLabel" className="font-bold text-stone-600 uppercase tracking-wider text-[10px] block">
                       Badge Label Text
                     </label>
                     <input
@@ -1829,14 +1924,14 @@ export function AdminProducts(): React.JSX.Element {
                       value={formData.badgeLabel}
                       onChange={handleInputChange}
                       placeholder="e.g., BEST SELLER"
-                      className="w-full bg-stone-900 border border-stone-800 text-stone-100 p-3 rounded focus:outline-hidden focus:border-amber-500 text-xs"
+                      className="w-full bg-[#f8f7f4] border border-stone-200 text-stone-900 p-3 rounded-lg focus:outline-hidden focus:border-amber-500 focus:bg-white text-xs"
                     />
                     <span className="text-[9px] text-stone-500 block">Leave blank to hide corner badge completely.</span>
                   </div>
 
                   {/* Badge Color */}
                   <div className="space-y-1.5">
-                    <label htmlFor="form-badgeColor" className="font-bold text-stone-400 uppercase tracking-wider text-[10px] block">
+                    <label htmlFor="form-badgeColor" className="font-bold text-stone-600 uppercase tracking-wider text-[10px] block">
                       Badge Color
                     </label>
                     <div className="flex gap-2">
@@ -1845,7 +1940,7 @@ export function AdminProducts(): React.JSX.Element {
                         id="form-badgeColor-picker"
                         value={formData.badgeColor}
                         onChange={(e) => setFormData(prev => ({ ...prev, badgeColor: e.target.value }))}
-                        className="bg-stone-900 border border-stone-800 w-11 h-11 p-1 rounded cursor-pointer"
+                        className="bg-[#f8f7f4] border border-stone-200 w-11 h-11 p-1 rounded-lg cursor-pointer"
                       />
                       <input
                         type="text"
@@ -1853,7 +1948,7 @@ export function AdminProducts(): React.JSX.Element {
                         name="badgeColor"
                         value={formData.badgeColor}
                         onChange={handleInputChange}
-                        className="flex-1 bg-stone-900 border border-stone-800 text-stone-100 p-3 rounded focus:outline-hidden focus:border-amber-500 text-xs font-mono"
+                        className="flex-1 bg-[#f8f7f4] border border-stone-200 text-stone-900 p-3 rounded-lg focus:outline-hidden focus:border-amber-500 focus:bg-white text-xs font-mono"
                       />
                     </div>
                   </div>
@@ -1862,7 +1957,7 @@ export function AdminProducts(): React.JSX.Element {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {/* Star Rating */}
                   <div className="space-y-1.5">
-                    <label htmlFor="form-rating" className="font-bold text-stone-400 uppercase tracking-wider text-[10px] block">
+                    <label htmlFor="form-rating" className="font-bold text-stone-600 uppercase tracking-wider text-[10px] block">
                       Star Rating (0 to 5)
                     </label>
                     <input
@@ -1875,14 +1970,14 @@ export function AdminProducts(): React.JSX.Element {
                       min="0"
                       max="5"
                       placeholder="e.g., 4.5"
-                      className="w-full bg-stone-900 border border-stone-800 text-stone-100 p-3 rounded focus:outline-hidden focus:border-amber-500 text-xs"
+                      className="w-full bg-[#f8f7f4] border border-stone-200 text-stone-900 p-3 rounded-lg focus:outline-hidden focus:border-amber-500 focus:bg-white text-xs"
                     />
                     <span className="text-[9px] text-stone-500 block">Enter 0 or leave empty to hide star rating row.</span>
                   </div>
 
                   {/* Review Count */}
                   <div className="space-y-1.5">
-                    <label htmlFor="form-reviewCount" className="font-bold text-stone-400 uppercase tracking-wider text-[10px] block">
+                    <label htmlFor="form-reviewCount" className="font-bold text-stone-600 uppercase tracking-wider text-[10px] block">
                       Review Count
                     </label>
                     <input
@@ -1894,7 +1989,7 @@ export function AdminProducts(): React.JSX.Element {
                       step="1"
                       min="0"
                       placeholder="e.g., 256"
-                      className="w-full bg-stone-900 border border-stone-800 text-stone-100 p-3 rounded focus:outline-hidden focus:border-amber-500 text-xs"
+                      className="w-full bg-[#f8f7f4] border border-stone-200 text-stone-900 p-3 rounded-lg focus:outline-hidden focus:border-amber-500 focus:bg-white text-xs"
                     />
                     <span className="text-[9px] text-stone-500 block">Displayed in parentheses next to stars.</span>
                   </div>
@@ -1906,23 +2001,23 @@ export function AdminProducts(): React.JSX.Element {
           </div>
 
           {/* Bottom Fixed Action Row */}
-          <div className="flex justify-end gap-3 border-t border-stone-800 pt-5">
+          <div className="flex justify-end gap-3 bg-white p-4 border border-stone-200/80 rounded-xl shadow-xs">
             <button
               type="button"
               onClick={() => setView('list')}
-              className="px-5 py-2.5 bg-stone-900 hover:bg-stone-800 border border-stone-800 text-stone-300 font-bold uppercase tracking-wider text-[10px] rounded transition-colors"
+              className="px-5 py-2.5 bg-white hover:bg-stone-50 border border-stone-200 text-stone-700 font-bold uppercase tracking-wider text-[10px] rounded-lg transition-colors shadow-2xs cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={saving}
-              className="inline-flex items-center gap-1.5 bg-amber-600 hover:bg-amber-700 disabled:bg-stone-800 text-stone-950 font-bold uppercase tracking-wider text-[10px] px-6 py-2.5 rounded cursor-pointer transition-colors"
+              className="inline-flex items-center gap-1.5 bg-amber-600 hover:bg-amber-700 disabled:bg-stone-200 text-white font-bold uppercase tracking-wider text-[10px] px-6 py-2.5 rounded-lg cursor-pointer transition-colors shadow-xs"
               id="product-form-save-btn"
             >
               {saving ? (
                 <>
-                  <div className="w-3.5 h-3.5 border-2 border-stone-950 border-t-transparent rounded-full animate-spin" />
+                  <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                   <span>Saving...</span>
                 </>
               ) : (
