@@ -23,7 +23,7 @@ import {
 } from 'lucide-react';
 import { useWebsiteSettings } from '../context/WebsiteSettingsContext';
 import { Footer } from '../components/Footer';
-import { APP_BUNDLE_AAB_URL } from '../components/MobileAppInstallModal';
+import { APP_RELEASE_APK_URL } from '../components/MobileAppInstallModal';
 
 export function Profile(): React.JSX.Element {
   const { settings, loading } = useWebsiteSettings();
@@ -93,16 +93,16 @@ export function Profile(): React.JSX.Element {
               <span>OFFICIAL MOBILE APP DOWNLOAD</span>
             </span>
             <span className="bg-amber-100 text-amber-800 text-[9px] font-bold px-2 py-0.5 rounded-full font-mono">
-              .AAB BUNDLE
+              .APK RELEASE
             </span>
           </div>
 
-          {/* Official Web App (.aab) Install Card */}
+          {/* Official Web App (.apk) Install Card */}
           <a
-            href={APP_BUNDLE_AAB_URL}
+            href={APP_RELEASE_APK_URL}
             target="_blank"
             rel="noopener noreferrer"
-            download="Parasmoni-Jewellers-AppBundle.aab"
+            download="Parasmoni-Jewellers-AppRelease.apk"
             className="flex items-center justify-between px-6 py-4.5 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent hover:bg-amber-50 transition-colors group cursor-pointer border-b border-amber-100"
           >
             <div className="flex items-center gap-4">
@@ -111,11 +111,11 @@ export function Profile(): React.JSX.Element {
               </div>
               <div className="text-left">
                 <h3 className="font-sans font-bold text-xs sm:text-sm text-stone-900 uppercase tracking-wide flex items-center gap-1.5">
-                  <span>Install Parasmoni App (.aab)</span>
+                  <span>Install Parasmoni App (.apk)</span>
                   <Sparkles className="w-3.5 h-3.5 text-amber-600 animate-pulse" />
                 </h3>
                 <p className="text-[10px] sm:text-xs text-stone-500">
-                  Download official Android App Bundle (.aab) for offline shopping
+                  Download official Android App (.apk) for fast offline shopping
                 </p>
               </div>
             </div>
