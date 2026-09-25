@@ -29,6 +29,8 @@ import {
 } from 'lucide-react';
 import { db, isFirebaseConfigured } from '../firebase/config';
 import { doc, setDoc } from 'firebase/firestore';
+import { ImageUploader } from './ImageUploader';
+import { IMAGEKIT_FOLDERS } from '../imagekit/client';
 
 export type DeviceViewportMode = 'desktop' | 'tablet' | 'iphone';
 export type PreviewRenderMode = 'blank' | 'iframe';
@@ -51,6 +53,9 @@ export interface LivePreviewWindowProps {
 export function LivePreviewWindow({
   activeRoute = "/",
   liveSettings,
+  onUpdateConfig,
+  onSave,
+  onRefresh,
   className = "",
   children
 }: LivePreviewWindowProps): React.JSX.Element {
@@ -361,12 +366,13 @@ export function LivePreviewWindow({
     if (!activeEditingSectionId) return;
     setIsSaving(true);
 
-    const meta = sectionMetadata[activeEditingSectionId] || {
+    const meta: { name: string; sectionTypeId: string; defaultTitle: string; defaultSubline: string; desc: string; bannerKey?: string } = sectionMetadata[activeEditingSectionId] || {
       name: 'Storefront Section',
       sectionTypeId: activeEditingSectionId,
       defaultTitle: '',
       defaultSubline: '',
-      desc: ''
+      desc: '',
+      bannerKey: undefined
     };
 
     let currentConfig = liveSettings;
@@ -796,16 +802,52 @@ export function LivePreviewWindow({
                           </div>
 
                           <div className="space-y-1">
-                            <label className="text-[10px] text-stone-400 font-medium flex items-center gap-1">
-                              <ImageIcon className="w-3 h-3 text-amber-400" />
-                              <span>Image URL</span>
+                            <label className="text-[10px] text-amber-300 font-bold uppercase tracking-wider flex items-center justify-between">
+                              <span className="flex items-center gap-1">
+                                <ImageIcon className="w-3 h-3 text-amber-400" />
+                                <span>Mobile View Banner Image (Upload or URL)</span>
+                              </span>
+                              <span className="text-[9px] text-amber-400 font-mono">Auto WebP</span>
                             </label>
+                            <ImageUploader
+                              id={`drawer-banner-upload-${activeEditingSectionId}-${bIdx}`}
+                              value={banner.imageUrl || ''}
+                              onChange={(val) => {
+                                const newUrl = typeof val === 'string' ? val : val[0] || '';
+                                handleUpdateBannerItem(bIdx, 'imageUrl', newUrl);
+                                const copy = [...editingBanners];
+                                copy[bIdx] = { ...copy[bIdx], imageUrl: newUrl };
+                                const metaKey = sectionMetadata[activeEditingSectionId!]?.bannerKey;
+                                if (metaKey) {
+                                  const updatedConfig = {
+                                    ...(liveSettings || {}),
+                                    [metaKey]: copy
+                                  };
+                                  if (onUpdateConfig) onUpdateConfig(updatedConfig);
+                                }
+                              }}
+                              folder={IMAGEKIT_FOLDERS.banners}
+                              autoWebP={true}
+                            />
                             <input
                               type="text"
                               value={banner.imageUrl || ''}
-                              onChange={(e) => handleUpdateBannerItem(bIdx, 'imageUrl', e.target.value)}
-                              className="w-full bg-stone-900 border border-stone-800 rounded-lg px-2.5 py-1.5 text-xs text-stone-200 focus:outline-none focus:border-amber-500 font-mono text-[11px]"
-                              placeholder="https://..."
+                              onChange={(e) => {
+                                const newUrl = e.target.value;
+                                handleUpdateBannerItem(bIdx, 'imageUrl', newUrl);
+                                const copy = [...editingBanners];
+                                copy[bIdx] = { ...copy[bIdx], imageUrl: newUrl };
+                                const metaKey = sectionMetadata[activeEditingSectionId!]?.bannerKey;
+                                if (metaKey) {
+                                  const updatedConfig = {
+                                    ...(liveSettings || {}),
+                                    [metaKey]: copy
+                                  };
+                                  if (onUpdateConfig) onUpdateConfig(updatedConfig);
+                                }
+                              }}
+                              className="w-full bg-stone-900 border border-stone-800 rounded-lg px-2.5 py-1.5 text-xs text-stone-200 focus:outline-none focus:border-amber-500 font-mono text-[11px] mt-1"
+                              placeholder="Or paste Image URL (https://...)"
                             />
                           </div>
 

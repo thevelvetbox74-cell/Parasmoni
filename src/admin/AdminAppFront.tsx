@@ -38,6 +38,8 @@ import {
   Check
 } from 'lucide-react';
 import { LivePreviewWindow } from '../components/LivePreviewWindow';
+import { ImageUploader } from '../components/ImageUploader';
+import { IMAGEKIT_FOLDERS } from '../imagekit/client';
 import { db, isFirebaseConfigured } from '../firebase/config';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 
@@ -78,9 +80,11 @@ export interface AppFrontConfig {
   showLiveRateTicker: boolean;
   showSearchBar: boolean;
   showBottomNav: boolean;
+  showProductTitlesInWebApp?: boolean;
   activeSections: string[];
   heroBanners: SectionBannerItem[];
   offerBanners: SectionBannerItem[];
+  productBanners?: SectionBannerItem[];
   splitMediaBanners: SectionBannerItem[];
   ogOfferBanners: SectionBannerItem[];
   shopLookBanners: SectionBannerItem[];
@@ -108,6 +112,7 @@ export const DEFAULT_APP_FRONT_CONFIG: AppFrontConfig = {
   showLiveRateTicker: true,
   showSearchBar: true,
   showBottomNav: true,
+  showProductTitlesInWebApp: true,
   activeSections: STOREFRONT_SECTION_TYPES.map(s => s.id),
   heroBanners: [
     {
@@ -300,6 +305,16 @@ export function AdminAppFront(): React.JSX.Element {
     }
   };
 
+  const syncLiveConfig = (newConfig: AppFrontConfig) => {
+    setConfig(newConfig);
+    try {
+      localStorage.setItem('local_appfront_config', JSON.stringify(newConfig));
+      window.dispatchEvent(new Event('appfront-settings-updated'));
+    } catch (e) {
+      // ignore
+    }
+  };
+
   const handleAddBanner = () => {
     if (!newTitle || !newImage) return;
     const bannerItem: SectionBannerItem = {
@@ -313,20 +328,24 @@ export function AdminAppFront(): React.JSX.Element {
       active: true
     };
 
+    let updated = { ...config };
     if (selectedSectionFilter === 'Hero Banner') {
-      setConfig(prev => ({ ...prev, heroBanners: [...prev.heroBanners, bannerItem] }));
+      updated = { ...config, heroBanners: [...(config.heroBanners || []), bannerItem] };
     } else if (selectedSectionFilter === 'Offer Banner B1') {
-      setConfig(prev => ({ ...prev, offerBanners: [...prev.offerBanners, bannerItem] }));
+      updated = { ...config, offerBanners: [...(config.offerBanners || []), bannerItem] };
+    } else if (selectedSectionFilter === 'Product Carousel') {
+      updated = { ...config, productBanners: [...(config.productBanners || []), bannerItem] };
     } else if (selectedSectionFilter === 'Split Media Banner') {
-      setConfig(prev => ({ ...prev, splitMediaBanners: [...prev.splitMediaBanners, bannerItem] }));
+      updated = { ...config, splitMediaBanners: [...(config.splitMediaBanners || []), bannerItem] };
     } else if (selectedSectionFilter === 'OG Offer Collection') {
-      setConfig(prev => ({ ...prev, ogOfferBanners: [...prev.ogOfferBanners, bannerItem] }));
+      updated = { ...config, ogOfferBanners: [...(config.ogOfferBanners || []), bannerItem] };
     } else if (selectedSectionFilter === 'Shop The Look') {
-      setConfig(prev => ({ ...prev, shopLookBanners: [...prev.shopLookBanners, bannerItem] }));
+      updated = { ...config, shopLookBanners: [...(config.shopLookBanners || []), bannerItem] };
     } else if (selectedSectionFilter === 'Promo Callout Card') {
-      setConfig(prev => ({ ...prev, promoCalloutBanners: [...prev.promoCalloutBanners, bannerItem] }));
+      updated = { ...config, promoCalloutBanners: [...(config.promoCalloutBanners || []), bannerItem] };
     }
 
+    syncLiveConfig(updated);
     setNewTitle('');
     setNewSubtitle('');
     setNewCta('EXPLORE NOW');
@@ -336,44 +355,52 @@ export function AdminAppFront(): React.JSX.Element {
   };
 
   const handleRemoveBanner = (listKey: keyof AppFrontConfig, id: string) => {
-    setConfig(prev => {
-      const list = prev[listKey] as SectionBannerItem[];
-      if (!Array.isArray(list)) return prev;
-      return {
-        ...prev,
-        [listKey]: list.filter(b => b.id !== id)
-      };
-    });
+    const list = config[listKey] as SectionBannerItem[];
+    if (!Array.isArray(list)) return;
+    const updated = {
+      ...config,
+      [listKey]: list.filter(b => b.id !== id)
+    };
+    syncLiveConfig(updated);
   };
 
   const handleToggleBanner = (listKey: keyof AppFrontConfig, id: string) => {
-    setConfig(prev => {
-      const list = prev[listKey] as SectionBannerItem[];
-      if (!Array.isArray(list)) return prev;
-      return {
-        ...prev,
-        [listKey]: list.map(b => b.id === id ? { ...b, active: !b.active } : b)
-      };
-    });
+    const list = config[listKey] as SectionBannerItem[];
+    if (!Array.isArray(list)) return;
+    const updated = {
+      ...config,
+      [listKey]: list.map(b => b.id === id ? { ...b, active: !b.active } : b)
+    };
+    syncLiveConfig(updated);
+  };
+
+  const handleUpdateBannerImage = (listKey: keyof AppFrontConfig, id: string, newUrl: string) => {
+    const list = config[listKey] as SectionBannerItem[];
+    if (!Array.isArray(list)) return;
+    const updated = {
+      ...config,
+      [listKey]: list.map(b => b.id === id ? { ...b, imageUrl: newUrl } : b)
+    };
+    syncLiveConfig(updated);
   };
 
   const handleUpdateCategoryBanner = (slug: string, newUrl: string) => {
-    setConfig(prev => ({
-      ...prev,
-      categoryBanners: prev.categoryBanners.map(c => c.slug === slug ? { ...c, imageUrl: newUrl } : c)
-    }));
+    const updated = {
+      ...config,
+      categoryBanners: config.categoryBanners.map(c => c.slug === slug ? { ...c, imageUrl: newUrl } : c)
+    };
+    syncLiveConfig(updated);
   };
 
   const handleToggleSection = (sectionId: string) => {
-    setConfig(prev => {
-      const exists = prev.activeSections.includes(sectionId);
-      return {
-        ...prev,
-        activeSections: exists 
-          ? prev.activeSections.filter(s => s !== sectionId)
-          : [...prev.activeSections, sectionId]
-      };
-    });
+    const exists = config.activeSections.includes(sectionId);
+    const updated = {
+      ...config,
+      activeSections: exists 
+        ? config.activeSections.filter(s => s !== sectionId)
+        : [...config.activeSections, sectionId]
+    };
+    syncLiveConfig(updated);
   };
 
   const handleIconChange = (iconKey: keyof WebAppSvgIcons, svgValue: string) => {
@@ -389,13 +416,14 @@ export function AdminAppFront(): React.JSX.Element {
   // Helper to get active banner list based on selectedSectionFilter
   const getActiveBannerList = () => {
     switch (selectedSectionFilter) {
-      case 'Hero Banner': return { key: 'heroBanners' as keyof AppFrontConfig, items: config.heroBanners };
-      case 'Offer Banner B1': return { key: 'offerBanners' as keyof AppFrontConfig, items: config.offerBanners };
-      case 'Split Media Banner': return { key: 'splitMediaBanners' as keyof AppFrontConfig, items: config.splitMediaBanners };
-      case 'OG Offer Collection': return { key: 'ogOfferBanners' as keyof AppFrontConfig, items: config.ogOfferBanners };
-      case 'Shop The Look': return { key: 'shopLookBanners' as keyof AppFrontConfig, items: config.shopLookBanners };
-      case 'Promo Callout Card': return { key: 'promoCalloutBanners' as keyof AppFrontConfig, items: config.promoCalloutBanners };
-      default: return { key: 'heroBanners' as keyof AppFrontConfig, items: config.heroBanners };
+      case 'Hero Banner': return { key: 'heroBanners' as keyof AppFrontConfig, items: config.heroBanners || [] };
+      case 'Offer Banner B1': return { key: 'offerBanners' as keyof AppFrontConfig, items: config.offerBanners || [] };
+      case 'Product Carousel': return { key: 'productBanners' as keyof AppFrontConfig, items: config.productBanners || [] };
+      case 'Split Media Banner': return { key: 'splitMediaBanners' as keyof AppFrontConfig, items: config.splitMediaBanners || [] };
+      case 'OG Offer Collection': return { key: 'ogOfferBanners' as keyof AppFrontConfig, items: config.ogOfferBanners || [] };
+      case 'Shop The Look': return { key: 'shopLookBanners' as keyof AppFrontConfig, items: config.shopLookBanners || [] };
+      case 'Promo Callout Card': return { key: 'promoCalloutBanners' as keyof AppFrontConfig, items: config.promoCalloutBanners || [] };
+      default: return { key: 'heroBanners' as keyof AppFrontConfig, items: config.heroBanners || [] };
     }
   };
 
@@ -469,8 +497,8 @@ export function AdminAppFront(): React.JSX.Element {
       {/* 2. MAIN WORKSPACE 2-COLUMN SPLIT */}
       <div className="flex-1 flex flex-col xl:flex-row overflow-hidden">
         
-        {/* LEFT COLUMN: ADMIN CONTROLS (HIDDEN) */}
-        <aside className="hidden">
+        {/* LEFT COLUMN: ADMIN CONTROLS (VISIBLE WEB APP BANNER UPLOAD PANEL) */}
+        <aside className="w-full xl:w-[480px] 2xl:w-[520px] shrink-0 border-r border-stone-200 bg-white flex flex-col overflow-y-auto max-h-[85vh] xl:max-h-none border-b xl:border-b-0">
           
           {/* Navigation Tabs */}
           <div className="flex items-center border-b border-stone-200 bg-stone-100/40 p-2 gap-1 shrink-0">
@@ -536,6 +564,7 @@ export function AdminAppFront(): React.JSX.Element {
                   >
                     <option value="Hero Banner">📸 Hero Banner Slider (Top Main Banner)</option>
                     <option value="Offer Banner B1">🔥 Offer Banner B1 (Festive Special Strip)</option>
+                    <option value="Product Carousel">✨ New Arrivals / Product Section Banner</option>
                     <option value="Category Cards">💎 Our Gold Collections (Category Card Covers)</option>
                     <option value="Split Media Banner">🎨 Split Media Story Banner</option>
                     <option value="OG Offer Collection">👑 OG Offer Collection Showcase (3 Tiles)</option>
@@ -609,13 +638,23 @@ export function AdminAppFront(): React.JSX.Element {
                     </div>
 
                     <div className="space-y-1">
-                      <label className="text-[11px] font-bold text-stone-700">Banner Image URL / CDN Link</label>
+                      <label className="text-[11px] font-bold text-stone-700 flex items-center justify-between">
+                        <span>Banner Image Upload (ImageKit - Auto WebP)</span>
+                        <span className="text-[9px] text-[#6B1F2A] font-extrabold uppercase bg-amber-200/80 px-1.5 py-0.5 rounded">Auto Convert WebP</span>
+                      </label>
+                      <ImageUploader
+                        id={`appfront-new-banner-upload-${selectedSectionFilter.replace(/\s+/g, '-')}`}
+                        value={newImage}
+                        onChange={(val) => setNewImage(typeof val === 'string' ? val : val[0] || '')}
+                        folder={IMAGEKIT_FOLDERS.banners}
+                        autoWebP={true}
+                      />
                       <input
                         type="text"
-                        placeholder="https://images.unsplash.com/..."
+                        placeholder="Or paste Image URL (https://...)"
                         value={newImage}
                         onChange={(e) => setNewImage(e.target.value)}
-                        className="w-full text-xs p-2 rounded-lg border border-stone-300 bg-white font-mono text-[11px]"
+                        className="w-full text-xs p-2 rounded-lg border border-stone-300 bg-white font-mono text-[11px] mt-1"
                       />
                     </div>
 
@@ -651,26 +690,40 @@ export function AdminAppFront(): React.JSX.Element {
                 {selectedSectionFilter === 'Category Cards' ? (
                   <div className="space-y-3">
                     <p className="text-[11px] text-stone-500 bg-stone-50 p-2.5 rounded-lg border border-stone-200">
-                      Customize cover banners for each gold category on the mobile view:
+                      Upload/customize cover banners for each gold category on the mobile view (Automatic WebP conversion):
                     </p>
                     {config.categoryBanners.map((cat) => (
-                      <div key={cat.slug} className="p-3 bg-white border border-stone-200 rounded-xl space-y-2 shadow-2xs">
+                      <div key={cat.slug} className="p-3 bg-white border border-stone-200 rounded-xl space-y-3 shadow-2xs">
                         <div className="flex items-center justify-between">
                           <span className="text-xs font-bold text-stone-900 uppercase tracking-wider">{cat.name}</span>
                           <span className="text-[10px] text-stone-400 font-mono">/catalog?category={cat.slug}</span>
                         </div>
 
-                        <div className="flex items-center gap-3">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
                           <div className="w-16 h-16 rounded-lg overflow-hidden border border-stone-300 shrink-0 bg-stone-100">
-                            <img src={cat.imageUrl} alt={cat.name} className="w-full h-full object-cover" />
+                            {cat.imageUrl ? (
+                              <img src={cat.imageUrl} alt={cat.name} className="w-full h-full object-cover" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-stone-400 text-[10px]">No image</div>
+                            )}
                           </div>
 
-                          <div className="flex-1 space-y-1">
-                            <label className="text-[10px] font-bold text-stone-600">Cover Banner Image URL</label>
+                          <div className="flex-1 space-y-1.5 w-full">
+                            <label className="text-[10px] font-bold text-stone-600 block">
+                              Category Cover Image (ImageKit - Auto WebP)
+                            </label>
+                            <ImageUploader
+                              id={`appfront-cat-upload-${cat.slug}`}
+                              value={cat.imageUrl}
+                              onChange={(val) => handleUpdateCategoryBanner(cat.slug, typeof val === 'string' ? val : val[0] || '')}
+                              folder={IMAGEKIT_FOLDERS.categories}
+                              autoWebP={true}
+                            />
                             <input
                               type="text"
                               value={cat.imageUrl}
                               onChange={(e) => handleUpdateCategoryBanner(cat.slug, e.target.value)}
+                              placeholder="Or paste Image URL..."
                               className="w-full text-xs font-mono p-1.5 rounded-lg border border-stone-300 bg-white"
                             />
                           </div>
@@ -721,6 +774,19 @@ export function AdminAppFront(): React.JSX.Element {
                             </div>
                           </div>
                         )}
+
+                        <div className="pt-1 space-y-1">
+                          <label className="text-[10px] font-bold text-stone-600 block">
+                            Replace Image (Auto WebP Upload):
+                          </label>
+                          <ImageUploader
+                            id={`appfront-banner-item-${b.id}`}
+                            value={b.imageUrl}
+                            onChange={(val) => handleUpdateBannerImage(getActiveBannerList().key, b.id, typeof val === 'string' ? val : val[0] || '')}
+                            folder={IMAGEKIT_FOLDERS.banners}
+                            autoWebP={true}
+                          />
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -915,6 +981,27 @@ export function AdminAppFront(): React.JSX.Element {
                       type="checkbox"
                       checked={config.showBottomNav}
                       onChange={(e) => setConfig(prev => ({ ...prev, showBottomNav: e.target.checked }))}
+                      className="w-4 h-4 accent-[#6B1F2A]"
+                    />
+                  </label>
+
+                  <label className="p-3.5 bg-amber-50/70 border border-amber-200/80 rounded-xl flex items-center justify-between cursor-pointer">
+                    <div>
+                      <span className="text-xs font-bold text-stone-900 block flex items-center gap-1.5">
+                        <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+                        <span>Product Titles in Mobile Web App</span>
+                      </span>
+                      <span className="text-[10px] text-stone-500 block">Toggle ON/OFF to display or hide product titles/names on mobile web app product cards</span>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={config.showProductTitlesInWebApp !== false}
+                      onChange={(e) => {
+                        const nextConfig = { ...config, showProductTitlesInWebApp: e.target.checked };
+                        setConfig(nextConfig);
+                        localStorage.setItem('local_appfront_config', JSON.stringify(nextConfig));
+                        window.dispatchEvent(new Event('appfront-settings-updated'));
+                      }}
                       className="w-4 h-4 accent-[#6B1F2A]"
                     />
                   </label>

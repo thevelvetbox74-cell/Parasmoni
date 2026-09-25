@@ -18,6 +18,7 @@ interface ImageUploaderProps {
   onChange: (value: string | string[]) => void;
   folder?: typeof IMAGEKIT_FOLDERS[keyof typeof IMAGEKIT_FOLDERS];
   recommendedDimensions?: string;
+  autoWebP?: boolean;
 }
 
 export function ImageUploader({
@@ -27,6 +28,7 @@ export function ImageUploader({
   onChange,
   folder = IMAGEKIT_FOLDERS.products,
   recommendedDimensions,
+  autoWebP = false,
 }: ImageUploaderProps): React.JSX.Element {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -80,8 +82,12 @@ export function ImageUploader({
     const hasImages = filesToProcess.some(f => f.type.startsWith('image/'));
 
     if (hasImages) {
-      setPendingFiles(filesToProcess);
-      setIsChoiceModalOpen(true);
+      if (autoWebP || folder === IMAGEKIT_FOLDERS.banners) {
+        executeUpload(filesToProcess, 'webp');
+      } else {
+        setPendingFiles(filesToProcess);
+        setIsChoiceModalOpen(true);
+      }
     } else {
       // Direct upload (e.g. for videos)
       executeUpload(filesToProcess, 'raw');
@@ -179,13 +185,21 @@ export function ImageUploader({
     }
   };
 
-  const handleRemoveImage = (indexToRemove: number) => {
+  const handleRemoveImage = (e: React.MouseEvent, indexToRemove: number) => {
+    e.preventDefault();
+    e.stopPropagation();
     if (multiple) {
-      const updated = images.filter((_, idx) => idx !== indexToRemove);
+      const currentList = Array.isArray(value) ? value : (value ? [value] : []);
+      const updated = currentList.filter((_, idx) => idx !== indexToRemove);
       onChange(updated);
     } else {
       onChange('');
     }
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+    setSuccessMsg(null);
+    setError(null);
   };
 
   return (
@@ -267,54 +281,82 @@ export function ImageUploader({
         </div>
       )}
 
-      {/* Previews Grid */}
+      {/* Previews Grid & Side-by-Side Remove Card */}
       {images.length > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-3 mt-3" id={`previews-grid-${id}`}>
-          {images.map((url, idx) => {
-            const isVideo = url.toLowerCase().endsWith('.mp4') || url.toLowerCase().endsWith('.mov') || url.toLowerCase().endsWith('.webm') || url.toLowerCase().endsWith('.m4v');
-            
-            return (
-              <div key={idx} className="relative group aspect-square rounded-lg border border-stone-200 bg-stone-100 overflow-hidden shadow-xs">
-                {isVideo ? (
-                  <video
-                    src={url}
-                    className="w-full h-full object-cover"
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                    preload="metadata"
-                  />
-                ) : (
-                  <img
-                    src={url}
-                    alt={`Preview asset ${idx + 1}`}
-                    className="w-full h-full object-cover"
-                    referrerPolicy="no-referrer"
-                  />
-                )}
-                
-                {/* Overlay tools */}
-                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveImage(idx)}
-                    className="p-1.5 bg-rose-600 hover:bg-rose-700 rounded text-white cursor-pointer transition-colors shadow-xs"
-                    title="Remove asset"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
+        <div className="space-y-2 mt-3" id={`previews-grid-${id}`}>
+          <div className="flex items-center justify-between text-[10px] font-bold text-stone-400 uppercase tracking-wider">
+            <span>Selected Media ({images.length})</span>
+            <span className="text-[9px] text-amber-500 font-mono">Click 'X Remove' to delete banner</span>
+          </div>
 
-                {/* Tag for thumbnail */}
-                {idx === 0 && (
-                  <span className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-amber-600 text-white font-sans text-[8px] font-bold uppercase tracking-wider shadow-xs">
-                    Cover
-                  </span>
-                )}
-              </div>
-            );
-          })}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            {images.map((url, idx) => {
+              const isVideo = url.toLowerCase().endsWith('.mp4') || url.toLowerCase().endsWith('.mov') || url.toLowerCase().endsWith('.webm') || url.toLowerCase().endsWith('.m4v');
+              
+              return (
+                <div 
+                  key={idx} 
+                  className="flex items-center gap-3 p-2.5 bg-stone-900 border-2 border-stone-700 hover:border-amber-500/50 rounded-xl shadow-md transition-all group relative overflow-hidden"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {/* Image Thumbnail Box */}
+                  <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden border border-stone-700 bg-stone-950 shrink-0">
+                    {isVideo ? (
+                      <video
+                        src={url}
+                        className="w-full h-full object-cover"
+                        autoPlay
+                        loop
+                        muted
+                        playsInline
+                        preload="metadata"
+                      />
+                    ) : (
+                      <img
+                        src={url}
+                        alt={`Preview asset ${idx + 1}`}
+                        className="w-full h-full object-cover"
+                        referrerPolicy="no-referrer"
+                      />
+                    )}
+                    
+                    {idx === 0 && (
+                      <span className="absolute top-1 left-1 px-1.5 py-0.5 rounded bg-amber-600 text-white font-sans text-[8px] font-bold uppercase tracking-wider shadow-xs z-10">
+                        Cover
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Side-by-side Details & Red Remove X Button */}
+                  <div className="flex-1 min-w-0 flex items-center justify-between gap-2">
+                    <div className="min-w-0 space-y-0.5">
+                      <span className="text-[10px] font-bold text-amber-400 uppercase block font-mono">
+                        {isVideo ? 'Video Media' : 'Image Banner'} #{idx + 1}
+                      </span>
+                      <p className="text-[10px] text-stone-400 truncate font-mono max-w-[120px] sm:max-w-[150px]" title={url}>
+                        {url.split('/').pop() || url}
+                      </p>
+                    </div>
+
+                    {/* Distinct Side-by-side Red Remove Button */}
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleRemoveImage(e, idx);
+                      }}
+                      className="px-3 py-2 bg-rose-600 hover:bg-rose-500 active:scale-90 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-lg border border-rose-400 transition-all cursor-pointer shrink-0"
+                      title="Remove selected image"
+                    >
+                      <X className="w-4 h-4 stroke-[3]" />
+                      <span className="text-[11px] font-bold">Remove</span>
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
 

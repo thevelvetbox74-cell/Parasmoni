@@ -1408,7 +1408,156 @@ export function Home({
     return styleObj;
   };
 
-  // --- Section Sub-renders for Visual Page Builder ---
+// Standalone Gold Rate Capsule Pill component to satisfy React Rules of Hooks
+function GoldRateCapsulePill({ metalPrices }: { metalPrices: any[] }): React.JSX.Element {
+  const [liveCapsuleRates, setLiveCapsuleRates] = useState<{
+    [key: string]: { rate: number; changePercent: number; isUp: boolean }
+  }>({});
+
+  const sourcePrices = (metalPrices && metalPrices.length > 0) ? metalPrices : [
+    { id: 'm1', metal: '22K GOLD', pricePerGram: 14487, change: -1.57, unit: '10g' },
+    { id: 'm2', metal: 'GOLD (24K)', pricePerGram: 14420, change: 0.62, unit: '1g' },
+    { id: 'm3', metal: '22K GOLD', pricePerGram: 14487, change: -1.57, unit: '10g' },
+    { id: 'm4', metal: 'SILVER (925)', pricePerGram: 925, change: 0.12, unit: '10g' }
+  ];
+
+  useEffect(() => {
+    setLiveCapsuleRates(prev => {
+      const next = { ...prev };
+      sourcePrices.forEach(p => {
+        const key = p.id || p.metal;
+        const unit = p.unit || (p.metal?.includes('22K') || p.metal?.includes('10g') ? '10g' : '1g');
+        const baseRate = p.pricePerGram ? Math.round(unit === '10g' ? p.pricePerGram * 10 : p.pricePerGram) : 144874;
+        if (!next[key]) {
+          const initialChange = p.change !== undefined ? Number(p.change) : -1.57;
+          next[key] = {
+            rate: baseRate,
+            changePercent: initialChange,
+            isUp: initialChange >= 0
+          };
+        }
+      });
+      return next;
+    });
+  }, [metalPrices]);
+
+  useEffect(() => {
+    if (!sourcePrices || sourcePrices.length === 0) return;
+
+    // Gentle price tick interval to prevent DOM thrashing during CSS marquee animation
+    const interval = setInterval(() => {
+      const countToUpdate = Math.min(sourcePrices.length, Math.floor(Math.random() * 2) + 1);
+      const shuffled = [...sourcePrices].sort(() => 0.5 - Math.random()).slice(0, countToUpdate);
+
+      setLiveCapsuleRates(prev => {
+        const updated = { ...prev };
+        shuffled.forEach(p => {
+          const key = p.id || p.metal;
+          const unit = p.unit || (p.metal?.includes('22K') || p.metal?.includes('10g') ? '10g' : '1g');
+          const baseRate = p.pricePerGram ? Math.round(unit === '10g' ? p.pricePerGram * 10 : p.pricePerGram) : 144874;
+          const current = updated[key]?.rate || baseRate;
+
+          const randomDelta = (Math.floor(Math.random() * 80) - 40);
+          let nextVal = current + randomDelta;
+          if (nextVal < Math.floor(baseRate * 0.97)) nextVal = Math.floor(baseRate * 0.97);
+          if (nextVal > Math.ceil(baseRate * 1.03)) nextVal = Math.ceil(baseRate * 1.03);
+
+          const calculatedChange = Number((((nextVal - baseRate) / baseRate) * 100).toFixed(2));
+
+          updated[key] = {
+            rate: nextVal,
+            changePercent: calculatedChange,
+            isUp: calculatedChange >= 0
+          };
+        });
+        return updated;
+      });
+    }, 12000);
+
+    return () => clearInterval(interval);
+  }, [metalPrices]);
+
+  // Create 2 identical sets so -50% translate3d maps pixel-perfectly to 0% for 100% seamless infinite loop
+  const baseItems = sourcePrices.length < 4 ? [...sourcePrices, ...sourcePrices] : sourcePrices;
+  const loopItems = [...baseItems, ...baseItems];
+
+  return (
+    <div className="w-full max-w-5xl mx-auto my-3 px-3 sm:px-6" id="gold-rate-capsule-bar">
+      <style>{`
+        @keyframes capsule-smooth-ticker {
+          0% {
+            -webkit-transform: translate3d(0, 0, 0);
+            transform: translate3d(0, 0, 0);
+          }
+          100% {
+            -webkit-transform: translate3d(-50%, 0, 0);
+            transform: translate3d(-50%, 0, 0);
+          }
+        }
+        .capsule-ticker-animate {
+          display: flex;
+          width: max-content;
+          will-change: transform;
+          -webkit-backface-visibility: hidden;
+          backface-visibility: hidden;
+          -webkit-transform: translate3d(0, 0, 0);
+          transform: translate3d(0, 0, 0);
+          animation: capsule-smooth-ticker 24s linear infinite;
+          contain: layout style;
+        }
+        .capsule-ticker-animate:hover,
+        .capsule-ticker-animate:active {
+          animation-play-state: paused;
+        }
+      `}</style>
+      
+      {/* Outer Red Capsule Pill Bar - Deep Red Gradient */}
+      <div className="bg-gradient-to-r from-rose-950 via-red-900 to-rose-950 text-white rounded-full py-2.5 px-5 sm:px-6 shadow-xl border border-rose-500/30 flex items-center overflow-hidden relative select-none">
+        {/* Ticker Row */}
+        <div className="overflow-hidden w-full relative">
+          <div className="capsule-ticker-animate items-center gap-6 sm:gap-10">
+            {loopItems.map((p, idx) => {
+              const key = p.id || p.metal;
+              const liveState = liveCapsuleRates[key];
+              const metalName = (p.metalName || p.metal || '22K GOLD').toUpperCase();
+              const unit = p.unit || (metalName.includes('22K') || metalName.includes('10G') ? '10g' : '1g');
+              const baseRate = p.pricePerGram ? Math.round(unit === '10g' ? p.pricePerGram * 10 : p.pricePerGram) : 144874;
+
+              const displayRate = liveState ? liveState.rate : baseRate;
+              const displayChange = liveState ? liveState.changePercent : (p.change !== undefined ? Number(p.change) : -1.57);
+              const isUp = displayChange >= 0;
+
+              return (
+                <div key={`capsule-rate-item-${idx}-${key}`} className="flex items-center gap-2 text-xs sm:text-sm whitespace-nowrap shrink-0">
+                  <span className="font-mono font-bold text-stone-100 tracking-wider text-[11px] sm:text-xs">
+                    {metalName}
+                  </span>
+                  <span className="font-mono font-black text-amber-300 tracking-tight text-xs sm:text-sm">
+                    ₹{displayRate.toLocaleString('en-IN')}
+                  </span>
+                  <span className="text-rose-200/80 text-[10px] font-sans">
+                    /{unit}
+                  </span>
+                  <span className={`inline-flex items-center gap-0.5 text-[9px] font-extrabold px-2 py-0.5 rounded-full border shadow-2xs ${
+                    isUp 
+                      ? 'bg-amber-500/20 text-amber-300 border-amber-400/40' 
+                      : 'bg-rose-900/60 text-rose-200 border-rose-400/40'
+                  }`}>
+                    <span>{isUp ? '▲' : '▼'}</span>
+                    <span>{isUp ? '+' : ''}{displayChange.toFixed(2)}%</span>
+                  </span>
+                  <span className="text-rose-300/40 ml-3 font-bold select-none text-xs">•</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// --- Section Sub-renders for Visual Page Builder ---
 
   const renderHeroBanner = (content: any = {}) => {
     // Determine the list of banners to display.
@@ -1419,8 +1568,12 @@ export function Home({
       : banners;
 
     return (
-      <div id="home-hero-banner-carousel" className="w-full relative py-4">
+      <div id="home-hero-banner-carousel" className="w-full relative pt-2 pb-1 space-y-2">
         <BannerSlider banners={activeBanners} />
+        {/* Capsule Pill Gold Rate Bar - Visible strictly in Web App / Mobile View only */}
+        <div className="block lg:hidden">
+          <GoldRateCapsulePill metalPrices={metalPrices} />
+        </div>
       </div>
     );
   };
@@ -1456,22 +1609,24 @@ export function Home({
 
     return (
       <section className="py-6 md:py-8 px-4 sm:px-6 max-w-7xl mx-auto space-y-6" id="category-showcase-section">
-        {/* Conditional Header Rendering */}
-        <SectionHeader
-          tag={eyebrow}
-          title={title}
-          subtitle={subtitle}
-          tagStyle={{ color: eyebrowColor }}
-          titleStyle={{
-            ...getHeaderFontStyle(settings.categoryShowcaseHeaderFontStyle),
-            color: titleColor,
-            lineHeight: '1.2'
-          }}
-          subtitleStyle={{ color: subtitleColor }}
-          align="center"
-          showLine={false}
-          className="mb-6"
-        />
+        {/* Conditional Header Rendering - Controlled by Storefront Section Editor showHeaderOnMobile */}
+        <div className={content.showHeaderOnMobile ? "block" : "hidden md:block"}>
+          <SectionHeader
+            tag={eyebrow}
+            title={title}
+            subtitle={subtitle}
+            tagStyle={{ color: eyebrowColor }}
+            titleStyle={{
+              ...getHeaderFontStyle(settings.categoryShowcaseHeaderFontStyle),
+              color: titleColor,
+              lineHeight: '1.2'
+            }}
+            subtitleStyle={{ color: subtitleColor }}
+            align="center"
+            showLine={false}
+            className="mb-6"
+          />
+        </div>
 
         {/* Categories Scroller Container with pink accents */}
         <div className="relative group/scroller">
@@ -1506,130 +1661,194 @@ export function Home({
               <p className="text-stone-600 text-xs font-medium">No design categories currently configured.</p>
             </div>
           ) : (
-            <div
-              ref={scrollContainerRef}
-              className={`
-                scrollbar-none overflow-x-auto gap-4 pb-4 select-none scroll-smooth
-                ${settings.categoryShowcaseLayout === 'double' 
-                  ? 'grid grid-rows-2 grid-flow-col auto-cols-[11rem] md:auto-cols-[14rem]' 
-                  : 'flex auto-cols-max'
-                }
-              `}
-            >
-              {displayCategories.map((cat) => {
-                const itemLink = cat.linkedCollectionSlug 
-                  ? `/collections/${cat.linkedCollectionSlug}` 
-                  : `/category/${cat.slug || cat.id}`;
-                return (
-                  <Link
-                    key={cat.id}
-                    to={itemLink}
-                    className={`
-                      snap-start flex-shrink-0 relative rounded-xl overflow-hidden group/tile
-                      shadow-xs hover:shadow-lg hover:shadow-rose-100/50 border border-rose-100/40 transition-all duration-300
-                      ${settings.categoryShowcaseLayout === 'double'
-                        ? 'w-full aspect-[4/3] h-28 md:h-36'
-                        : 'w-44 md:w-56 aspect-[3/4]'
-                      }
-                    `}
-                  >
-                    {/* Offer Tag Badge */}
-                    {cat.offerTag && (
-                      <div 
-                        className="absolute top-2.5 left-2.5 z-10 px-2 py-0.5 text-[8px] md:text-[9px] font-sans font-bold uppercase tracking-wider rounded-md shadow-sm border border-black/5"
-                        style={{
-                          color: cat.offerTagColor || '#ffffff',
-                          backgroundColor: cat.offerTagBgColor || '#e11d48'
-                        }}
+            <>
+              {/* MOBILE / WEB APP VIEW ONLY (100% Exact match to 2nd uploaded image) */}
+              <div className="block md:hidden" id="mobile-categories-grid">
+                <div className="grid grid-cols-4 gap-x-2.5 gap-y-3.5 px-0.5 py-1">
+                  {displayCategories.map((cat) => {
+                    const itemLink = cat.linkedCollectionSlug 
+                      ? `/collections/${cat.linkedCollectionSlug}` 
+                      : `/category/${cat.slug || cat.id}`;
+                    return (
+                      <Link
+                        key={cat.id}
+                        to={itemLink}
+                        className="flex flex-col items-center group cursor-pointer text-center"
                       >
-                        {cat.offerTag}
-                      </div>
-                    )}
+                        {/* Square Image Tile with rounded corners & subtle border */}
+                        <div className="w-full aspect-square rounded-2xl overflow-hidden border border-amber-900/10 shadow-2xs bg-stone-100 relative group-active:scale-95 transition-transform duration-200">
+                          {cat.imageUrl ? (
+                            (() => {
+                              const isVideo = cat.imageUrl.toLowerCase().endsWith('.mp4') || 
+                                              cat.imageUrl.toLowerCase().endsWith('.mov') || 
+                                              cat.imageUrl.toLowerCase().endsWith('.webm') || 
+                                              cat.imageUrl.toLowerCase().endsWith('.m4v');
+                              if (isVideo) {
+                                return (
+                                  <video
+                                    src={cat.imageUrl}
+                                    className="w-full h-full object-cover rounded-2xl"
+                                    autoPlay
+                                    loop
+                                    muted
+                                    playsInline
+                                    preload="auto"
+                                  />
+                                );
+                              }
+                              return (
+                                <img
+                                  src={cat.imageUrl}
+                                  alt={cat.customTitle || cat.name}
+                                  referrerPolicy="no-referrer"
+                                  className="w-full h-full object-cover rounded-2xl"
+                                />
+                              );
+                            })()
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-rose-50/30 text-stone-400">
+                              <Tags className="w-6 h-6 opacity-40" />
+                            </div>
+                          )}
+                        </div>
 
-                    {/* Category Image */}
-                    <div className="w-full h-full bg-rose-50/50 relative overflow-hidden">
-                      {cat.imageUrl ? (
-                        (() => {
-                          const isVideo = cat.imageUrl.toLowerCase().endsWith('.mp4') || 
-                                          cat.imageUrl.toLowerCase().endsWith('.mov') || 
-                                          cat.imageUrl.toLowerCase().endsWith('.webm') || 
-                                          cat.imageUrl.toLowerCase().endsWith('.m4v');
-                          if (isVideo) {
-                            return (
-                              <video
-                                src={cat.imageUrl}
-                                className="w-full h-full object-cover group-hover/tile:scale-105 transition-transform duration-500"
-                                autoPlay
-                                loop
-                                muted
-                                playsInline
-                                preload="auto"
-                                onEnded={(e) => {
-                                  e.currentTarget.currentTime = 0;
-                                  e.currentTarget.play().catch(() => {});
-                                }}
-                              />
-                            );
-                          }
-                          return (
-                            <img
-                              src={cat.imageUrl}
-                              alt={cat.name}
-                              referrerPolicy="no-referrer"
-                              className="w-full h-full object-cover group-hover/tile:scale-105 transition-transform duration-500"
-                            />
-                          );
-                        })()
-                      ) : (
-                        <div className="w-full h-full flex flex-col items-center justify-center bg-rose-50/20 text-rose-300">
-                          <Tags className="w-8 h-8 opacity-40 mb-1" />
-                          <span className="text-[10px] font-medium tracking-wider uppercase">Parasmoni</span>
+                        {/* Clean text label right below image tile */}
+                        <span className="block mt-1.5 text-[11px] font-semibold text-slate-800 text-center line-clamp-1 leading-tight tracking-tight font-sans">
+                          {cat.customTitle || cat.name}
+                        </span>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* DESKTOP / WEBSITE VIEW ONLY */}
+              <div
+                ref={scrollContainerRef}
+                className={`
+                  scrollbar-none overflow-x-auto gap-3 sm:gap-4 pb-4 select-none scroll-smooth
+                  ${settings.categoryShowcaseLayout === 'single' 
+                    ? 'hidden md:flex flex-row auto-cols-max'
+                    : 'hidden md:grid grid-rows-2 grid-flow-col auto-cols-[calc((100%-3*0.75rem)/4)] sm:auto-cols-[calc((100%-3*1rem)/4)] md:auto-cols-[calc((100%-3*1.25rem)/4)]'
+                  }
+                `}
+                style={{ WebkitOverflowScrolling: 'touch' }}
+              >
+                {displayCategories.map((cat) => {
+                  const itemLink = cat.linkedCollectionSlug 
+                    ? `/collections/${cat.linkedCollectionSlug}` 
+                    : `/category/${cat.slug || cat.id}`;
+                  return (
+                    <Link
+                      key={cat.id}
+                      to={itemLink}
+                      className={`
+                        snap-start flex-shrink-0 relative rounded-2xl overflow-hidden group/tile
+                        shadow-sm hover:shadow-xl border border-stone-200/80 transition-all duration-300
+                        ${settings.categoryShowcaseLayout === 'single'
+                          ? 'w-44 md:w-56 aspect-[3/4]'
+                          : 'w-full aspect-[4/3] min-h-[110px] sm:min-h-[140px] md:min-h-[160px]'
+                        }
+                      `}
+                    >
+                      {/* Offer Tag Badge */}
+                      {cat.offerTag && (
+                        <div 
+                          className="absolute top-2.5 left-2.5 z-10 px-2 py-0.5 text-[8px] md:text-[9px] font-sans font-bold uppercase tracking-wider rounded-md shadow-sm border border-black/5"
+                          style={{
+                            color: cat.offerTagColor || '#ffffff',
+                            backgroundColor: cat.offerTagBgColor || '#e11d48'
+                          }}
+                        >
+                          {cat.offerTag}
                         </div>
                       )}
 
-                      {/* Customizable Overlay Gradient / Seeds */}
-                      <div 
-                        className="absolute inset-0 transition-all duration-300" 
-                        style={
-                          cat.overlayShadeColor === 'transparent'
-                            ? { background: 'transparent' }
-                            : {
-                                background: `linear-gradient(to top, ${cat.overlayShadeColor || '#4c0519'}ec, ${cat.overlayShadeColor || '#4c0519'}70, transparent)`
-                              }
-                        }
-                      />
-                    </div>
+                      {/* Category Image */}
+                      <div className="w-full h-full bg-rose-50/50 relative overflow-hidden">
+                        {cat.imageUrl ? (
+                          (() => {
+                            const isVideo = cat.imageUrl.toLowerCase().endsWith('.mp4') || 
+                                            cat.imageUrl.toLowerCase().endsWith('.mov') || 
+                                            cat.imageUrl.toLowerCase().endsWith('.webm') || 
+                                            cat.imageUrl.toLowerCase().endsWith('.m4v');
+                            if (isVideo) {
+                              return (
+                                <video
+                                  src={cat.imageUrl}
+                                  className="w-full h-full object-cover group-hover/tile:scale-105 transition-transform duration-500"
+                                  autoPlay
+                                  loop
+                                  muted
+                                  playsInline
+                                  preload="auto"
+                                  onEnded={(e) => {
+                                    e.currentTarget.currentTime = 0;
+                                    e.currentTarget.play().catch(() => {});
+                                  }}
+                                />
+                              );
+                            }
+                            return (
+                              <img
+                                src={cat.imageUrl}
+                                alt={cat.name}
+                                referrerPolicy="no-referrer"
+                                className="w-full h-full object-cover group-hover/tile:scale-105 transition-transform duration-500"
+                              />
+                            );
+                          })()
+                        ) : (
+                          <div className="w-full h-full flex flex-col items-center justify-center bg-rose-50/20 text-rose-300">
+                            <Tags className="w-8 h-8 opacity-40 mb-1" />
+                            <span className="text-[10px] font-medium tracking-wider uppercase">Parasmoni</span>
+                          </div>
+                        )}
 
-                    {/* Category Name Overlay at bottom */}
-                    <div className="absolute bottom-0 inset-x-0 p-3 md:p-4 text-center z-10 flex flex-col items-center justify-end pb-4 md:pb-5">
-                      <span 
-                        className="block text-xs md:text-sm font-bold tracking-wide transition-colors line-clamp-1 drop-shadow-xs"
-                        style={{
-                          ...getCategoryFontStyle(cat.fontStyle),
-                          color: cat.textColor || '#ffffff'
-                        }}
-                      >
-                        {cat.customTitle || cat.name}
-                      </span>
-                      {cat.customSubtitle && (
+                        {/* Customizable Overlay Gradient / Seeds */}
+                        <div 
+                          className="absolute inset-0 transition-all duration-300" 
+                          style={
+                            cat.overlayShadeColor === 'transparent'
+                              ? { background: 'transparent' }
+                              : {
+                                  background: `linear-gradient(to top, ${cat.overlayShadeColor || '#4c0519'}ec, ${cat.overlayShadeColor || '#4c0519'}70, transparent)`
+                                }
+                          }
+                        />
+                      </div>
+
+                      {/* Category Name Overlay at bottom */}
+                      <div className="absolute bottom-0 inset-x-0 p-3 md:p-4 text-center z-10 flex flex-col items-center justify-end pb-4 md:pb-5">
                         <span 
-                          className="block mt-0.5 text-[10px] md:text-xs tracking-wide transition-colors line-clamp-1 opacity-90"
+                          className="block text-xs md:text-sm font-bold tracking-wide transition-colors line-clamp-1 drop-shadow-xs"
                           style={{
                             ...getCategoryFontStyle(cat.fontStyle),
-                            color: cat.subtitleColor || '#fecdd3'
+                            color: cat.textColor || '#ffffff'
                           }}
                         >
-                          {cat.customSubtitle}
+                          {cat.customTitle || cat.name}
                         </span>
-                      )}
-                      <span className="inline-block mt-1 text-[9px] uppercase tracking-wider font-bold text-rose-200 opacity-0 group-hover/tile:opacity-100 transform translate-y-1 group-hover/tile:translate-y-0 transition-all duration-300">
-                        Explore Now &rarr;
-                      </span>
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
+                        {cat.customSubtitle && (
+                          <span 
+                            className="block mt-0.5 text-[10px] md:text-xs tracking-wide transition-colors line-clamp-1 opacity-90"
+                            style={{
+                              ...getCategoryFontStyle(cat.fontStyle),
+                              color: cat.subtitleColor || '#fecdd3'
+                            }}
+                          >
+                            {cat.customSubtitle}
+                          </span>
+                        )}
+                        <span className="inline-block mt-1 text-[9px] uppercase tracking-wider font-bold text-rose-200 opacity-0 group-hover/tile:opacity-100 transform translate-y-1 group-hover/tile:translate-y-0 transition-all duration-300">
+                          Explore Now &rarr;
+                        </span>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            </>
           )}
         </div>
       </section>
@@ -1917,9 +2136,9 @@ export function Home({
       : collections;
 
     return (
-      <section className="bg-stone-100 py-10 px-4 sm:px-6" id="collections-showcase-section">
-        <div className="max-w-7xl mx-auto space-y-8">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+      <section className="bg-stone-100 py-6 md:py-10 px-4 sm:px-6" id="collections-showcase-section">
+        <div className="max-w-7xl mx-auto space-y-6 md:space-y-8">
+          <div className="hidden md:flex flex-col md:flex-row md:items-end justify-between gap-4">
             <div className="space-y-2">
               <span className="text-[10px] text-gold-600 font-bold tracking-widest uppercase block">
                 CURATED MASTERPIECES
@@ -1952,7 +2171,10 @@ export function Home({
               <p className="text-stone-600 text-xs font-medium">No design collections published at this time.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div 
+              className="grid grid-rows-2 grid-flow-col auto-cols-[calc((100%-3*0.75rem)/4)] sm:auto-cols-[calc((100%-3*1rem)/4)] md:auto-cols-[calc((100%-3*1.25rem)/4)] gap-3 sm:gap-4 overflow-x-auto scrollbar-none pb-4 select-none scroll-smooth"
+              style={{ WebkitOverflowScrolling: 'touch' }}
+            >
               {displayCollections.map((col) => (
                 <CollectionCard key={col.id} collection={col} />
               ))}
@@ -1995,17 +2217,20 @@ export function Home({
     const showHeader = (title && title.trim() !== '') || (description && description.trim() !== '');
 
     return (
-      <section className="py-5 md:py-8 px-4 sm:px-6 max-w-7xl mx-auto space-y-4 md:space-y-6" id={isNewArrivals ? "new-arrivals-section" : "featured-masterpieces-section"}>
-        <SectionHeader
-          tag={eyebrowTag}
-          title={title}
-          subtitle={description}
-          titleStyle={titleStyle}
-          subtitleStyle={subtitleStyle}
-          align="center"
-          showLine={false}
-          className="mb-4 md:mb-6"
-        />
+      <section className="py-2 md:py-8 px-4 sm:px-6 max-w-7xl mx-auto space-y-2 md:space-y-6" id={isNewArrivals ? "new-arrivals-section" : "featured-masterpieces-section"}>
+        {/* Header - Controlled by Storefront Section Editor showHeaderOnMobile */}
+        <div className={content.showHeaderOnMobile ? "block" : "hidden md:block"}>
+          <SectionHeader
+            tag={eyebrowTag}
+            title={title}
+            subtitle={description}
+            titleStyle={titleStyle}
+            subtitleStyle={subtitleStyle}
+            align="center"
+            showLine={false}
+            className="mb-4 md:mb-6"
+          />
+        </div>
 
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -2312,9 +2537,9 @@ export function Home({
   };
 
   const renderSplitMediaBanner = (content: any = {}) => {
-    const title = content.title || 'Sovereign Heavy Filigree Collection';
-    const subtitle = content.subtitle || 'EXCLUSIVE ARTISTRY';
-    const description = content.description || 'Discover hand-finished heavy bridal chokers, necklaces, and bangles forged by award-winning goldsmiths. Every item represents untarnished 22K purity.';
+    const title = content.title || 'Gold That Celebrates Tradition';
+    const subtitle = content.subtitle || 'PUJO SPECIAL';
+    const description = content.description || 'This Durga Puja, adorn yourself in gold that carries the artistry of generations — timeless heritage, handcrafted with love, and treasured for a lifetime this festive season.';
     const mediaUrl = content.mediaUrl || 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&q=80&w=600';
     const isVideo = mediaUrl.toLowerCase().endsWith('.mp4') || mediaUrl.toLowerCase().endsWith('.mov') || mediaUrl.toLowerCase().endsWith('.webm');
     
@@ -2324,53 +2549,22 @@ export function Home({
 
     const alignRight = content.alignMedia !== 'left';
     
+    const primaryBtnLabel = content.primaryButton?.label || 'EXPLORE NOW';
+    const primaryBtnLink = content.primaryButton?.linkUrl || '/catalog';
+
     const pBtnStyle = content.primaryButton?.styleType === 'outlined'
-      ? "border border-brand-red-600 text-brand-red-600 hover:bg-brand-red-50"
-      : "bg-brand-red-600 hover:bg-brand-red-700 text-white shadow-md hover:scale-[1.02]";
+      ? "border border-rose-600 text-rose-600 hover:bg-rose-50"
+      : "bg-rose-600 hover:bg-rose-700 text-white shadow-sm hover:scale-[1.02]";
 
     const sBtnStyle = content.secondaryButton?.styleType === 'outlined'
       ? "border border-stone-400 text-stone-700 hover:bg-stone-50"
-      : "bg-stone-900 hover:bg-stone-800 text-white shadow-md hover:scale-[1.02]";
+      : "bg-stone-900 hover:bg-stone-800 text-white shadow-sm hover:scale-[1.02]";
 
     return (
-      <section className="py-12 lg:py-20 px-4 md:px-8 xl:px-12 w-full" id="split-media-banner-section">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
-          <div className={`lg:col-span-6 space-y-6 order-2 ${alignRight ? 'lg:order-1' : 'lg:order-2'}`}>
-            <div className="space-y-3">
-              {subtitle && (
-                <span className="text-gold-600 text-xs font-bold tracking-widest uppercase block" style={subtitleStyle}>
-                  {subtitle}
-                </span>
-              )}
-              <h2 className="font-serif text-2xl md:text-3xl font-bold tracking-wide" style={titleStyle}>
-                {title}
-              </h2>
-            </div>
-            <p className="text-stone-600 text-sm leading-relaxed" style={descStyle}>
-              {description}
-            </p>
-            <div className="pt-2 flex flex-wrap gap-3">
-              {content.primaryButton?.label && (
-                <Link
-                  to={content.primaryButton.linkUrl || '/catalog'}
-                  className={`h-10 px-6 text-xs font-semibold tracking-widest uppercase transition-all duration-300 rounded flex items-center justify-center cursor-pointer ${pBtnStyle}`}
-                  style={getButtonStyle(content.primaryButton, 'filled')}
-                >
-                  {content.primaryButton.label}
-                </Link>
-              )}
-              {content.secondaryButton?.label && (
-                <Link
-                  to={content.secondaryButton.linkUrl || '/catalog'}
-                  className={`h-10 px-6 text-xs font-semibold tracking-widest uppercase transition-all duration-300 rounded flex items-center justify-center cursor-pointer ${sBtnStyle}`}
-                  style={getButtonStyle(content.secondaryButton, 'outlined')}
-                >
-                  {content.secondaryButton.label}
-                </Link>
-              )}
-            </div>
-          </div>
+      <section className="py-6 lg:py-16 px-4 md:px-8 xl:px-12 w-full" id="split-media-banner-section">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-12 items-center">
           
+          {/* Media Container (Order 1 on mobile) */}
           <div className={`lg:col-span-6 aspect-video md:aspect-[4/3] rounded-2xl overflow-hidden shadow-md border border-stone-200/80 bg-stone-950 order-1 ${alignRight ? 'lg:order-2' : 'lg:order-1'}`}>
             {isVideo ? (
               <video src={getOptimizedShowroomUrl(mediaUrl) || mediaUrl} className="w-full h-full object-cover" autoPlay loop muted playsInline />
@@ -2378,6 +2572,63 @@ export function Home({
               <img src={getOptimizedShowroomUrl(mediaUrl) || mediaUrl} alt={title} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
             )}
           </div>
+
+          {/* Text Content Block */}
+          <div className={`lg:col-span-6 space-y-2 lg:space-y-6 order-2 ${alignRight ? 'lg:order-1' : 'lg:order-2'}`}>
+            
+            {/* Eyebrow Subtitle tag (PUJO SPECIAL) */}
+            {subtitle && (
+              <span className="text-amber-700 text-[11px] sm:text-xs font-bold tracking-widest uppercase block font-sans" style={subtitleStyle}>
+                {subtitle}
+              </span>
+            )}
+
+            {/* MOBILE / WEB APP VIEW ONLY (100% Exact match to 2nd uploaded image) */}
+            <div className="block md:hidden">
+              <div className="flex items-center justify-between gap-3 pt-0.5">
+                <h2 className="font-serif text-lg font-bold tracking-wide leading-snug flex-1 text-stone-900" style={titleStyle}>
+                  {title}
+                </h2>
+                <Link
+                  to={primaryBtnLink}
+                  className="h-9 px-4 text-[10px] font-black tracking-wider uppercase rounded-md flex items-center justify-center shrink-0 cursor-pointer whitespace-nowrap bg-[#e11d48] hover:bg-[#be123c] text-white shadow-xs"
+                  style={getButtonStyle(content.primaryButton, 'filled')}
+                >
+                  {primaryBtnLabel}
+                </Link>
+              </div>
+            </div>
+
+            {/* DESKTOP / WEBSITE VIEW ONLY (Original layout with subline description and button below) */}
+            <div className="hidden md:block space-y-4">
+              <h2 className="font-serif text-2xl md:text-3xl font-bold tracking-wide" style={titleStyle}>
+                {title}
+              </h2>
+              <p className="text-stone-600 text-sm leading-relaxed" style={descStyle}>
+                {description}
+              </p>
+              <div className="pt-2 flex flex-wrap gap-3">
+                <Link
+                  to={primaryBtnLink}
+                  className={`h-10 px-6 text-xs font-semibold tracking-widest uppercase transition-all duration-300 rounded flex items-center justify-center cursor-pointer ${pBtnStyle}`}
+                  style={getButtonStyle(content.primaryButton, 'filled')}
+                >
+                  {primaryBtnLabel}
+                </Link>
+                {content.secondaryButton?.label && (
+                  <Link
+                    to={content.secondaryButton.linkUrl || '/catalog'}
+                    className={`h-10 px-6 text-xs font-semibold tracking-widest uppercase transition-all duration-300 rounded flex items-center justify-center cursor-pointer ${sBtnStyle}`}
+                    style={getButtonStyle(content.secondaryButton, 'outlined')}
+                  >
+                    {content.secondaryButton.label}
+                  </Link>
+                )}
+              </div>
+            </div>
+
+          </div>
+
         </div>
       </section>
     );
@@ -2439,13 +2690,15 @@ export function Home({
     return (
       <section className="py-16 px-4 sm:px-6 bg-stone-50 overflow-hidden w-full max-w-full" id="shop-the-look-section">
         <div className="max-w-7xl mx-auto space-y-8">
-          <SectionHeader
-            title={title}
-            titleStyle={titleStyle}
-            align="center"
-            showLine={true}
-            className="mb-8"
-          />
+          <div className={content.showHeaderOnMobile ? "block" : "hidden md:block"}>
+            <SectionHeader
+              title={title}
+              titleStyle={titleStyle}
+              align="center"
+              showLine={true}
+              className="mb-8"
+            />
+          </div>
 
           {/* Scrolling horizontal container (drag on desktop, swipe on mobile) */}
           <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-none snap-x snap-mandatory scroll-smooth -mx-4 px-4 sm:mx-0 sm:px-0">
@@ -2911,16 +3164,18 @@ export function Home({
       <section className="py-6 md:py-8 bg-white text-stone-900 w-full" id={`og-offer-section-${content.id || 'default'}`}>
         <div className="w-full px-4 md:px-8 xl:px-12 space-y-5 md:space-y-6">
           
-          {/* Centralized Section Header */}
-          <SectionHeader
-            title={title}
-            subtitle={subtitle}
-            titleStyle={titleStyle}
-            subtitleStyle={subtitleStyle}
-            align="center"
-            showLine={false}
-            className="max-w-2xl mx-auto mb-4 md:mb-6"
-          />
+          {/* Centralized Section Header - Controlled by showHeaderOnMobile */}
+          <div className={content.showHeaderOnMobile ? "block" : "hidden md:block"}>
+            <SectionHeader
+              title={title}
+              subtitle={subtitle}
+              titleStyle={titleStyle}
+              subtitleStyle={subtitleStyle}
+              align="center"
+              showLine={false}
+              className="max-w-2xl mx-auto mb-4 md:mb-6"
+            />
+          </div>
 
           {/* Asymmetric 3-Tile Image Grid Layout */}
           <div className="grid grid-cols-2 gap-2.5 sm:gap-4 md:gap-5 items-stretch h-[220px] sm:h-[320px] md:h-[450px] lg:h-[500px]">
@@ -3341,7 +3596,7 @@ export function Home({
       case 'Hero Banner':
         return renderHeroBanner(content);
       case 'Offer Banner B1':
-        return <OfferBannerB1 content={content} />;
+        return <GoldRateCapsulePill metalPrices={metalPrices} />;
       case 'Quick Category Strip':
         return renderQuickCategoryStrip(content);
       case 'Testimonials':

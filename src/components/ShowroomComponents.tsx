@@ -241,6 +241,33 @@ export function ProductCard({
   const [metalRates, setMetalRates] = useState<any[]>([]);
   const [isFavorited, setIsFavorited] = useState(false);
 
+  // Check if product titles should be displayed on web app / mobile product cards
+  const [showAppTitle, setShowAppTitle] = useState<boolean>(true);
+
+  useEffect(() => {
+    const checkTitleVisibility = () => {
+      try {
+        const stored = localStorage.getItem('local_appfront_config');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed.showProductTitlesInWebApp !== undefined) {
+            setShowAppTitle(parsed.showProductTitlesInWebApp);
+            return;
+          }
+        }
+      } catch (e) {}
+      setShowAppTitle(true);
+    };
+
+    checkTitleVisibility();
+    window.addEventListener('appfront-settings-updated', checkTitleVisibility);
+    window.addEventListener('storage', checkTitleVisibility);
+    return () => {
+      window.removeEventListener('appfront-settings-updated', checkTitleVisibility);
+      window.removeEventListener('storage', checkTitleVisibility);
+    };
+  }, []);
+
   useEffect(() => {
     setIsFavorited(isProductWishlisted(product.id || product.slug));
     
@@ -368,10 +395,12 @@ export function ProductCard({
       {/* Content Block below image */}
       <div className="p-3 sm:p-4 pt-2.5 sm:pt-3 flex-1 flex flex-col justify-between">
         <div className="space-y-1">
-          {/* 1. Product Name / Title */}
-          <h3 className="font-sans font-semibold text-stone-900 text-xs sm:text-sm tracking-normal leading-snug group-hover:text-[#6B1F2A] transition-colors line-clamp-2">
-            {product.name}
-          </h3>
+          {/* 1. Product Name / Title (Controlled via App Front Storefront Toggle) */}
+          {showAppTitle && (
+            <h3 className="font-sans font-semibold text-stone-900 text-xs sm:text-sm tracking-normal leading-snug group-hover:text-[#6B1F2A] transition-colors line-clamp-2">
+              {product.name}
+            </h3>
+          )}
 
           {/* 2. Price Row */}
           <div className="mt-1 flex items-baseline gap-1.5">
@@ -1177,7 +1206,7 @@ export function CollectionCard({ collection }: CollectionCardProps): React.JSX.E
   return (
     <Link 
       to={`/collections?type=${collection.slug}`}
-      className="group block relative aspect-square bg-stone-900 rounded overflow-hidden border border-stone-200"
+      className="group block relative aspect-[4/3] bg-stone-900 rounded-2xl overflow-hidden border border-stone-200/80 shadow-xs hover:shadow-lg transition-all duration-300 w-full"
       id={`collection-card-${collection.id}`}
     >
       {optimizedUrl && (optimizedUrl.toLowerCase().split('?')[0].endsWith('.mp4') || optimizedUrl.toLowerCase().split('?')[0].endsWith('.mov') || optimizedUrl.toLowerCase().split('?')[0].endsWith('.webm') || optimizedUrl.toLowerCase().split('?')[0].endsWith('.m4v')) ? (

@@ -1384,6 +1384,7 @@ export function AdminCategories(): React.JSX.Element {
                   value={formData.imageUrl}
                   onChange={(val) => setFormData({ ...formData, imageUrl: val as string })}
                   folder={IMAGEKIT_FOLDERS.categories}
+                  autoWebP={true}
                 />
                 {formData.imageUrl && (
                   <div className="p-1 border border-stone-800 rounded bg-stone-950">

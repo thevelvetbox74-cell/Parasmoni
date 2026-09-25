@@ -91,7 +91,7 @@ export const mockWebsiteSettings: WebsiteSettings = {
   categoryShowcaseEyebrowTag: "CURATED SELECTIONS",
   categoryShowcaseTitle: "Shop by Category Showcase",
   categoryShowcaseSubtitle: "Explore our spectacular hand-crafted designs categorized for perfect visual navigation",
-  categoryShowcaseLayout: "single",
+  categoryShowcaseLayout: "double",
   categoryShowcaseHeaderBgColor: "transparent",
   categoryShowcaseHeaderTextColor: "#052e16",
   categoryShowcaseHeaderBorderColor: "transparent",

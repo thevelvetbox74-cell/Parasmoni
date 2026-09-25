@@ -25,7 +25,8 @@ import {
   Plus,
   MessageSquare,
   MapPin,
-  FileText
+  FileText,
+  Smartphone
 } from 'lucide-react';
 import { ImageUploader } from './ImageUploader';
 import { UniversalStyleControl } from './UniversalStyleControl';
@@ -229,6 +230,14 @@ export function SectionEditorPanel({
     });
   };
 
+  // Helper to update multiple properties in the content object at once
+  const updateMultipleProps = (updates: Record<string, any>) => {
+    onChange({
+      ...content,
+      ...updates
+    });
+  };
+
   // Helper to update nested properties safely (like buttons or text styles)
   const updateNestedProp = (parentKey: string, key: string, value: any) => {
     onChange({
@@ -314,6 +323,34 @@ export function SectionEditorPanel({
                 <div className="flex items-center gap-2 pb-1 border-b border-stone-800/40">
                   <Type className="w-3.5 h-3.5 text-amber-500" />
                   <span className="text-[10px] font-bold uppercase tracking-wider text-stone-400">Copywriting</span>
+                </div>
+
+                {/* Mobile WebApp View Header Visibility Toggle */}
+                <div className="p-3 bg-stone-950 border border-amber-900/40 rounded-xl space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[11px] font-bold text-amber-300 uppercase tracking-wider flex items-center gap-1.5 cursor-pointer">
+                      <Smartphone className="w-3.5 h-3.5 text-amber-500" />
+                      <span>Title & Subline Tag on Mobile WebApp</span>
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => updateProp('showHeaderOnMobile', !content.showHeaderOnMobile)}
+                      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-hidden ${
+                        content.showHeaderOnMobile ? 'bg-amber-600' : 'bg-stone-800'
+                      }`}
+                    >
+                      <span
+                        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
+                          content.showHeaderOnMobile ? 'translate-x-5' : 'translate-x-0'
+                        }`}
+                      />
+                    </button>
+                  </div>
+                  <p className="text-[10px] text-stone-400 leading-normal">
+                    {content.showHeaderOnMobile 
+                      ? '✅ ON: Title, Subline & Eyebrow Tag are VISIBLE on Mobile WebApp View.'
+                      : '🙈 OFF: Title, Subline & Eyebrow Tag are HIDDEN on Mobile WebApp View (Visible only on Desktop website).'}
+                  </p>
                 </div>
 
                 <div className="space-y-1.5">
@@ -488,6 +525,34 @@ export function SectionEditorPanel({
                   <span className="text-[10px] font-bold uppercase tracking-wider text-stone-400">Heading & Subtitle Copy</span>
                 </div>
 
+                {/* Mobile WebApp View Header Visibility Toggle */}
+                <div className="p-3 bg-stone-950 border border-amber-900/40 rounded-xl space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[11px] font-bold text-amber-300 uppercase tracking-wider flex items-center gap-1.5 cursor-pointer">
+                      <Smartphone className="w-3.5 h-3.5 text-amber-500" />
+                      <span>Title & Subline Tag on Mobile WebApp</span>
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => updateProp('showHeaderOnMobile', !content.showHeaderOnMobile)}
+                      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-hidden ${
+                        content.showHeaderOnMobile ? 'bg-amber-600' : 'bg-stone-800'
+                      }`}
+                    >
+                      <span
+                        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
+                          content.showHeaderOnMobile ? 'translate-x-5' : 'translate-x-0'
+                        }`}
+                      />
+                    </button>
+                  </div>
+                  <p className="text-[10px] text-stone-400 leading-normal">
+                    {content.showHeaderOnMobile 
+                      ? '✅ ON: Title, Subline & Eyebrow Tag are VISIBLE on Mobile WebApp View.'
+                      : '🙈 OFF: Title, Subline & Eyebrow Tag are HIDDEN on Mobile WebApp View (Visible only on Desktop website).'}
+                  </p>
+                </div>
+
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-bold text-stone-400 uppercase tracking-wide">Title / Heading</label>
                   <input
@@ -657,10 +722,14 @@ export function SectionEditorPanel({
                       </label>
                       <ImageUploader
                         id={`${section.id}-media-cover`}
-                        value={content.mediaUrl || content.image1 || ''}
+                        value={content.mediaUrl !== undefined && content.mediaUrl !== '' ? content.mediaUrl : (content.image1 || content.imageUrl || '')}
                         onChange={(url) => {
-                          updateProp('mediaUrl', url);
-                          updateProp('image1', url);
+                          updateMultipleProps({
+                            mediaUrl: url,
+                            image1: url,
+                            imageUrl: url,
+                            image: url
+                          });
                         }}
                         folder={IMAGEKIT_FOLDERS.banners}
                       />
@@ -671,10 +740,12 @@ export function SectionEditorPanel({
                         <label className="text-[10px] font-bold text-stone-400 uppercase tracking-wide block">Secondary Overlapping Media</label>
                         <ImageUploader
                           id={`${section.id}-media-story-2`}
-                          value={content.mediaUrl2 || content.image2 || ''}
+                          value={content.mediaUrl2 !== undefined && content.mediaUrl2 !== '' ? content.mediaUrl2 : (content.image2 || '')}
                           onChange={(url) => {
-                            updateProp('mediaUrl2', url);
-                            updateProp('image2', url);
+                            updateMultipleProps({
+                              mediaUrl2: url,
+                              image2: url
+                            });
                           }}
                           folder={IMAGEKIT_FOLDERS.banners}
                         />

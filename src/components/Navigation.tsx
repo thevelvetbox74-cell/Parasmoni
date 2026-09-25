@@ -392,10 +392,10 @@ export function Navigation({
             <Search className="w-5 h-5" />
           </button>
 
-          {/* Desktop/Tablet Wishlist Heart Icon */}
+          {/* Desktop/Tablet Wishlist Heart Icon - Visible on Desktop/Website view, Hidden on Mobile/Web App view */}
           <Link 
             to="/wishlist"
-            className="p-2 text-white/90 hover:text-white transition-colors cursor-pointer relative"
+            className="hidden md:flex p-2 text-white/90 hover:text-white transition-colors cursor-pointer relative"
             aria-label="Wishlist"
             id="header-wishlist-btn"
           >
@@ -425,15 +425,6 @@ export function Navigation({
             <Phone className="w-3 h-3 text-brand-red-600" />
             <span>CONTACT US</span>
           </Link>
-
-          {/* Mobile Phone/Contact Quick CTA */}
-          <a 
-            href={`tel:${settings.contactNumber}`}
-            className="md:hidden p-2 text-white/90 hover:text-white transition-colors"
-            aria-label="Call Us"
-          >
-            <Phone className="w-5 h-5" />
-          </a>
 
           {/* Mobile Hamburger Toggle */}
           <button 
