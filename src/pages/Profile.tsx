@@ -17,10 +17,13 @@ import {
   Facebook, 
   Youtube, 
   Compass,
-  ArrowUpRight
+  ArrowUpRight,
+  Download,
+  Smartphone
 } from 'lucide-react';
 import { useWebsiteSettings } from '../context/WebsiteSettingsContext';
 import { Footer } from '../components/Footer';
+import { APP_BUNDLE_AAB_URL } from '../components/MobileAppInstallModal';
 
 export function Profile(): React.JSX.Element {
   const { settings, loading } = useWebsiteSettings();
@@ -83,6 +86,44 @@ export function Profile(): React.JSX.Element {
         {/* Navigation / Actions Hub List */}
         <div className="bg-white border border-stone-200 rounded-3xl overflow-hidden shadow-xs space-y-px" id="profile-links-list">
           
+          {/* Section Indicator: App Install */}
+          <div className="px-6 pt-5 pb-2 bg-amber-50/50 border-b border-amber-100 flex items-center justify-between">
+            <span className="text-[10px] font-sans font-bold tracking-widest text-amber-800 uppercase flex items-center gap-1.5">
+              <Smartphone className="w-3.5 h-3.5 text-amber-600" />
+              <span>OFFICIAL MOBILE APP DOWNLOAD</span>
+            </span>
+            <span className="bg-amber-100 text-amber-800 text-[9px] font-bold px-2 py-0.5 rounded-full font-mono">
+              .AAB BUNDLE
+            </span>
+          </div>
+
+          {/* Official Web App (.aab) Install Card */}
+          <a
+            href={APP_BUNDLE_AAB_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            download="Parasmoni-Jewellers-AppBundle.aab"
+            className="flex items-center justify-between px-6 py-4.5 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent hover:bg-amber-50 transition-colors group cursor-pointer border-b border-amber-100"
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 rounded-xl bg-amber-500 text-stone-950 flex items-center justify-center shrink-0 shadow-md">
+                <Download className="w-5 h-5 stroke-[2.5]" />
+              </div>
+              <div className="text-left">
+                <h3 className="font-sans font-bold text-xs sm:text-sm text-stone-900 uppercase tracking-wide flex items-center gap-1.5">
+                  <span>Install Parasmoni App (.aab)</span>
+                  <Sparkles className="w-3.5 h-3.5 text-amber-600 animate-pulse" />
+                </h3>
+                <p className="text-[10px] sm:text-xs text-stone-500">
+                  Download official Android App Bundle (.aab) for offline shopping
+                </p>
+              </div>
+            </div>
+            <div className="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-stone-950 text-[10px] font-bold uppercase rounded-lg shadow-sm flex items-center gap-1 transition-transform group-hover:scale-105">
+              <span>DOWNLOAD</span>
+            </div>
+          </a>
+
           {/* Section Indicator */}
           <div className="px-6 pt-5 pb-2 bg-stone-50/50 border-b border-stone-100">
             <span className="text-[10px] font-sans font-bold tracking-widest text-stone-400 uppercase">
