@@ -24,10 +24,22 @@ import {
 import { useWebsiteSettings } from '../context/WebsiteSettingsContext';
 import { Footer } from '../components/Footer';
 import { APP_RELEASE_APK_URL } from '../components/MobileAppInstallModal';
+import { triggerApkDownload } from '../utils/apkDownloader';
 
 export function Profile(): React.JSX.Element {
   const { settings, loading } = useWebsiteSettings();
   const [showAbout, setShowAbout] = useState(false);
+  const [isDownloadingApk, setIsDownloadingApk] = useState(false);
+
+  const handleDownloadApkClick = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsDownloadingApk(true);
+    await triggerApkDownload(
+      APP_RELEASE_APK_URL, 
+      'Parasmoni_Jewellers.apk', 
+      (downloading) => setIsDownloadingApk(downloading)
+    );
+  };
 
   if (loading) {
     return (
@@ -86,43 +98,46 @@ export function Profile(): React.JSX.Element {
         {/* Navigation / Actions Hub List */}
         <div className="bg-white border border-stone-200 rounded-3xl overflow-hidden shadow-xs space-y-px" id="profile-links-list">
           
-          {/* Section Indicator: App Install */}
-          <div className="px-6 pt-5 pb-2 bg-amber-50/50 border-b border-amber-100 flex items-center justify-between">
-            <span className="text-[10px] font-sans font-bold tracking-widest text-amber-800 uppercase flex items-center gap-1.5">
-              <Smartphone className="w-3.5 h-3.5 text-amber-600" />
-              <span>OFFICIAL MOBILE APP DOWNLOAD</span>
-            </span>
-            <span className="bg-amber-100 text-amber-800 text-[9px] font-bold px-2 py-0.5 rounded-full font-mono">
-              .APK RELEASE
-            </span>
-          </div>
-
-          {/* Official Web App (.apk) Install Card */}
-          <a
-            href={APP_RELEASE_APK_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            download="Parasmoni-Jewellers-AppRelease.apk"
-            className="flex items-center justify-between px-6 py-4.5 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent hover:bg-amber-50 transition-colors group cursor-pointer border-b border-amber-100"
+          {/* Official Web App (.apk) Install Card with App Logo */}
+          <button
+            type="button"
+            onClick={handleDownloadApkClick}
+            disabled={isDownloadingApk}
+            className="w-full flex items-center justify-between px-5 py-4 bg-gradient-to-r from-amber-500/15 via-amber-500/5 to-transparent hover:bg-amber-50/60 transition-all group cursor-pointer border-b border-amber-200/80 text-left disabled:opacity-80"
           >
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-xl bg-amber-500 text-stone-950 flex items-center justify-center shrink-0 shadow-md">
-                <Download className="w-5 h-5 stroke-[2.5]" />
+            <div className="flex items-center gap-3.5 min-w-0 flex-1">
+              {/* App Logo in place of download icon */}
+              <div className="relative w-12 h-12 rounded-2xl bg-stone-950 border-2 border-amber-500/60 p-1 flex items-center justify-center shrink-0 shadow-md group-hover:scale-105 transition-transform overflow-hidden">
+                <img 
+                  src={logoUrl} 
+                  alt="Parasmoni App Logo" 
+                  className="w-full h-full object-contain rounded-xl"
+                  referrerPolicy="no-referrer"
+                />
+                {isDownloadingApk && (
+                  <div className="absolute inset-0 bg-stone-950/80 flex items-center justify-center">
+                    <div className="w-5 h-5 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />
+                  </div>
+                )}
               </div>
-              <div className="text-left">
-                <h3 className="font-sans font-bold text-xs sm:text-sm text-stone-900 uppercase tracking-wide flex items-center gap-1.5">
-                  <span>Install Parasmoni App (.apk)</span>
-                  <Sparkles className="w-3.5 h-3.5 text-amber-600 animate-pulse" />
+
+              <div className="text-left min-w-0 flex-1">
+                <h3 className="font-serif font-bold text-sm sm:text-base text-stone-900 tracking-wide uppercase flex items-center gap-1.5 truncate">
+                  <span>{isDownloadingApk ? 'Downloading App...' : 'Install Parasmoni App'}</span>
+                  <Sparkles className="w-3.5 h-3.5 text-amber-600 animate-pulse shrink-0" />
                 </h3>
-                <p className="text-[10px] sm:text-xs text-stone-500">
-                  Download official Android App (.apk) for fast offline shopping
+                <p className="text-[10px] sm:text-xs text-stone-500 truncate leading-tight">
+                  {isDownloadingApk ? 'Downloading Android .apk package directly...' : 'Tap to download official Android App for fast offline shopping'}
                 </p>
               </div>
             </div>
-            <div className="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-stone-950 text-[10px] font-bold uppercase rounded-lg shadow-sm flex items-center gap-1 transition-transform group-hover:scale-105">
-              <span>DOWNLOAD</span>
+
+            {/* Action Button */}
+            <div className="px-3.5 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-stone-950 text-[10px] font-bold uppercase tracking-wider rounded-xl shadow-md border border-amber-300 flex items-center gap-1.5 transition-all group-hover:scale-105 shrink-0 ml-2">
+              <Download className="w-3.5 h-3.5 stroke-[2.5]" />
+              <span>{isDownloadingApk ? 'DOWNLOADING...' : 'DOWNLOAD'}</span>
             </div>
-          </a>
+          </button>
 
           {/* Section Indicator */}
           <div className="px-6 pt-5 pb-2 bg-stone-50/50 border-b border-stone-100">
