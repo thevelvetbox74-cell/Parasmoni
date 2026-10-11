@@ -26,6 +26,7 @@ import { AdminAppFront } from './AdminAppFront';
 import { AdminPages } from './AdminPages';
 import { AdminFooter } from './AdminFooter';
 import { AdminTestimonials } from './AdminTestimonials';
+import { AdminLiveChats } from './AdminLiveChats';
 import { 
   LayoutDashboard, 
   Gem, 
@@ -158,6 +159,12 @@ export function AdminLayout({ children }: { children: React.ReactNode }): React.
       path: '/admin/stores', 
       icon: MapPin,
       description: 'Showroom location registers and map markers.' 
+    },
+    { 
+      label: 'Live Customer Chats', 
+      path: '/admin/chats', 
+      icon: MessageSquare,
+      description: 'Real-time customer support chat center with accept & close controls.' 
     },
     { 
       label: 'Customers/Enquiries', 
@@ -436,6 +443,8 @@ export function AdminLayout({ children }: { children: React.ReactNode }): React.
                 <AdminMetalPrices />
               ) : location.pathname === '/admin/stores' ? (
                 <AdminStores />
+              ) : location.pathname === '/admin/chats' || location.pathname === '/admin/live-chats' ? (
+                <AdminLiveChats />
               ) : location.pathname === '/admin/enquiries' ? (
                 <AdminEnquiries />
               ) : location.pathname === '/admin/testimonials' ? (

@@ -1408,6 +1408,54 @@ export function Home({
     return styleObj;
   };
 
+// Reel Slot Machine Digits for GoldRateCapsulePill
+function CapsuleReelPrice({ value, isUp }: { value: string; isUp: boolean }): React.JSX.Element {
+  const [current, setCurrent] = useState(value);
+  const [prev, setPrev] = useState(value);
+  const [animating, setAnimating] = useState(false);
+
+  useEffect(() => {
+    if (value !== current) {
+      setPrev(current);
+      setCurrent(value);
+      setAnimating(true);
+      const timer = setTimeout(() => {
+        setAnimating(false);
+      }, 600);
+      return () => clearTimeout(timer);
+    }
+  }, [value, current]);
+
+  return (
+    <span className="relative inline-block overflow-hidden h-[1.3em] leading-[1.3em] align-middle font-mono font-black text-amber-300">
+      <style>{`
+        @keyframes reel-digit-slide-up {
+          0% { transform: translateY(0); }
+          100% { transform: translateY(-50%); }
+        }
+        @keyframes reel-digit-slide-down {
+          0% { transform: translateY(-50%); }
+          100% { transform: translateY(0); }
+        }
+        .animate-reel-slide-up {
+          animation: reel-digit-slide-up 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .animate-reel-slide-down {
+          animation: reel-digit-slide-down 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+      `}</style>
+      {animating ? (
+        <span className={`inline-flex flex-col ${isUp ? 'animate-reel-slide-up' : 'animate-reel-slide-down'}`}>
+          <span className="h-[1.3em] leading-[1.3em] block">{isUp ? prev : current}</span>
+          <span className="h-[1.3em] leading-[1.3em] block">{isUp ? current : prev}</span>
+        </span>
+      ) : (
+        <span className="h-[1.3em] leading-[1.3em] inline-block">{current}</span>
+      )}
+    </span>
+  );
+}
+
 // Standalone Gold Rate Capsule Pill component to satisfy React Rules of Hooks
 function GoldRateCapsulePill({ metalPrices }: { metalPrices: any[] }): React.JSX.Element {
   const [liveCapsuleRates, setLiveCapsuleRates] = useState<{
@@ -1421,6 +1469,7 @@ function GoldRateCapsulePill({ metalPrices }: { metalPrices: any[] }): React.JSX
     { id: 'm4', metal: 'SILVER (925)', pricePerGram: 925, change: 0.12, unit: '10g' }
   ];
 
+  // Sync state whenever metalPrices updates from Admin or Firestore
   useEffect(() => {
     setLiveCapsuleRates(prev => {
       const next = { ...prev };
@@ -1428,12 +1477,15 @@ function GoldRateCapsulePill({ metalPrices }: { metalPrices: any[] }): React.JSX
         const key = p.id || p.metal;
         const unit = p.unit || (p.metal?.includes('22K') || p.metal?.includes('10g') ? '10g' : '1g');
         const baseRate = p.pricePerGram ? Math.round(unit === '10g' ? p.pricePerGram * 10 : p.pricePerGram) : 144874;
-        if (!next[key]) {
-          const initialChange = p.change !== undefined ? Number(p.change) : -1.57;
+        
+        const existing = next[key];
+        const newChange = p.change !== undefined ? Number(p.change) : -1.57;
+        
+        if (!existing || existing.rate !== baseRate) {
           next[key] = {
             rate: baseRate,
-            changePercent: initialChange,
-            isUp: initialChange >= 0
+            changePercent: newChange,
+            isUp: existing ? baseRate >= existing.rate : newChange >= 0
           };
         }
       });
@@ -1441,10 +1493,10 @@ function GoldRateCapsulePill({ metalPrices }: { metalPrices: any[] }): React.JSX
     });
   }, [metalPrices]);
 
+  // Live market rate ticker simulation
   useEffect(() => {
     if (!sourcePrices || sourcePrices.length === 0) return;
 
-    // Gentle price tick interval to prevent DOM thrashing during CSS marquee animation
     const interval = setInterval(() => {
       const countToUpdate = Math.min(sourcePrices.length, Math.floor(Math.random() * 2) + 1);
       const shuffled = [...sourcePrices].sort(() => 0.5 - Math.random()).slice(0, countToUpdate);
@@ -1457,99 +1509,145 @@ function GoldRateCapsulePill({ metalPrices }: { metalPrices: any[] }): React.JSX
           const baseRate = p.pricePerGram ? Math.round(unit === '10g' ? p.pricePerGram * 10 : p.pricePerGram) : 144874;
           const current = updated[key]?.rate || baseRate;
 
-          const randomDelta = (Math.floor(Math.random() * 80) - 40);
+          const randomDelta = (Math.floor(Math.random() * 90) - 45);
           let nextVal = current + randomDelta;
-          if (nextVal < Math.floor(baseRate * 0.97)) nextVal = Math.floor(baseRate * 0.97);
-          if (nextVal > Math.ceil(baseRate * 1.03)) nextVal = Math.ceil(baseRate * 1.03);
+          if (nextVal < Math.floor(baseRate * 0.96)) nextVal = Math.floor(baseRate * 0.96);
+          if (nextVal > Math.ceil(baseRate * 1.04)) nextVal = Math.ceil(baseRate * 1.04);
 
           const calculatedChange = Number((((nextVal - baseRate) / baseRate) * 100).toFixed(2));
 
           updated[key] = {
             rate: nextVal,
             changePercent: calculatedChange,
-            isUp: calculatedChange >= 0
+            isUp: nextVal >= current
           };
         });
         return updated;
       });
-    }, 12000);
+    }, 4500);
 
     return () => clearInterval(interval);
   }, [metalPrices]);
 
-  // Create 2 identical sets so -50% translate3d maps pixel-perfectly to 0% for 100% seamless infinite loop
-  const baseItems = sourcePrices.length < 4 ? [...sourcePrices, ...sourcePrices] : sourcePrices;
-  const loopItems = [...baseItems, ...baseItems];
+  // Ensure base list has at least 4 items for good coverage
+  const baseList = sourcePrices.length < 4 ? [...sourcePrices, ...sourcePrices] : sourcePrices;
 
   return (
     <div className="w-full max-w-5xl mx-auto my-3 px-3 sm:px-6" id="gold-rate-capsule-bar">
       <style>{`
-        @keyframes capsule-smooth-ticker {
+        @keyframes capsule-seamless-ticker {
           0% {
-            -webkit-transform: translate3d(0, 0, 0);
             transform: translate3d(0, 0, 0);
           }
           100% {
-            -webkit-transform: translate3d(-50%, 0, 0);
             transform: translate3d(-50%, 0, 0);
           }
         }
-        .capsule-ticker-animate {
+        .capsule-ticker-track {
           display: flex;
           width: max-content;
           will-change: transform;
           -webkit-backface-visibility: hidden;
           backface-visibility: hidden;
-          -webkit-transform: translate3d(0, 0, 0);
           transform: translate3d(0, 0, 0);
-          animation: capsule-smooth-ticker 24s linear infinite;
-          contain: layout style;
-        }
-        .capsule-ticker-animate:hover,
-        .capsule-ticker-animate:active {
-          animation-play-state: paused;
+          animation: capsule-seamless-ticker 22s linear infinite !important;
         }
       `}</style>
       
-      {/* Outer Red Capsule Pill Bar - Deep Red Gradient */}
-      <div className="bg-gradient-to-r from-rose-950 via-red-900 to-rose-950 text-white rounded-full py-2.5 px-5 sm:px-6 shadow-xl border border-rose-500/30 flex items-center overflow-hidden relative select-none">
-        {/* Ticker Row */}
+      {/* Outer Deep Red Capsule Pill Bar - 100% Exact match to screenshot */}
+      <div className="bg-gradient-to-r from-[#4a0005] via-[#7d000b] to-[#4a0005] text-white rounded-full py-2.5 px-5 sm:px-6 shadow-xl border border-rose-500/30 flex items-center overflow-hidden relative select-none">
+        {/* Ticker Track */}
         <div className="overflow-hidden w-full relative">
-          <div className="capsule-ticker-animate items-center gap-6 sm:gap-10">
-            {loopItems.map((p, idx) => {
-              const key = p.id || p.metal;
-              const liveState = liveCapsuleRates[key];
-              const metalName = (p.metalName || p.metal || '22K GOLD').toUpperCase();
-              const unit = p.unit || (metalName.includes('22K') || metalName.includes('10G') ? '10g' : '1g');
-              const baseRate = p.pricePerGram ? Math.round(unit === '10g' ? p.pricePerGram * 10 : p.pricePerGram) : 144874;
+          <div className="capsule-ticker-track">
+            {/* Block 1 */}
+            <div className="flex items-center gap-6 sm:gap-10 pr-6 sm:pr-10 shrink-0">
+              {baseList.map((p, idx) => {
+                const key = p.id || p.metal;
+                const liveState = liveCapsuleRates[key];
+                const metalName = (p.metalName || p.metal || '22K GOLD').toUpperCase();
+                const unit = p.unit || (metalName.includes('22K') || metalName.includes('10G') ? '10g' : '1g');
+                const baseRate = p.pricePerGram ? Math.round(unit === '10g' ? p.pricePerGram * 10 : p.pricePerGram) : 144874;
 
-              const displayRate = liveState ? liveState.rate : baseRate;
-              const displayChange = liveState ? liveState.changePercent : (p.change !== undefined ? Number(p.change) : -1.57);
-              const isUp = displayChange >= 0;
+                const displayRate = liveState ? liveState.rate : baseRate;
+                const displayChange = liveState ? liveState.changePercent : (p.change !== undefined ? Number(p.change) : -1.57);
+                const isUp = liveState ? liveState.isUp : displayChange >= 0;
 
-              return (
-                <div key={`capsule-rate-item-${idx}-${key}`} className="flex items-center gap-2 text-xs sm:text-sm whitespace-nowrap shrink-0">
-                  <span className="font-mono font-bold text-stone-100 tracking-wider text-[11px] sm:text-xs">
-                    {metalName}
-                  </span>
-                  <span className="font-mono font-black text-amber-300 tracking-tight text-xs sm:text-sm">
-                    ₹{displayRate.toLocaleString('en-IN')}
-                  </span>
-                  <span className="text-rose-200/80 text-[10px] font-sans">
-                    /{unit}
-                  </span>
-                  <span className={`inline-flex items-center gap-0.5 text-[9px] font-extrabold px-2 py-0.5 rounded-full border shadow-2xs ${
-                    isUp 
-                      ? 'bg-amber-500/20 text-amber-300 border-amber-400/40' 
-                      : 'bg-rose-900/60 text-rose-200 border-rose-400/40'
-                  }`}>
-                    <span>{isUp ? '▲' : '▼'}</span>
-                    <span>{isUp ? '+' : ''}{displayChange.toFixed(2)}%</span>
-                  </span>
-                  <span className="text-rose-300/40 ml-3 font-bold select-none text-xs">•</span>
-                </div>
-              );
-            })}
+                return (
+                  <div key={`capsule-b1-${idx}-${key}`} className="flex items-center gap-2 text-xs sm:text-sm whitespace-nowrap shrink-0">
+                    <span className="font-mono font-bold text-stone-100 tracking-wider text-[11px] sm:text-xs">
+                      {metalName}
+                    </span>
+                    
+                    {/* Reels Slot Machine Digits */}
+                    <span className="flex items-center">
+                      <span className="text-amber-300 font-mono font-black mr-0.5">₹</span>
+                      <CapsuleReelPrice value={displayRate.toLocaleString('en-IN')} isUp={isUp} />
+                    </span>
+
+                    <span className="text-rose-200/80 text-[10px] font-sans">
+                      /{unit}
+                    </span>
+
+                    {/* Dynamic Rate Change Pill */}
+                    <span className={`inline-flex items-center gap-0.5 text-[9px] font-extrabold px-2 py-0.5 rounded-full border shadow-2xs ${
+                      isUp 
+                        ? 'bg-amber-500/20 text-amber-300 border-amber-400/40' 
+                        : 'bg-rose-900/60 text-rose-200 border-rose-400/40'
+                    }`}>
+                      <span>{isUp ? '▲' : '▼'}</span>
+                      <span>{isUp ? '+' : ''}{displayChange.toFixed(2)}%</span>
+                    </span>
+
+                    <span className="text-rose-300/40 ml-3 font-bold select-none text-xs">•</span>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Block 2 (Exact Duplicate for 100% Invisible Seamless Infinite Loop) */}
+            <div className="flex items-center gap-6 sm:gap-10 pr-6 sm:pr-10 shrink-0">
+              {baseList.map((p, idx) => {
+                const key = p.id || p.metal;
+                const liveState = liveCapsuleRates[key];
+                const metalName = (p.metalName || p.metal || '22K GOLD').toUpperCase();
+                const unit = p.unit || (metalName.includes('22K') || metalName.includes('10G') ? '10g' : '1g');
+                const baseRate = p.pricePerGram ? Math.round(unit === '10g' ? p.pricePerGram * 10 : p.pricePerGram) : 144874;
+
+                const displayRate = liveState ? liveState.rate : baseRate;
+                const displayChange = liveState ? liveState.changePercent : (p.change !== undefined ? Number(p.change) : -1.57);
+                const isUp = liveState ? liveState.isUp : displayChange >= 0;
+
+                return (
+                  <div key={`capsule-b2-${idx}-${key}`} className="flex items-center gap-2 text-xs sm:text-sm whitespace-nowrap shrink-0">
+                    <span className="font-mono font-bold text-stone-100 tracking-wider text-[11px] sm:text-xs">
+                      {metalName}
+                    </span>
+                    
+                    {/* Reels Slot Machine Digits */}
+                    <span className="flex items-center">
+                      <span className="text-amber-300 font-mono font-black mr-0.5">₹</span>
+                      <CapsuleReelPrice value={displayRate.toLocaleString('en-IN')} isUp={isUp} />
+                    </span>
+
+                    <span className="text-rose-200/80 text-[10px] font-sans">
+                      /{unit}
+                    </span>
+
+                    {/* Dynamic Rate Change Pill */}
+                    <span className={`inline-flex items-center gap-0.5 text-[9px] font-extrabold px-2 py-0.5 rounded-full border shadow-2xs ${
+                      isUp 
+                        ? 'bg-amber-500/20 text-amber-300 border-amber-400/40' 
+                        : 'bg-rose-900/60 text-rose-200 border-rose-400/40'
+                    }`}>
+                      <span>{isUp ? '▲' : '▼'}</span>
+                      <span>{isUp ? '+' : ''}{displayChange.toFixed(2)}%</span>
+                    </span>
+
+                    <span className="text-rose-300/40 ml-3 font-bold select-none text-xs">•</span>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
       </div>
@@ -2374,7 +2472,7 @@ function GoldRateCapsulePill({ metalPrices }: { metalPrices: any[] }): React.JSX
       : "'Inter', 'Plus Jakarta Sans', sans-serif";
 
     const mapsBtnText = content.mapsBtnText || 'GOOGLE MAPS';
-    const mapsBtnBg = content.mapsBtnBg || 'transparent';
+    const mapsBtnBg = content.mapsBtnBg && content.mapsBtnBg !== 'transparent' && content.mapsBtnBg !== 'red' && content.mapsBtnBg !== '#ff0000' && content.mapsBtnBg !== '#ef4444' ? content.mapsBtnBg : '#d97706';
     const mapsBtnColor = content.mapsBtnColor || '#ffffff';
     const mapsBtnFontFamily = content.mapsBtnFont === 'serif'
       ? "'Playfair Display', Georgia, serif"
@@ -2391,11 +2489,11 @@ function GoldRateCapsulePill({ metalPrices }: { metalPrices: any[] }): React.JSX
       backgroundColor: mapsBtnBg,
       color: mapsBtnColor,
       fontFamily: mapsBtnFontFamily,
-      borderColor: content.mapsBtnBg ? content.mapsBtnBg : 'rgba(255, 255, 255, 0.2)',
+      borderColor: mapsBtnBg,
     };
 
     return (
-      <section className="bg-stone-100 pt-12 md:pt-16 pb-0 animate-fade-in w-full overflow-hidden" id="our-stores-showcase">
+      <section className="bg-stone-100 pt-8 md:pt-12 pb-4 animate-fade-in w-full overflow-hidden" id="our-stores-showcase">
         {/* Header (Conditional rendering with no empty gap) */}
         {showHeader && (
         <SectionHeader
@@ -2411,7 +2509,9 @@ function GoldRateCapsulePill({ metalPrices }: { metalPrices: any[] }): React.JSX
         )}
 
         {loadingStores ? (
-          <div className="w-full relative h-[380px] md:h-[460px] bg-stone-950 animate-pulse"></div>
+          <div className="max-w-7xl mx-auto px-4 md:px-8 pb-8">
+            <div className="w-full relative h-[380px] md:h-[460px] bg-stone-950 rounded-3xl animate-pulse"></div>
+          </div>
         ) : displayStores.length === 0 ? (
           <div className="max-w-7xl mx-auto px-4 md:px-8 xl:px-12 pb-12">
             <div className="text-center py-12 bg-white border border-stone-200 rounded-3xl" id="stores-empty-state">
@@ -2420,117 +2520,120 @@ function GoldRateCapsulePill({ metalPrices }: { metalPrices: any[] }): React.JSX
             </div>
           </div>
         ) : (
-          <div 
-            className="relative w-full overflow-hidden bg-black border-t border-stone-800 flex flex-col md:flex-row min-h-[400px] md:min-h-[460px] shadow-2xl select-none"
-            onMouseEnter={() => setIsBoutiqueInteracting(true)}
-            onMouseLeave={() => setIsBoutiqueInteracting(false)}
-            onTouchStart={(e) => {
-              setIsBoutiqueInteracting(true);
-              handleTouchStart(e);
-            }}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={() => {
-              setIsBoutiqueInteracting(false);
-              handleTouchEnd();
-            }}
-          >
-              {/* Photo Column / Left Portion */}
-              <div className="relative w-full md:w-[60%] h-[200px] md:h-auto min-h-[200px] md:min-h-[420px] overflow-hidden bg-stone-900 shrink-0">
-                <img 
-                  src={getOptimizedShowroomUrl(store.imageUrl) || store.imageUrl || "https://images.unsplash.com/photo-1569058242253-92a9c755a0ec?auto=format&fit=crop&q=80&w=1200"} 
-                  alt={store.name} 
-                  className="w-full h-full object-cover pointer-events-none"
-                  referrerPolicy="no-referrer"
-                />
-                
-                {/* Desktop Left-to-Right Blend Gradient */}
-                <div className="hidden md:block absolute inset-y-0 right-0 w-48 bg-gradient-to-r from-transparent to-black pointer-events-none" />
-                
-                {/* Mobile Bottom-to-Top Blend Gradient */}
-                <div className="block md:hidden absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black to-transparent pointer-events-none" />
-              </div>
-
-              {/* Black Panel / Right Portion */}
-              <div className="w-full md:w-[40%] bg-black p-5 md:p-8 flex flex-col justify-center text-left space-y-5 relative z-10">
-                <div className="space-y-3.5">
-                  <div>
-                    {showEyebrow && (
-                      <span className="text-[9px] text-gold-400 font-bold tracking-widest uppercase block mb-1">
-                        {eyebrowLabel}
-                      </span>
-                    )}
-                    <h3 className="font-serif font-bold text-white text-base md:text-lg leading-snug tracking-wide uppercase">
-                      {store.name}
-                    </h3>
-                  </div>
-
-                  <div className="space-y-3 text-xs text-stone-300">
-                    <div className="flex gap-2.5 items-start">
-                      <MapPin className="w-4 h-4 text-gold-500 shrink-0 mt-0.5" />
-                      <span className="leading-relaxed font-sans">{store.address}</span>
-                    </div>
-                    <div className="flex gap-2.5 items-center">
-                      <Clock className="w-4 h-4 text-gold-500 shrink-0" />
-                      <span className="font-sans text-stone-300">
-                        {store.openingTime && store.closingTime
-                          ? `${store.openingTime} - ${store.closingTime} (Off: ${store.weeklyOff || 'None'})`
-                          : (store.hours || '09:00 AM - 08:00 PM (Off: None)')}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Action Buttons with Admin Customized Styling */}
-                <div className="pt-1 flex flex-col sm:flex-row gap-3 w-full">
-                  {/* BOOK APPOINTMENT Button */}
-                  <WhatsAppButton 
-                    phoneNumber={store.whatsapp || mockWebsiteSettings.whatsappNumber}
-                    message={`Hello Parasmoni Jewellers, I would like to book an appointment to visit your ${store.name} showroom. Please let me know available timings.`}
-                    className="font-bold text-[10px] tracking-wider uppercase h-10 px-5 rounded-lg flex items-center justify-center gap-1.5 cursor-pointer shadow-md flex-1 text-center border transition-all duration-150 hover:opacity-90"
-                    label={appointmentBtnText}
-                    style={appointmentStyle}
+          <div className="max-w-7xl mx-auto px-4 md:px-8 pb-8 md:pb-12">
+            <div 
+              className="relative w-full overflow-hidden bg-stone-950 border border-stone-800/80 rounded-3xl flex flex-col md:flex-row min-h-[400px] md:min-h-[460px] shadow-2xl select-none"
+              onMouseEnter={() => setIsBoutiqueInteracting(true)}
+              onMouseLeave={() => setIsBoutiqueInteracting(false)}
+              onTouchStart={(e) => {
+                setIsBoutiqueInteracting(true);
+                handleTouchStart(e);
+              }}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={() => {
+                setIsBoutiqueInteracting(false);
+                handleTouchEnd();
+              }}
+            >
+                {/* Photo Column / Left Portion */}
+                <div className="relative w-full md:w-[60%] h-[200px] md:h-auto min-h-[200px] md:min-h-[420px] overflow-hidden bg-stone-900 shrink-0">
+                  <img 
+                    src={getOptimizedShowroomUrl(store.imageUrl) || store.imageUrl || "https://images.unsplash.com/photo-1569058242253-92a9c755a0ec?auto=format&fit=crop&q=80&w=1200"} 
+                    alt={store.name} 
+                    className="w-full h-full object-cover pointer-events-none"
+                    referrerPolicy="no-referrer"
                   />
-
-                  {/* GOOGLE MAPS Button */}
-                  <a
-                    href={store.mapUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="border text-[10px] font-bold tracking-wider uppercase h-10 px-5 rounded-lg flex items-center justify-center gap-1.5 transition-all duration-150 flex-1 text-center cursor-pointer hover:bg-white/5"
-                    style={mapsStyle}
-                  >
-                    <span>{mapsBtnText}</span>
-                    <ChevronRight className="w-3.5 h-3.5 opacity-80" />
-                  </a>
+                  
+                  {/* Desktop Left-to-Right Blend Gradient */}
+                  <div className="hidden md:block absolute inset-y-0 right-0 w-48 bg-gradient-to-r from-transparent to-stone-950 pointer-events-none" />
+                  
+                  {/* Mobile Bottom-to-Top Blend Gradient */}
+                  <div className="block md:hidden absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-stone-950 to-transparent pointer-events-none" />
                 </div>
-              </div>
 
-              {/* Slide Navigation Controls */}
-              {displayStores.length > 1 && (
-                <>
-                  <button 
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      prevSlide();
-                    }}
-                    className="hidden md:flex absolute left-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-black/40 hover:bg-black/60 border border-white/10 items-center justify-center text-white backdrop-blur-xs transition-all cursor-pointer z-20 hover:scale-105"
-                    aria-label="Previous Store"
-                  >
-                    <ChevronLeft className="w-5 h-5" />
-                  </button>
-                  <button 
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      nextSlide();
-                    }}
-                    className="hidden md:flex absolute right-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-black/40 hover:bg-black/60 border border-white/10 items-center justify-center text-white backdrop-blur-xs transition-all cursor-pointer z-20 hover:scale-105"
-                    aria-label="Next Store"
-                  >
-                    <ChevronRight className="w-5 h-5" />
-                  </button>
-                </>
-              )}
-            </div>
+                {/* Dark Panel / Right Portion */}
+                <div className="w-full md:w-[40%] bg-stone-950 p-5 md:p-8 flex flex-col justify-center text-left space-y-5 relative z-10">
+                  <div className="space-y-3.5">
+                    <div>
+                      {showEyebrow && (
+                        <span className="text-[9px] text-gold-400 font-bold tracking-widest uppercase block mb-1">
+                          {eyebrowLabel}
+                        </span>
+                      )}
+                      <h3 className="font-serif font-bold text-white text-base md:text-lg leading-snug tracking-wide uppercase">
+                        {store.name}
+                      </h3>
+                    </div>
+
+                    <div className="space-y-3 text-xs text-stone-300">
+                      <div className="flex gap-2.5 items-start">
+                        <MapPin className="w-4 h-4 text-gold-500 shrink-0 mt-0.5" />
+                        <span className="leading-relaxed font-sans">{store.address}</span>
+                      </div>
+                      <div className="flex gap-2.5 items-center">
+                        <Clock className="w-4 h-4 text-gold-500 shrink-0" />
+                        <span className="font-sans text-stone-300">
+                          {store.openingTime && store.closingTime
+                            ? `${store.openingTime} - ${store.closingTime} (Off: ${store.weeklyOff || 'None'})`
+                            : (store.hours || '09:00 AM - 08:00 PM (Off: None)')}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Action Buttons with Admin Customized Styling */}
+                  <div className="pt-1 flex flex-col sm:flex-row gap-3 w-full">
+                    {/* BOOK APPOINTMENT Button */}
+                    <WhatsAppButton 
+                      phoneNumber={store.whatsapp || mockWebsiteSettings.whatsappNumber}
+                      message={`Hello Parasmoni Jewellers, I would like to book an appointment to visit your ${store.name} showroom. Please let me know available timings.`}
+                      className="font-bold text-[10px] tracking-wider uppercase h-11 px-5 rounded-full flex items-center justify-center gap-1.5 cursor-pointer shadow-md flex-1 text-center border transition-all duration-200 hover:scale-[1.02] active:scale-98"
+                      label={appointmentBtnText}
+                      style={appointmentStyle}
+                    />
+
+                    {/* GOOGLE MAPS Button */}
+                    <a
+                      href={store.mapUrl || store.googleMapsUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((store.name || '') + ' ' + (store.address || ''))}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[10px] font-bold tracking-wider uppercase h-11 px-5 rounded-full flex items-center justify-center gap-1.5 transition-all duration-200 flex-1 text-center cursor-pointer shadow-md hover:scale-[1.02] active:scale-98"
+                      style={mapsStyle}
+                    >
+                      <MapPin className="w-3.5 h-3.5 shrink-0 opacity-90" />
+                      <span>{mapsBtnText}</span>
+                      <ChevronRight className="w-3.5 h-3.5 opacity-80" />
+                    </a>
+                  </div>
+                </div>
+
+                {/* Slide Navigation Controls */}
+                {displayStores.length > 1 && (
+                  <>
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        prevSlide();
+                      }}
+                      className="hidden md:flex absolute left-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-black/40 hover:bg-black/60 border border-white/10 items-center justify-center text-white backdrop-blur-xs transition-all cursor-pointer z-20 hover:scale-105"
+                      aria-label="Previous Store"
+                    >
+                      <ChevronLeft className="w-5 h-5" />
+                    </button>
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        nextSlide();
+                      }}
+                      className="hidden md:flex absolute right-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-black/40 hover:bg-black/60 border border-white/10 items-center justify-center text-white backdrop-blur-xs transition-all cursor-pointer z-20 hover:scale-105"
+                      aria-label="Next Store"
+                    >
+                      <ChevronRight className="w-5 h-5" />
+                    </button>
+                  </>
+                )}
+              </div>
+          </div>
           )}
       </section>
     );

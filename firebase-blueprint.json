@@ -104,6 +104,34 @@
         "updatedAt": { "type": "string", "format": "date-time" }
       },
       "required": ["pageId", "sections"]
+    },
+    "Chat": {
+      "title": "Chat",
+      "description": "Live customer support chat session",
+      "type": "object",
+      "properties": {
+        "userName": { "type": "string", "description": "Customer full name" },
+        "userPhone": { "type": "string", "description": "Customer contact phone number" },
+        "status": { "type": "string", "enum": ["pending", "active", "closed"], "description": "Session state" },
+        "lastMessage": { "type": "string", "description": "Snippet of latest message" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Session creation timestamp" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Latest activity timestamp" },
+        "acceptedBy": { "type": "string", "description": "Admin staff identifier who accepted chat" },
+        "closedAt": { "type": "string", "format": "date-time", "description": "Session closed timestamp" }
+      },
+      "required": ["userName", "userPhone", "status", "createdAt", "updatedAt"]
+    },
+    "ChatMessage": {
+      "title": "ChatMessage",
+      "description": "Individual message entry inside a customer chat session",
+      "type": "object",
+      "properties": {
+        "sender": { "type": "string", "enum": ["customer", "admin", "system"], "description": "Message author role" },
+        "senderName": { "type": "string", "description": "Author display name" },
+        "text": { "type": "string", "description": "Message text payload" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Message creation timestamp" }
+      },
+      "required": ["sender", "senderName", "text", "createdAt"]
     }
   },
   "firestore": {
@@ -130,6 +158,14 @@
     "/pageSections/{pageId}": {
       "schema": "#/entities/PageSections",
       "description": "Dynamic homepage/custom page builder sections sequence"
+    },
+    "/chats/{chatId}": {
+      "schema": "#/entities/Chat",
+      "description": "Live customer support session"
+    },
+    "/chats/{chatId}/messages/{messageId}": {
+      "schema": "#/entities/ChatMessage",
+      "description": "Individual message inside customer chat session"
     }
   }
 }

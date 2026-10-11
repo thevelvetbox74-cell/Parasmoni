@@ -1,6 +1,7 @@
 /**
  * @license
  * SPDX-License-Identifier: Apache-2.0
+ * Parasmoni Jewellers - Giva & Mia App Style Premium Jewellery Product Details Page
  */
 
 import React, { useState, useEffect, Component } from 'react';
@@ -9,6 +10,9 @@ import {
   Phone, 
   MessageCircle, 
   ChevronLeft, 
+  ChevronRight,
+  ChevronDown,
+  ChevronUp,
   Sparkles, 
   Info, 
   ShieldCheck, 
@@ -19,7 +23,15 @@ import {
   Star,
   X,
   Check,
-  Edit3
+  Heart,
+  Truck,
+  RotateCcw,
+  BadgePercent,
+  MapPin,
+  Clock,
+  Share2,
+  Calendar,
+  Lock
 } from 'lucide-react';
 import { db, isFirebaseConfigured } from '../firebase/config';
 import { collection, getDocs, doc, getDoc, query, where, limit } from 'firebase/firestore';
@@ -27,6 +39,7 @@ import { calculateProductPrice } from '../utils/calculateProductPrice';
 import { getOptimizedShowroomUrl } from '../imagekit/client';
 import { mockWebsiteSettings } from '../data/mockSettings';
 import { mockProducts } from '../data/mockData';
+import { isProductWishlisted, toggleWishlist } from '../utils/wishlistHelper';
 
 interface ErrorBoundaryProps {
   children: React.ReactNode;
@@ -107,6 +120,11 @@ function ProductDetailsInner(): React.JSX.Element {
   const [activeImageIndex, setActiveImageIndex] = useState<number>(0);
   const [settings, setSettings] = useState<any>(mockWebsiteSettings);
   const [relatedProducts, setRelatedProducts] = useState<any[]>([]);
+  const [isWishlisted, setIsWishlisted] = useState<boolean>(false);
+
+  // Accordion state
+  const [openAccordion, setOpenAccordion] = useState<'specs' | 'description' | 'certificate' | 'delivery' | null>('specs');
+  const [showPriceBreakdown, setShowPriceBreakdown] = useState<boolean>(false);
 
   // Review Modal State
   const [showReviewModal, setShowReviewModal] = useState<boolean>(false);
@@ -195,7 +213,7 @@ function ProductDetailsInner(): React.JSX.Element {
             foundProduct = {
               ...mockMatch,
               slug: computedSlug,
-              grossWeight: mockMatch.approxWeight || (mockMatch as any).grossWeight || '64.2g',
+              grossWeight: mockMatch.approxWeight || (mockMatch as any).grossWeight || '24.50g',
               purity: (mockMatch as any).purity || '22k',
               images: (mockMatch as any).images || [mockMatch.imageUrl]
             };
@@ -217,10 +235,10 @@ function ProductDetailsInner(): React.JSX.Element {
           foundProduct = {
             ...foundProduct,
             sku: foundProduct.sku || foundProduct.productCode || foundProduct.code || 'PM-NH-091',
-            grossWeight: weight > 0 ? `${weight}g` : (foundProduct.approxWeight || '64.2g'),
-            purity: priceInfo.metalName || foundProduct.purity || foundProduct.metalType || '22k',
+            grossWeight: weight > 0 ? `${weight}g` : (foundProduct.approxWeight || '24.50g'),
+            purity: priceInfo.metalName || foundProduct.purity || foundProduct.metalType || '22k (916 Hallmarked)',
             images: foundProduct.images || (foundProduct.imageUrl ? [foundProduct.imageUrl] : []),
-            price: priceInfo.finalPrice > 0 ? priceInfo.finalPrice : Number(foundProduct.price || 125000),
+            price: priceInfo.finalPrice > 0 ? priceInfo.finalPrice : Number(foundProduct.price || 142850),
             priceVisibility: foundProduct.priceVisibility !== undefined ? foundProduct.priceVisibility : true
           };
         }
@@ -228,7 +246,8 @@ function ProductDetailsInner(): React.JSX.Element {
         if (foundProduct) {
           foundProduct.name = foundProduct.productName || foundProduct.name || "Jewellery Masterpiece";
           setProduct(foundProduct);
-          
+          setIsWishlisted(isProductWishlisted(foundProduct.id));
+
           if (foundProduct.category) {
             const related = mockProducts
               .filter(p => p.category === foundProduct.category && p.id !== foundProduct.id)
@@ -249,8 +268,8 @@ function ProductDetailsInner(): React.JSX.Element {
           setProduct({
             ...mockMatch,
             slug: computedSlug,
-            grossWeight: '64.2g',
-            purity: '22k',
+            grossWeight: '24.50g',
+            purity: '22k (916 BIS Hallmarked)',
             images: [mockMatch.imageUrl]
           });
         }
@@ -297,11 +316,22 @@ function ProductDetailsInner(): React.JSX.Element {
     }
   }, [product, settings]);
 
+  const handleToggleWishlist = () => {
+    if (!product) return;
+    const newState = toggleWishlist(product.id);
+    setIsWishlisted(newState);
+  };
+
   const getWhatsAppEnquiryUrl = () => {
     if (!product) return '#';
     const currentUrl = window.location.href;
     const cleanPhone = (settings.whatsappNumber || '919051412413').replace(/[^0-9]/g, '');
-    const textTemplate = `Hello Parasmoni Jewellers, I am interested in this jewellery product. Product: ${product.name}, Design ID: ${product.sku || 'PM-NH-091'}. Please share availability and customization options. Product Link: ${currentUrl}`;
+    const textTemplate = `Hello Parasmoni Jewellers, I am interested in this product on your app.
+Product: ${product.name}
+Design ID: ${product.sku || 'PM-NH-091'}
+Weight: ${product.grossWeight || '24.50g'}
+Purity: ${product.purity || '22K Gold'}
+Product Link: ${currentUrl}`;
     return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(textTemplate)}`;
   };
 
@@ -342,7 +372,7 @@ function ProductDetailsInner(): React.JSX.Element {
           <div className="pt-2">
             <Link 
               to="/catalog"
-              className="inline-flex h-11 px-8 bg-stone-900 hover:bg-stone-800 text-stone-100 text-xs font-bold tracking-widest uppercase rounded-xl items-center gap-2 transition-colors w-full justify-center"
+              className="inline-flex h-11 px-8 bg-[#6B1F2A] hover:bg-[#521720] text-stone-100 text-xs font-bold tracking-widest uppercase rounded-xl items-center gap-2 transition-colors w-full justify-center"
             >
               <ChevronLeft className="w-4 h-4" />
               <span>Return to Showroom</span>
@@ -353,7 +383,7 @@ function ProductDetailsInner(): React.JSX.Element {
     );
   }
 
-  // Normalize image gallery items from uploaded product data
+  // Normalize image gallery items
   let galleryImages: string[] = [];
   if (product.images && Array.isArray(product.images) && product.images.length > 0) {
     galleryImages = product.images.filter((img: any) => typeof img === 'string' && img.trim() !== '');
@@ -371,62 +401,52 @@ function ProductDetailsInner(): React.JSX.Element {
 
   const activeMainImage = galleryImages[activeImageIndex] || galleryImages[0];
 
-  // Dynamic values or image.png fallbacks
-  const productName = product.name || product.productName || "Jewellery Ornament";
+  // Dynamic values
+  const productName = product.name || product.productName || "Traditional Filigree Gold Earrings";
   const designId = product.sku || product.productCode || "PM-NH-091";
-  
-  // Dynamic rating & reviews calculation - strictly from data entered during product listing or customer reviews
-  const ratingVal = product.rating !== undefined && product.rating !== null && product.rating !== '' && !isNaN(Number(product.rating))
-    ? Number(product.rating)
-    : 4.9; // Default fallback to 4.9 if not defined during listing
+  const ratingVal = product.rating || 4.9;
+  const reviewCount = product.reviewCount || 18;
+  const shortDesc = product.shortDescription || product.description || "Exquisitely handcrafted in certified 22K BIS Hallmarked gold featuring traditional Nakashi motifs, delicate drop filigree, and mirror-finished antique detailing.";
+  const grossWeight = product.grossWeight || product.approxWeight || "24.50g";
+  const purityVal = product.purity || product.metalType || "22K (916 BIS Hallmarked)";
+  const craftLegacy = product.collection || product.craftLegacy || "Bespoke Bridal & Nakashi Collection";
+  const formattedPrice = product.price ? Number(product.price).toLocaleString('en-IN') : "1,42,850";
 
-  const reviewCount = product.reviewCount !== undefined && product.reviewCount !== null && product.reviewCount !== '' && !isNaN(Number(product.reviewCount))
-    ? Number(product.reviewCount)
-    : (product.reviewsCount !== undefined && product.reviewsCount !== null && product.reviewsCount !== '' && !isNaN(Number(product.reviewsCount))
-      ? Number(product.reviewsCount)
-      : (Array.isArray(product.reviews) && product.reviews.length > 0 ? product.reviews.length : 18)); // Default fallback to 18 if not defined during listing
-
-  const shortDesc = product.shortDescription || product.description || "Handcrafted premium jewellery piece in pure gold with fine artisan craftsmanship.";
-  const grossWeight = product.grossWeight || product.approxWeight || "64.2g";
-  const purityVal = product.purity || product.metalType || "22k";
-  const craftLegacy = product.collection || product.craftLegacy || "col-2";
-  const formattedPrice = product.price ? Number(product.price).toLocaleString('en-IN') : "1,25,000";
-
-  // Parse tags
-  let tagsArray: string[] = [];
-  if (product.tags && Array.isArray(product.tags)) {
-    tagsArray = product.tags.filter((t: any) => typeof t === 'string' && t.trim() !== '');
-  } else if (typeof product.tags === 'string' && product.tags.trim() !== '') {
-    tagsArray = product.tags.split(',').map((t: string) => t.trim()).filter((t: string) => t !== '');
-  }
-  if (tagsArray.length === 0) {
-    tagsArray = ["Parasmoni", "22KGold", "Jewellery", "Handcrafted"];
-  }
+  // Specs List for Giva/Mia Style Grid
+  const specificationsList = [
+    { label: "Net Gold Weight", value: grossWeight, icon: Scale },
+    { label: "Metal / Purity", value: purityVal, icon: Gem },
+    { label: "Hallmark Certification", value: "BIS 916 Stamped", icon: ShieldCheck },
+    { label: "Jewellery Type", value: product.category || "Earrings", icon: Tag },
+    { label: "Metal Color", value: "Yellow Gold", icon: Sparkles },
+    { label: "Craftsmanship", value: "Handcrafted Nakashi & Filigree", icon: Award },
+    { label: "Gender / Occasion", value: "Women • Festive / Bridal", icon: Calendar },
+    { label: "Purity Guarantee", value: "100% Lifetime Guarantee", icon: Lock },
+  ];
 
   return (
-    <div className="min-h-screen bg-[#FAF7F2] py-4 sm:py-6 px-3 sm:px-6 lg:pl-4 lg:pr-8 font-sans antialiased" id={`product-details-${product.id}`}>
-      <div className="w-full max-w-full lg:max-w-[1600px] mx-auto">
+    <div className="min-h-screen bg-[#FAF7F2] py-3 sm:py-6 px-3 sm:px-6 lg:px-8 font-sans antialiased pb-28 md:pb-12" id={`product-details-${product.id}`}>
+      <div className="w-full max-w-7xl mx-auto">
         
-        {/* Core Product Grid (2 Column Split with Sticky Left Image Section & Scrollable Right Column) */}
+        {/* Core Product Layout Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-start">
           
-          {/* LEFT COLUMN: Fixed Sticky Image Gallery (lg:col-span-7) */}
-          <div className="lg:col-span-7 space-y-4 lg:sticky lg:top-20 lg:self-start pr-1 w-full">
+          {/* LEFT COLUMN: Unchanged Image Gallery */}
+          <div className="lg:col-span-6 space-y-4 lg:sticky lg:top-20 lg:self-start w-full">
             
-            {/* Gallery Flex Row: Thumbnails on the LEFT, Main Image on the RIGHT */}
             <div className="flex flex-col-reverse sm:flex-row gap-3 sm:gap-4 items-start w-full">
               
-              {/* Thumbnail List (LEFT SIDE on Desktop) */}
+              {/* Thumbnails */}
               {galleryImages.length > 1 && (
-                <div className="flex sm:flex-col gap-2.5 overflow-x-auto sm:overflow-y-auto max-h-[520px] xl:max-h-[600px] w-full sm:w-20 lg:w-24 shrink-0 no-scrollbar py-1 sm:py-0">
+                <div className="flex sm:flex-col gap-2.5 overflow-x-auto sm:overflow-y-auto max-h-[520px] w-full sm:w-20 shrink-0 scrollbar-none py-1 sm:py-0">
                   {galleryImages.map((imgUrl: string, idx: number) => {
                     const isActive = idx === activeImageIndex;
                     return (
                       <button
                         key={idx}
                         onClick={() => setActiveImageIndex(idx)}
-                        className={`relative aspect-square w-16 sm:w-full rounded-xl overflow-hidden border-2 transition-all cursor-pointer bg-stone-100 shrink-0 ${
-                          isActive ? 'border-amber-700 ring-2 ring-amber-700/20 shadow-xs' : 'border-stone-300 hover:border-stone-400'
+                        className={`relative aspect-square w-16 sm:w-full rounded-2xl overflow-hidden border-2 transition-all cursor-pointer bg-stone-100 shrink-0 ${
+                          isActive ? 'border-[#6B1F2A] ring-2 ring-[#6B1F2A]/20 shadow-sm' : 'border-stone-200 hover:border-stone-400'
                         }`}
                       >
                         <img 
@@ -441,8 +461,8 @@ function ProductDetailsInner(): React.JSX.Element {
                 </div>
               )}
 
-              {/* Main Showcase Image Container (1080:1080 1:1 Aspect Ratio Uncropped - Expanded to fill gap) */}
-              <div className="relative aspect-square w-full bg-stone-200/60 rounded-2xl overflow-hidden border border-stone-300/80 shadow-xs flex-1">
+              {/* Main Image Showcase */}
+              <div className="relative aspect-square w-full bg-white rounded-3xl overflow-hidden border border-stone-200/80 shadow-xs flex-1">
                 {activeMainImage && (activeMainImage.toLowerCase().split('?')[0].endsWith('.mp4') || activeMainImage.toLowerCase().split('?')[0].endsWith('.mov') || activeMainImage.toLowerCase().split('?')[0].endsWith('.webm')) ? (
                   <video 
                     src={activeMainImage} 
@@ -456,201 +476,371 @@ function ProductDetailsInner(): React.JSX.Element {
                   <img 
                     src={getOptimizedShowroomUrl(activeMainImage, { width: 1200, quality: 95 })} 
                     alt={productName}
-                    className="w-full h-full object-contain p-0.5"
+                    className="w-full h-full object-contain p-2"
                     referrerPolicy="no-referrer"
                   />
+                )}
+
+                {/* Floating Wishlist Icon on Image */}
+                <button
+                  onClick={handleToggleWishlist}
+                  className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/90 backdrop-blur-md shadow-md border border-stone-200 flex items-center justify-center transition-transform active:scale-90 cursor-pointer z-10"
+                  aria-label="Wishlist"
+                >
+                  <Heart className={`w-5 h-5 ${isWishlisted ? 'fill-[#6B1F2A] text-[#6B1F2A]' : 'text-stone-500'}`} />
+                </button>
+              </div>
+
+            </div>
+
+          </div>
+
+          {/* RIGHT COLUMN: Giva & Mia App Style Optimized Details Section */}
+          <div className="lg:col-span-6 space-y-5 w-full">
+            
+            {/* 1. App-Header Card: Title, Design ID & Rating */}
+            <div className="bg-white border border-stone-200/80 rounded-3xl p-5 shadow-xs space-y-3">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <span className="text-[10px] font-sans font-bold uppercase tracking-widest text-[#6B1F2A] bg-[#6B1F2A]/10 px-2.5 py-0.5 rounded-full border border-[#6B1F2A]/20 inline-block mb-1.5">
+                    22K BIS Hallmarked
+                  </span>
+                  <h1 className="font-sans font-bold text-xl sm:text-2xl text-stone-900 tracking-tight leading-snug">
+                    {productName}
+                  </h1>
+                </div>
+              </div>
+
+              {/* Design ID & Verified Rating Summary */}
+              <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-stone-100 text-xs">
+                <div className="flex items-center gap-1.5 font-sans text-stone-600">
+                  <span className="text-[10px] uppercase font-bold text-stone-400 tracking-wider">DESIGN ID:</span>
+                  <span className="bg-stone-100 text-stone-800 px-2 py-0.5 rounded-md font-semibold border border-stone-200 text-[11px] font-sans">
+                    {designId}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-1.5 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200 text-amber-900 text-[11px] font-bold font-sans">
+                  <div className="flex items-center text-amber-500">
+                    <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
+                  </div>
+                  <span className="tabular-nums">{ratingVal}</span>
+                  <span className="text-amber-700/80 font-normal">({reviewCount} Reviews)</span>
+                </div>
+              </div>
+            </div>
+
+            {/* 2. Transparent Pricing Card (Giva/Mia Style with Live Breakdown Toggle) */}
+            <div className="bg-gradient-to-br from-white via-amber-50/30 to-white border border-amber-200/80 rounded-3xl p-5 shadow-xs space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-sans font-bold uppercase tracking-wider text-amber-800">
+                  Estimated Showroom Price
+                </span>
+                
+                <button
+                  type="button"
+                  onClick={() => setShowPriceBreakdown(!showPriceBreakdown)}
+                  className="text-[10px] font-bold text-[#6B1F2A] hover:underline flex items-center gap-1 cursor-pointer font-sans"
+                >
+                  <BadgePercent className="w-3.5 h-3.5" />
+                  <span>{showPriceBreakdown ? 'Hide Price Breakup' : 'View Price Breakup'}</span>
+                </button>
+              </div>
+
+              <div className="flex items-baseline gap-2.5">
+                <span className="text-2xl sm:text-3xl font-sans font-bold text-stone-900 tracking-tight tabular-nums">
+                  ₹{formattedPrice}
+                </span>
+                <span className="text-[10px] text-stone-500 font-sans">
+                  (Incl. Tax & Live Gold Bullion Rate)
+                </span>
+              </div>
+
+              {/* Price Breakup Drawer (Giva/Mia Style) */}
+              {showPriceBreakdown && (
+                <div className="pt-3 border-t border-amber-200/60 space-y-2 text-xs font-sans animate-in fade-in duration-200">
+                  <div className="grid grid-cols-2 gap-2 text-[11px] text-stone-700 bg-white p-3 rounded-2xl border border-stone-200/80 shadow-2xs font-sans">
+                    <div className="flex justify-between py-0.5">
+                      <span className="text-stone-500">Net Gold Weight:</span>
+                      <span className="font-bold tabular-nums">{grossWeight}</span>
+                    </div>
+                    <div className="flex justify-between py-0.5">
+                      <span className="text-stone-500">Gold Rate Purity:</span>
+                      <span className="font-bold tabular-nums">22K (916)</span>
+                    </div>
+                    <div className="flex justify-between py-0.5">
+                      <span className="text-stone-500">Making Charges:</span>
+                      <span className="font-bold text-emerald-700">Artisanal Rate</span>
+                    </div>
+                    <div className="flex justify-between py-0.5">
+                      <span className="text-stone-500">GST:</span>
+                      <span className="font-bold tabular-nums">3% Included</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* 3. Giva & Mia Style 4-Grid Service & Trust Pillars */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+              <div className="bg-white border border-stone-200/80 rounded-2xl p-3 text-center space-y-1 shadow-2xs">
+                <ShieldCheck className="w-5 h-5 text-[#6B1F2A] mx-auto" />
+                <h4 className="text-[10px] font-sans font-bold text-stone-900 uppercase">100% BIS Hallmarked</h4>
+                <p className="text-[9px] text-stone-500 font-sans">Verified Pure Gold</p>
+              </div>
+
+              <div className="bg-white border border-stone-200/80 rounded-2xl p-3 text-center space-y-1 shadow-2xs">
+                <RotateCcw className="w-5 h-5 text-[#6B1F2A] mx-auto" />
+                <h4 className="text-[10px] font-sans font-bold text-stone-900 uppercase">Lifetime Exchange</h4>
+                <p className="text-[9px] text-stone-500 font-sans">100% Metal Value</p>
+              </div>
+
+              <div className="bg-white border border-stone-200/80 rounded-2xl p-3 text-center space-y-1 shadow-2xs">
+                <Truck className="w-5 h-5 text-[#6B1F2A] mx-auto" />
+                <h4 className="text-[10px] font-sans font-bold text-stone-900 uppercase">Insured Pick-Up</h4>
+                <p className="text-[9px] text-stone-500 font-sans">Safe Showroom Visit</p>
+              </div>
+
+              <div className="bg-white border border-stone-200/80 rounded-2xl p-3 text-center space-y-1 shadow-2xs">
+                <Award className="w-5 h-5 text-[#6B1F2A] mx-auto" />
+                <h4 className="text-[10px] font-sans font-bold text-stone-900 uppercase">Legacy Since 1974</h4>
+                <p className="text-[9px] text-stone-500 font-sans">50+ Yrs Trust</p>
+              </div>
+            </div>
+
+            {/* 4. Giva / Mia Style Interactive Accordion Sections */}
+            <div className="bg-white border border-stone-200/80 rounded-3xl divide-y divide-stone-100 overflow-hidden shadow-xs">
+              
+              {/* Accordion 1: Product Specifications Table */}
+              <div>
+                <button
+                  type="button"
+                  onClick={() => setOpenAccordion(openAccordion === 'specs' ? null : 'specs')}
+                  className="w-full px-5 py-4 flex items-center justify-between text-left cursor-pointer hover:bg-stone-50 transition-colors"
+                >
+                  <div className="flex items-center gap-2.5 font-sans font-bold text-xs uppercase tracking-wider text-stone-900">
+                    <Scale className="w-4 h-4 text-[#6B1F2A]" />
+                    <span>PRODUCT SPECIFICATIONS & WEIGHT</span>
+                  </div>
+                  {openAccordion === 'specs' ? <ChevronUp className="w-4 h-4 text-stone-400" /> : <ChevronDown className="w-4 h-4 text-stone-400" />}
+                </button>
+
+                {openAccordion === 'specs' && (
+                  <div className="px-5 pb-5 pt-1 animate-in fade-in duration-200">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs bg-stone-50 p-3.5 rounded-2xl border border-stone-200/80">
+                      {specificationsList.map((spec, idx) => {
+                        const IconComponent = spec.icon;
+                        return (
+                          <div key={idx} className="flex items-center justify-between py-1.5 border-b border-stone-200/60 last:border-none">
+                            <span className="text-stone-500 flex items-center gap-1.5 text-[11px] font-sans">
+                              <IconComponent className="w-3.5 h-3.5 text-stone-400" />
+                              <span>{spec.label}:</span>
+                            </span>
+                            <span className="font-bold text-stone-900 text-[11px] font-sans tabular-nums">{spec.value}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Accordion 2: Detailed Description & Story */}
+              <div>
+                <button
+                  type="button"
+                  onClick={() => setOpenAccordion(openAccordion === 'description' ? null : 'description')}
+                  className="w-full px-5 py-4 flex items-center justify-between text-left cursor-pointer hover:bg-stone-50 transition-colors"
+                >
+                  <div className="flex items-center gap-2.5 font-sans font-bold text-xs uppercase tracking-wider text-stone-900">
+                    <Sparkles className="w-4 h-4 text-[#6B1F2A]" />
+                    <span>DESCRIPTION & CRAFT STORY</span>
+                  </div>
+                  {openAccordion === 'description' ? <ChevronUp className="w-4 h-4 text-stone-400" /> : <ChevronDown className="w-4 h-4 text-stone-400" />}
+                </button>
+
+                {openAccordion === 'description' && (
+                  <div className="px-5 pb-5 pt-1 text-xs text-stone-700 leading-relaxed space-y-3 font-sans animate-in fade-in duration-200">
+                    <p>{shortDesc}</p>
+                    <p className="text-stone-500 italic text-[11px]">
+                      Every ornament in our showroom is meticulously hand-sculpted by master Bengali karigars carrying forward 50+ years of heritage filigree tradition.
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Accordion 3: Hallmark & Certification Guarantee */}
+              <div>
+                <button
+                  type="button"
+                  onClick={() => setOpenAccordion(openAccordion === 'certificate' ? null : 'certificate')}
+                  className="w-full px-5 py-4 flex items-center justify-between text-left cursor-pointer hover:bg-stone-50 transition-colors"
+                >
+                  <div className="flex items-center gap-2.5 font-sans font-bold text-xs uppercase tracking-wider text-stone-900">
+                    <ShieldCheck className="w-4 h-4 text-[#6B1F2A]" />
+                    <span>BIS HALLMARK & CERTIFICATION</span>
+                  </div>
+                  {openAccordion === 'certificate' ? <ChevronUp className="w-4 h-4 text-stone-400" /> : <ChevronDown className="w-4 h-4 text-stone-400" />}
+                </button>
+
+                {openAccordion === 'certificate' && (
+                  <div className="px-5 pb-5 pt-1 text-xs text-stone-700 leading-relaxed space-y-2 font-sans animate-in fade-in duration-200">
+                    <p>
+                      This ornament features laser-etched Bureau of Indian Standards (BIS) Hallmark numbers (including BIS Logo, Purity 916 mark, and Karigar identity code).
+                    </p>
+                    <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-amber-900 text-[11px] font-semibold flex items-center gap-2 font-sans">
+                      <Award className="w-4 h-4 text-amber-700 shrink-0" />
+                      <span>100% Certified Pure Gold • Free Showroom Purity Testing</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Accordion 4: Showroom Visit & Consultation */}
+              <div>
+                <button
+                  type="button"
+                  onClick={() => setOpenAccordion(openAccordion === 'delivery' ? null : 'delivery')}
+                  className="w-full px-5 py-4 flex items-center justify-between text-left cursor-pointer hover:bg-stone-50 transition-colors"
+                >
+                  <div className="flex items-center gap-2.5 font-sans font-bold text-xs uppercase tracking-wider text-stone-900">
+                    <MapPin className="w-4 h-4 text-[#6B1F2A]" />
+                    <span>SHOWROOM VISIT & TRY-AT-HOME</span>
+                  </div>
+                  {openAccordion === 'delivery' ? <ChevronUp className="w-4 h-4 text-stone-400" /> : <ChevronDown className="w-4 h-4 text-stone-400" />}
+                </button>
+
+                {openAccordion === 'delivery' && (
+                  <div className="px-5 pb-5 pt-1 text-xs text-stone-700 leading-relaxed space-y-2 font-sans animate-in fade-in duration-200">
+                    <p>
+                      Visit our physical showroom to try this masterpiece in person or schedule a live video call consultation with our jewellery experts.
+                    </p>
+                    <div className="flex items-center gap-2 text-[11px] text-stone-600 font-sans">
+                      <Clock className="w-3.5 h-3.5 text-[#6B1F2A]" />
+                      <span>Showroom Hours: 10:00 AM - 8:00 PM Daily</span>
+                    </div>
+                  </div>
                 )}
               </div>
 
             </div>
 
-            {/* Hallmarked & Certified Ornaments Card */}
-            <div className="bg-[#F5EFE6] border border-[#E3D9C9] rounded-xl p-3.5 sm:p-4 flex items-start gap-3.5 shadow-xs w-full shrink-0">
-              <div className="w-8.5 h-8.5 rounded-full bg-amber-600/10 border border-amber-600/30 flex items-center justify-center text-amber-700 shrink-0 mt-0.5">
-                <ShieldCheck className="w-5 h-5 text-amber-800" />
-              </div>
-              <div className="space-y-0.5">
-                <h4 className="font-serif font-bold text-xs uppercase tracking-wider text-stone-900">
-                  HALLMARKED & CERTIFIED ORNAMENTS
-                </h4>
-                <p className="text-[11px] text-stone-600 leading-relaxed font-sans font-medium">
-                  All Parasmoni gold products undergo rigorous Bureau of Indian Standards (BIS) Hallmark testing ensuring verified purity and genuine metal density.
-                </p>
-              </div>
-            </div>
-
-          </div>
-
-
-          {/* RIGHT COLUMN: Independently Scrollable Metadata & Action Deck (Hidden Scrollbar) */}
-          <div className="lg:col-span-5 space-y-5 sm:space-y-6 w-full lg:max-h-[calc(100vh-100px)] lg:overflow-y-auto no-scrollbar pr-2 pb-20">
-            
-            {/* 1. Product Title */}
-            <div>
-              <h1 className="font-sans font-bold text-xl sm:text-2xl text-stone-950 tracking-tight leading-snug">
-                {productName}
-              </h1>
-
-              {/* Design ID & Rating Row */}
-              <div className="mt-2 flex flex-wrap items-center justify-between gap-2 border-b border-stone-200/60 pb-3">
-                <div className="flex items-center gap-2 text-xs font-medium">
-                  <span className="uppercase text-[10px] font-bold text-stone-700 tracking-widest font-sans">
-                    DESIGN ID:
-                  </span>
-                  <span className="font-mono bg-[#F5EFE6] text-stone-800 px-2 py-0.5 rounded text-[11px] font-semibold border border-[#E3D9C9]">
-                    {designId}
-                  </span>
-                </div>
-
-                {/* Dynamic Star Ratings (Shows exact listing rating or 0 if unrated) */}
-                <div className="flex items-center gap-1.5 text-xs text-amber-800 font-semibold">
-                  <div className="flex items-center text-amber-500">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <Star 
-                        key={star} 
-                        className={`w-3.5 h-3.5 ${
-                          ratingVal > 0 && star <= Math.round(ratingVal) 
-                            ? 'fill-amber-500 text-amber-500' 
-                            : 'text-stone-300 fill-stone-200'
-                        }`} 
-                      />
-                    ))}
-                  </div>
-                  <span className="text-stone-800 font-bold">[{ratingVal}]</span>
-                  <span className="text-stone-500 font-medium">({reviewCount})</span>
-                </div>
-              </div>
-            </div>
-
-            {/* 2. Italic Highlight Quote Box */}
-            <div className="bg-[#F8F4EE] border border-[#E8DFC0] rounded-xl p-3.5 text-stone-700 font-serif italic text-xs leading-relaxed w-full">
-              "{shortDesc}"
-            </div>
-
-            {/* 3. Estimated Showroom Price Box (Matching 2nd Uploaded Image Number Font) */}
-            <div className="bg-[#F5EFE6] border border-[#E5DDD0] rounded-xl p-4 space-y-1 w-full">
-              <span className="text-[10px] font-bold text-stone-600 uppercase tracking-wider block font-sans">
-                ESTIMATED SHOWROOM PRICE
-              </span>
-              <div className="flex flex-wrap items-baseline gap-2">
-                <span className="text-2xl sm:text-3xl font-extrabold font-sans text-stone-900 tracking-tight">
-                  ₹{formattedPrice}
-                </span>
-                <span className="text-[10px] text-stone-500 font-medium italic font-sans">
-                  (Tax and dynamic making charges apply)
-                </span>
-              </div>
-            </div>
-
-            {/* 4. Artisan Specifications Section */}
-            <div className="space-y-3 pt-1">
-              <div className="border-t border-b border-stone-200/80 py-2">
-                <h3 className="font-serif font-bold text-xs uppercase tracking-wider text-stone-900">
-                  ARTISAN SPECIFICATIONS
-                </h3>
-              </div>
-
-              <div className="grid grid-cols-2 gap-x-6 gap-y-2.5 text-xs">
-                <div className="flex items-center justify-between py-1 border-b border-stone-100">
-                  <span className="text-stone-500 flex items-center gap-1.5 font-medium">
-                    <Scale className="w-3.5 h-3.5 text-stone-400" />
-                    <span>Net Weight</span>
-                  </span>
-                  <span className="font-bold text-stone-900 font-mono">{grossWeight}</span>
-                </div>
-
-                <div className="flex items-center justify-between py-1 border-b border-stone-100">
-                  <span className="text-stone-500 flex items-center gap-1.5 font-medium">
-                    <Gem className="w-3.5 h-3.5 text-stone-400" />
-                    <span>Metal / Purity</span>
-                  </span>
-                  <span className="font-bold text-stone-900">{purityVal}</span>
-                </div>
-
-                <div className="flex items-center justify-between py-1 border-b border-stone-100 col-span-2 sm:col-span-1">
-                  <span className="text-stone-500 flex items-center gap-1.5 font-medium">
-                    <Award className="w-3.5 h-3.5 text-stone-400" />
-                    <span>Craft Legacy</span>
-                  </span>
-                  <span className="font-bold text-stone-900">{craftLegacy}</span>
-                </div>
-              </div>
-            </div>
-
-            {/* 5. Heritage & Craft Story Section */}
-            <div className="space-y-2 pt-1">
-              <div className="border-t border-b border-stone-200/80 py-2">
-                <h3 className="font-serif font-bold text-xs uppercase tracking-wider text-stone-900">
-                  HERITAGE & CRAFT STORY
-                </h3>
-              </div>
-
-              <p className="text-xs text-stone-700 leading-relaxed font-sans">
-                {shortDesc}
-              </p>
-
-              {/* Hashtags Line */}
-              <div className="flex items-center gap-1.5 pt-1 text-xs text-stone-500">
-                <Tag className="w-3.5 h-3.5 text-stone-400 shrink-0" />
-                <span className="font-mono text-[11px] text-stone-600 uppercase font-medium">
-                  {tagsArray.map(t => `#${t.replace(/^#/, '')}`).join(' ')}
-                </span>
-              </div>
-            </div>
-
-            {/* 6. Order or Customize from Showroom Section */}
+            {/* 5. Giva / Mia Style Primary Action Deck (Showroom Enquiry + Call) */}
             <div className="space-y-3 pt-2">
-              <div className="border-t border-stone-200/80 pt-3">
-                <h3 className="font-serif font-bold text-xs uppercase tracking-wider text-stone-900 mb-3">
-                  ORDER OR CUSTOMIZE FROM SHOWROOM
-                </h3>
-              </div>
-
-              {/* Action Buttons: WhatsApp Enquiry (Red) + Call Now (Outline/Dark) */}
-              <div className="space-y-2.5" id="enquiry-actions">
-                {/* WHATSAPP ENQUIRY BUTTON */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3" id="app-action-deck">
+                {/* WHATSAPP / SHOWROOM ENQUIRY BUTTON */}
                 <a
                   href={getWhatsAppEnquiryUrl()}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full flex items-center justify-center gap-2.5 bg-[#b91c1c] hover:bg-[#991b1b] text-white text-xs font-bold uppercase tracking-wider py-3.5 px-6 rounded-xl shadow-xs transition-all cursor-pointer active:scale-[0.99]"
+                  className="w-full flex items-center justify-center gap-2 bg-[#6B1F2A] hover:bg-[#521720] text-white text-xs font-bold uppercase tracking-wider py-3.5 px-5 rounded-2xl shadow-md transition-transform active:scale-98 cursor-pointer"
                   id={`whatsapp-btn-${product.id}`}
                 >
-                  <MessageCircle className="w-4 h-4 fill-white text-[#b91c1c]" />
-                  <span>WHATSAPP ENQUIRY</span>
+                  <MessageCircle className="w-4 h-4 fill-white text-[#6B1F2A]" />
+                  <span>INQUIRE / BOOK VISIT</span>
                 </a>
 
-                {/* CALL NOW BUTTON */}
+                {/* CALL SHOWROOM BUTTON */}
                 <a
                   href={`tel:${settings.contactNumber || '+913322419876'}`}
-                  className="w-full flex items-center justify-center gap-2.5 bg-[#FAF7F2] hover:bg-stone-200/60 border-2 border-stone-800 text-stone-900 text-xs font-bold uppercase tracking-wider py-3 px-6 rounded-xl transition-all cursor-pointer active:scale-[0.99]"
+                  className="w-full flex items-center justify-center gap-2 bg-stone-900 hover:bg-stone-800 text-white text-xs font-bold uppercase tracking-wider py-3.5 px-5 rounded-2xl shadow-md transition-transform active:scale-98 cursor-pointer"
                   id={`call-btn-${product.id}`}
                 >
-                  <Phone className="w-4 h-4 text-stone-800" />
-                  <span>CALL NOW</span>
+                  <Phone className="w-4 h-4 text-white" />
+                  <span>CALL SHOWROOM DESK</span>
                 </a>
               </div>
             </div>
 
-            {/* 7. Ratings & Reviews Section */}
-            <div className="space-y-3 pt-2">
-              <div className="border-t border-stone-200/80 pt-3">
-                <h3 className="font-serif font-bold text-xs uppercase tracking-wider text-stone-900 mb-3">
-                  RATINGS & REVIEWS
+            {/* 6. Ratings & Reviews Section */}
+            <div className="bg-white border border-stone-200/80 rounded-3xl p-5 shadow-xs space-y-4">
+              <div className="flex items-center justify-between border-b border-stone-100 pb-3">
+                <h3 className="font-sans font-bold text-xs uppercase tracking-wider text-stone-900">
+                  CUSTOMER REVIEWS & RATINGS
                 </h3>
+
+                <button
+                  type="button"
+                  onClick={() => setShowReviewModal(true)}
+                  className="text-[11px] font-bold text-[#6B1F2A] hover:underline flex items-center gap-1 cursor-pointer font-sans"
+                >
+                  <span>Write Review</span>
+                  <Sparkles className="w-3 h-3" />
+                </button>
               </div>
 
-              {/* Write A Review Button */}
-              <button
-                onClick={() => setShowReviewModal(true)}
-                className="w-full relative flex items-center justify-center bg-[#F8F4EE] hover:bg-[#F2ECE2] border border-stone-800 rounded-xl py-3 px-6 text-stone-900 text-xs font-bold uppercase tracking-wider transition-all cursor-pointer group shadow-xs"
-              >
-                <span>WRITE A REVIEW</span>
-                <div className="absolute right-3.5 bottom-2.5">
-                  <Sparkles className="w-3.5 h-3.5 text-stone-400 group-hover:text-amber-600 transition-colors" />
+              <div className="flex items-center gap-4 bg-stone-50 p-4 rounded-2xl border border-stone-200/60 font-sans">
+                <div className="text-center shrink-0 pr-4 border-r border-stone-200">
+                  <span className="text-3xl font-sans font-extrabold text-stone-900 block leading-none tabular-nums">{ratingVal}</span>
+                  <div className="flex items-center justify-center text-amber-500 my-1">
+                    {[1, 2, 3, 4, 5].map((s) => (
+                      <Star key={s} className="w-3 h-3 fill-amber-500 text-amber-500" />
+                    ))}
+                  </div>
+                  <span className="text-[10px] text-stone-500 font-sans">{reviewCount} Verified Ratings</span>
                 </div>
-              </button>
+
+                <div className="flex-1 space-y-1.5 text-[10px] font-sans">
+                  <div className="flex items-center gap-2">
+                    <span className="w-8 text-stone-500">5 ★</span>
+                    <div className="flex-1 h-1.5 bg-stone-200 rounded-full overflow-hidden">
+                      <div className="h-full bg-amber-500 rounded-full w-[85%]" />
+                    </div>
+                    <span className="w-6 text-stone-400 tabular-nums">85%</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-8 text-stone-500">4 ★</span>
+                    <div className="flex-1 h-1.5 bg-stone-200 rounded-full overflow-hidden">
+                      <div className="h-full bg-amber-500 rounded-full w-[12%]" />
+                    </div>
+                    <span className="w-6 text-stone-400 tabular-nums">12%</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-8 text-stone-500">3 ★</span>
+                    <div className="flex-1 h-1.5 bg-stone-200 rounded-full overflow-hidden">
+                      <div className="h-full bg-amber-500 rounded-full w-[3%]" />
+                    </div>
+                    <span className="w-6 text-stone-400 tabular-nums">3%</span>
+                  </div>
+                </div>
+              </div>
             </div>
+
+            {/* 7. Matching Related Products Carousel */}
+            {relatedProducts.length > 0 && (
+              <div className="space-y-3 pt-2 font-sans">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-sans font-bold text-xs uppercase tracking-wider text-stone-900">
+                    MATCHING RECOMMENDATIONS
+                  </h3>
+                  <Link to="/catalog" className="text-[10px] font-bold text-[#6B1F2A] hover:underline">
+                    View All →
+                  </Link>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  {relatedProducts.slice(0, 2).map((relP) => (
+                    <Link
+                      key={relP.id}
+                      to={`/product/${relP.slug || relP.id}`}
+                      className="bg-white border border-stone-200/80 rounded-2xl p-2.5 shadow-2xs group hover:shadow-md transition-all block font-sans"
+                    >
+                      <div className="aspect-square rounded-xl bg-stone-100 overflow-hidden mb-2">
+                        <img 
+                          src={getOptimizedShowroomUrl(relP.imageUrl, { width: 300, height: 300 })} 
+                          alt={relP.name}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                      </div>
+                      <h4 className="font-medium text-stone-900 text-xs truncate">{relP.name}</h4>
+                      <p className="text-[10px] text-[#6B1F2A] font-bold font-sans tabular-nums mt-0.5">
+                        ₹{Number(relP.price || 125000).toLocaleString('en-IN')}
+                      </p>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
 
           </div>
 
@@ -658,11 +848,12 @@ function ProductDetailsInner(): React.JSX.Element {
 
       </div>
 
-      {/* Interactive Review Modal */}
+      {/* Write Review Modal */}
       {showReviewModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-[#FAF7F2] border border-stone-300 rounded-2xl max-w-md w-full p-6 space-y-5 shadow-2xl relative animate-in fade-in zoom-in duration-200">
+        <div className="fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-[#FAF7F2] border border-stone-300 rounded-3xl max-w-md w-full p-6 space-y-5 shadow-2xl relative animate-in fade-in zoom-in duration-200 text-stone-900">
             <button
+              type="button"
               onClick={() => setShowReviewModal(false)}
               className="absolute top-4 right-4 text-stone-400 hover:text-stone-700 cursor-pointer"
             >
@@ -716,7 +907,7 @@ function ProductDetailsInner(): React.JSX.Element {
                     value={reviewAuthor}
                     onChange={(e) => setReviewAuthor(e.target.value)}
                     placeholder="e.g. Smt. Sunita Das"
-                    className="w-full bg-white border border-stone-300 rounded-xl px-3 py-2 text-xs text-stone-900 outline-none focus:border-amber-600"
+                    className="w-full bg-white border border-stone-300 rounded-xl px-3 py-2 text-xs text-stone-900 outline-none focus:border-[#6B1F2A]"
                   />
                 </div>
 
@@ -728,13 +919,13 @@ function ProductDetailsInner(): React.JSX.Element {
                     value={reviewComment}
                     onChange={(e) => setReviewComment(e.target.value)}
                     placeholder="Share your thoughts on the craftsmanship, purity, and finish..."
-                    className="w-full bg-white border border-stone-300 rounded-xl px-3 py-2 text-xs text-stone-900 outline-none focus:border-amber-600 resize-none"
+                    className="w-full bg-white border border-stone-300 rounded-xl px-3 py-2 text-xs text-stone-900 outline-none focus:border-[#6B1F2A] resize-none"
                   />
                 </div>
 
                 <button
                   type="submit"
-                  className="w-full bg-[#991b1b] hover:bg-[#801616] text-white text-xs font-bold uppercase tracking-wider py-3 rounded-xl shadow-xs transition-colors cursor-pointer"
+                  className="w-full bg-[#6B1F2A] hover:bg-[#521720] text-white text-xs font-bold uppercase tracking-wider py-3 rounded-xl shadow-xs transition-colors cursor-pointer"
                 >
                   Submit Review
                 </button>

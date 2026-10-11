@@ -69,18 +69,13 @@ export function Profile(): React.JSX.Element {
         
         {/* Brand/Identity Header Card */}
         <div className="bg-white border border-stone-200 rounded-3xl p-6 sm:p-8 text-center shadow-xs mb-6" id="profile-header-card">
-          <div className="relative inline-block mb-4">
-            <div className="w-20 h-20 bg-stone-50 rounded-full border border-stone-150 p-2 mx-auto flex items-center justify-center shadow-inner overflow-hidden">
-              <img 
-                src={logoUrl} 
-                alt={`${brandName} Logo`} 
-                className="w-full h-full object-contain"
-                referrerPolicy="no-referrer"
-              />
-            </div>
-            <div className="absolute -bottom-1 -right-1 bg-amber-500 text-white rounded-full p-1.5 shadow-md border border-white">
-              <Sparkles className="w-3.5 h-3.5 text-stone-100" />
-            </div>
+          <div className="inline-block mb-4">
+            <img 
+              src={logoUrl} 
+              alt={`${brandName} Logo`} 
+              className="w-20 h-20 object-contain mx-auto"
+              referrerPolicy="no-referrer"
+            />
           </div>
           
           <h1 className="font-serif font-bold text-xl sm:text-2xl text-stone-900 tracking-wide uppercase">
@@ -107,7 +102,7 @@ export function Profile(): React.JSX.Element {
           >
             <div className="flex items-center gap-3.5 min-w-0 flex-1">
               {/* App Logo in place of download icon */}
-              <div className="relative w-12 h-12 rounded-2xl bg-stone-950 border-2 border-amber-500/60 p-1 flex items-center justify-center shrink-0 shadow-md group-hover:scale-105 transition-transform overflow-hidden">
+              <div className="relative w-12 h-12 rounded-2xl bg-white border-2 border-amber-500/60 p-1 flex items-center justify-center shrink-0 shadow-md group-hover:scale-105 transition-transform overflow-hidden">
                 <img 
                   src={logoUrl} 
                   alt="Parasmoni App Logo" 
@@ -115,8 +110,8 @@ export function Profile(): React.JSX.Element {
                   referrerPolicy="no-referrer"
                 />
                 {isDownloadingApk && (
-                  <div className="absolute inset-0 bg-stone-950/80 flex items-center justify-center">
-                    <div className="w-5 h-5 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />
+                  <div className="absolute inset-0 bg-white/80 flex items-center justify-center">
+                    <div className="w-5 h-5 border-2 border-amber-600 border-t-transparent rounded-full animate-spin" />
                   </div>
                 )}
               </div>
@@ -331,8 +326,8 @@ export function Profile(): React.JSX.Element {
           </div>
         )}
 
-        {/* Live Admin-Managed Full Footer Section */}
-        <div className="mt-8 pt-6 border-t border-stone-200">
+        {/* Live Admin-Managed Full Footer Section (Desktop only, hidden on mobile web app) */}
+        <div className="mt-8 pt-6 border-t border-stone-200 hidden md:block">
           <Footer />
         </div>
 
