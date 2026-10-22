@@ -21,6 +21,7 @@ import {
   Heart
 } from 'lucide-react';
 import { getOptimizedShowroomUrl } from '../imagekit/client';
+import { OptimizedImage } from './OptimizedImage';
 import { calculateProductPrice } from '../utils/calculateProductPrice';
 import { collection, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase/config';
@@ -382,11 +383,15 @@ export function ProductCard({
             preload="auto"
           />
         ) : (
-          <img 
-            src={optimizedUrl || "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&q=80&w=600"} 
+          <OptimizedImage 
+            src={optimizedUrl || "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&q=70&w=400"} 
             alt={product.name}
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-102"
-            referrerPolicy="no-referrer"
+            width={400}
+            height={400}
+            aspectRatio="1/1"
+            quality={70}
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            className="transition-transform duration-500 group-hover:scale-102"
           />
         )}
         <div className="absolute inset-0 bg-stone-900/5 group-hover:bg-stone-900/0 transition-colors" />
@@ -825,13 +830,18 @@ export function BannerSlider({ banners }: BannerSliderProps): React.JSX.Element 
                     draggable={false}
                   />
                 ) : (
-                  <img
+                  <OptimizedImage
                     src={displayImage}
-                    alt={banner.title}
-                    className={`w-full h-full object-cover transition-transform duration-[6000ms] ease-out ${
+                    alt={banner.title || 'Parasmoni Jewellery Hero Banner'}
+                    width={1200}
+                    height={540}
+                    aspectRatio={isMobile ? '14/9' : '18/7'}
+                    priority={isActive && index === virtualIndex}
+                    quality={75}
+                    sizes="(max-width: 768px) 85vw, 75vw"
+                    className={`transition-transform duration-[6000ms] ease-out ${
                       isActive ? 'scale-102' : 'scale-100'
                     }`}
-                    referrerPolicy="no-referrer"
                     draggable={false}
                   />
                 )}
@@ -1224,11 +1234,15 @@ export function CollectionCard({ collection }: CollectionCardProps): React.JSX.E
           }}
         />
       ) : (
-        <img 
-          src={optimizedUrl || "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&q=80&w=600"} 
+        <OptimizedImage 
+          src={optimizedUrl || "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&q=70&w=400"} 
           alt={collection.name}
-          className="w-full h-full object-cover transform transition-transform duration-700 group-hover:scale-105 opacity-80"
-          referrerPolicy="no-referrer"
+          width={400}
+          height={300}
+          aspectRatio="4/3"
+          quality={70}
+          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+          className="transform transition-transform duration-700 group-hover:scale-105 opacity-80"
         />
       )}
       <div className="absolute inset-0 bg-gradient-to-t from-stone-950 via-stone-950/10 to-transparent" />
@@ -1279,11 +1293,15 @@ export function StoreCard({ store }: StoreCardProps): React.JSX.Element {
             }}
           />
         ) : (
-          <img 
-            src={optimizedUrl || "https://images.unsplash.com/photo-1569058242253-92a9c755a0ec?auto=format&fit=crop&q=80&w=600"} 
+          <OptimizedImage 
+            src={optimizedUrl || "https://images.unsplash.com/photo-1569058242253-92a9c755a0ec?auto=format&fit=crop&q=70&w=500"} 
             alt={store.name}
+            width={500}
+            height={350}
+            aspectRatio="16/9"
+            quality={70}
+            sizes="(max-width: 768px) 100vw, 40vw"
             className="w-full h-full object-cover"
-            referrerPolicy="no-referrer"
           />
         )}
       </div>

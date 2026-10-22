@@ -4,23 +4,12 @@
  */
 
 /**
- * ImageKit Client-Side Integration Configuration
+ * ImageKit Client-Side Integration Configuration & Optimization Utility
  * 
- * CRITICAL SECURITY ARCHITECTURE WARNING:
- * -------------------------------------------------------------------------
- * This file is bundled into the client browser application. It ONLY imports 
- * public variables prefixed with VITE_ (VITE_IMAGEKIT_PUBLIC_KEY, VITE_IMAGEKIT_URL_ENDPOINT).
- * 
- * Under NO circumstances should the IMAGEKIT_PRIVATE_KEY be imported or used here.
- * If the private key is hardcoded or imported into the frontend:
- * 1. It is visible to anyone inspecting the Javascript bundle via DevTools.
- * 2. Malicious actors could extract it to arbitrarily upload, overwrite, 
- *    or delete assets in your ImageKit media library.
- * 3. It compromises the brand integrity and security of Parasmoni Jewellers.
- * 
- * Secure uploads are achieved by delegating signature authentication to a secure, 
- * isolated server-side environment (like an Express server, Netlify Function, or Cloudflare Worker).
- * -------------------------------------------------------------------------
+ * Configured for maximum Core Web Vitals speed:
+ * - ImageKit URL transformations: f-auto (WebP/AVIF), q-70, w-XXX
+ * - Responsive srcset generation for 400, 800, 1200, 1600px widths
+ * - Mobile hero < 100KB, thumbnails < 40KB
  */
 
 export const imageKitClientConfig = {
@@ -33,9 +22,6 @@ export const isImageKitConfigured = !!(
   imageKitClientConfig.urlEndpoint
 );
 
-/**
- * ImageKit folder structures as requested
- */
 export const IMAGEKIT_FOLDERS = {
   products: '/parasmoni/products',
   banners: '/parasmoni/banners',
@@ -49,15 +35,17 @@ export type ImageKitFolder = keyof typeof IMAGEKIT_FOLDERS;
 
 /**
  * Generates an optimized, cached, and responsive URL for premium display.
+ * Quality defaults to 70 (or 75 for hero) to ensure small payloads without visual loss.
  */
 export function getOptimizedShowroomUrl(
   path: string,
   transformations: {
     width?: number;
     height?: number;
-    quality?: number; // 1 to 100 (defaults to 95 for pristine HD fidelity)
+    quality?: number; // 1 to 100 (defaults to 70 for performance budget)
     blur?: number;
     cropMode?: 'pad' | 'force' | 'maintain' | 'extract';
+    format?: string;
   } = {}
 ): string {
   if (!path) return '';
@@ -70,32 +58,35 @@ export function getOptimizedShowroomUrl(
   const lowerPath = path.toLowerCase().split('?')[0];
   const isVideo = lowerPath.endsWith('.mp4') || lowerPath.endsWith('.mov') || lowerPath.endsWith('.webm') || lowerPath.endsWith('.m4v');
 
-  // If video asset, return pristine raw source without query strings to guarantee full native resolution playback
+  // If video asset, return pristine raw source without query strings
   if (isVideo) {
     return path.split('?')[0];
   }
 
-  // Enhance Unsplash image URLs for HD/4K display without compression artifacts
+  const quality = transformations.quality || 70;
+
+  // Enhance Unsplash image URLs with appropriate target widths and WebP auto formatting
   if (path.includes('images.unsplash.com')) {
     const baseUrl = path.split('?')[0];
-    const targetWidth = transformations.width ? Math.max(transformations.width, 2400) : 2400;
-    const targetQuality = transformations.quality || 95;
-    return `${baseUrl}?auto=format&fit=crop&q=${targetQuality}&w=${targetWidth}`;
+    const targetWidth = transformations.width || 800;
+    return `${baseUrl}?auto=format&fit=crop&q=${quality}&w=${targetWidth}`;
   }
 
   // Handle full ImageKit URLs (e.g. https://ik.imagekit.io/...)
-  if (path.includes('ik.imagekit.io') || path.startsWith('http://') || path.startsWith('https://')) {
-    if (path.includes('ik.imagekit.io')) {
-      const baseUrl = path.split('?')[0];
-      const trParams: string[] = [];
-      if (transformations.width) trParams.push(`w-${transformations.width}`);
-      if (transformations.height) trParams.push(`h-${transformations.height}`);
-      trParams.push(`q-${transformations.quality || 95}`);
-      if (transformations.blur) trParams.push(`bl-${transformations.blur}`);
-      if (transformations.cropMode) trParams.push(`cm-${transformations.cropMode}`);
-      trParams.push('f-auto');
-      return `${baseUrl}?tr=${trParams.join(',')}`;
-    }
+  if (path.includes('ik.imagekit.io')) {
+    const baseUrl = path.split('?')[0];
+    const trParams: string[] = [];
+    if (transformations.width) trParams.push(`w-${transformations.width}`);
+    if (transformations.height) trParams.push(`h-${transformations.height}`);
+    trParams.push(`q-${quality}`);
+    if (transformations.blur) trParams.push(`bl-${transformations.blur}`);
+    if (transformations.cropMode) trParams.push(`cm-${transformations.cropMode}`);
+    trParams.push('f-auto');
+    return `${baseUrl}?tr=${trParams.join(',')}`;
+  }
+
+  // Other full URLs (e.g. cdn-icons, flaticon, external CDNs)
+  if (path.startsWith('http://') || path.startsWith('https://')) {
     return path;
   }
 
@@ -109,11 +100,26 @@ export function getOptimizedShowroomUrl(
   const trParams: string[] = [];
   if (transformations.width) trParams.push(`w-${transformations.width}`);
   if (transformations.height) trParams.push(`h-${transformations.height}`);
-  trParams.push(`q-${transformations.quality || 95}`);
+  trParams.push(`q-${quality}`);
   if (transformations.blur) trParams.push(`bl-${transformations.blur}`);
   if (transformations.cropMode) trParams.push(`cm-${transformations.cropMode}`);
   trParams.push('f-auto');
 
   const queryParam = trParams.length > 0 ? `?tr=${trParams.join(',')}` : '';
   return `${endpoint}/${cleanPath}${queryParam}`;
+}
+
+/**
+ * Builds a responsive srcset string across standard breakpoints [400, 800, 1200, 1600]
+ */
+export function buildResponsiveSrcSet(
+  url: string,
+  widths: number[] = [400, 800, 1200, 1600],
+  quality: number = 70
+): string {
+  if (!url || url.startsWith('data:') || url.startsWith('blob:')) return '';
+
+  return widths
+    .map((w) => `${getOptimizedShowroomUrl(url, { width: w, quality })} ${w}w`)
+    .join(', ');
 }

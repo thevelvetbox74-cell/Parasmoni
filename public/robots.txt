@@ -1,0 +1,7 @@
+# User-agent rules for parasmoni.in
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /admin/*
+
+Sitemap: https://parasmoni.in/sitemap.xml

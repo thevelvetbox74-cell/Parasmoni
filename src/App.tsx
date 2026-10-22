@@ -33,25 +33,27 @@ function ConditionalFooter(): React.JSX.Element | null {
 }
 import { BottomNavigation } from './components/BottomNavigation';
 import { MobileSplashVideo } from './components/MobileSplashVideo';
-import { MobileAppInstallModal } from './components/MobileAppInstallModal';
 import { OfflineIndicator } from './components/OfflineIndicator';
 import { MetalPriceBar } from './components/ShowroomComponents';
 import { mockMetalPrices } from './data/mockData';
 import { Home } from './pages/Home';
-import { Catalog } from './pages/Catalog';
-import { ProductDetails } from './pages/ProductDetails';
-import { Stores } from './pages/Stores';
-import { Contact } from './pages/Contact';
-import { CustomPage } from './pages/CustomPage';
-import { Wishlist } from './pages/Wishlist';
-import { Profile } from './pages/Profile';
-import { AdminLayout } from './admin/AdminLayout';
 import { db, isFirebaseConfigured } from './firebase/config';
 import { collection, onSnapshot } from 'firebase/firestore';
 import { WebsiteSettingsProvider } from './context/WebsiteSettingsContext';
+import { getCachedData, setCachedData } from './utils/cacheHelper';
+
+// Route-based code splitting to shrink main bundle and eliminate TBT
+const Catalog = React.lazy(() => import('./pages/Catalog').then(m => ({ default: (m as any).default || m.Catalog })));
+const ProductDetails = React.lazy(() => import('./pages/ProductDetails').then(m => ({ default: (m as any).default || m.ProductDetails })));
+const Stores = React.lazy(() => import('./pages/Stores').then(m => ({ default: (m as any).default || m.Stores })));
+const Contact = React.lazy(() => import('./pages/Contact').then(m => ({ default: (m as any).default || m.Contact })));
+const CustomPage = React.lazy(() => import('./pages/CustomPage').then(m => ({ default: (m as any).default || m.CustomPage })));
+const Wishlist = React.lazy(() => import('./pages/Wishlist').then(m => ({ default: (m as any).default || m.Wishlist })));
+const Profile = React.lazy(() => import('./pages/Profile').then(m => ({ default: (m as any).default || m.Profile })));
+const AdminLayout = React.lazy(() => import('./admin/AdminLayout').then(m => ({ default: (m as any).default || m.AdminLayout })));
 
 export default function App(): React.JSX.Element {
-  const [metalPrices, setMetalPrices] = useState<any[]>([]);
+  const [metalPrices, setMetalPrices] = useState<any[]>(() => getCachedData('home_metal_prices', mockMetalPrices));
   
   useEffect(() => {
     if (!isFirebaseConfigured) {
@@ -114,6 +116,7 @@ export default function App(): React.JSX.Element {
       
       items.sort((a, b) => a.displayOrder - b.displayOrder);
       setMetalPrices(items);
+      setCachedData('home_metal_prices', items);
     }, (error) => {
       console.error('Error fetching live metal prices for App Bar:', error);
       setMetalPrices(mockMetalPrices);
@@ -134,31 +137,33 @@ export default function App(): React.JSX.Element {
                 <>
                   <MobileSplashVideo />
                   <OfflineIndicator />
-                  <div className="hidden lg:block">
+                  <div className="hidden lg:block min-h-[33px]">
                     <MetalPriceBar prices={metalPrices} />
                   </div>
                   <Navigation />
                   <div className="flex-1 pb-20 md:pb-0">
-                    <Routes>
-                      <Route path="/" element={<Home />} />
-                      <Route path="/catalog" element={<Catalog />} />
-                      <Route path="/collections" element={<Catalog />} />
-                      <Route path="/collections/:slug" element={<Catalog />} />
-                      <Route path="/category/:slug" element={<Catalog />} />
-                      <Route path="/jewellery" element={<Catalog />} />
-                      <Route path="/product/:slug" element={<ProductDetails />} />
-                      <Route path="/products/:slug" element={<ProductDetails />} />
-                      <Route path="/stores" element={<Stores />} />
-                      <Route path="/our-stores" element={<Stores />} />
-                      <Route path="/contact" element={<Contact />} />
-                      <Route path="/inquire" element={<Contact />} />
-                      <Route path="/wishlist" element={<Wishlist />} />
-                      <Route path="/profile" element={<Profile />} />
-                      <Route path="/pages/:slug" element={<CustomPage />} />
-                      <Route path="/pages" element={<Home />} />
-                      {/* Fallback redirection to home */}
-                      <Route path="*" element={<Home />} />
-                    </Routes>
+                    <React.Suspense fallback={<div className="min-h-[70vh] bg-stone-50" />}>
+                      <Routes>
+                        <Route path="/" element={<Home />} />
+                        <Route path="/catalog" element={<Catalog />} />
+                        <Route path="/collections" element={<Catalog />} />
+                        <Route path="/collections/:slug" element={<Catalog />} />
+                        <Route path="/category/:slug" element={<Catalog />} />
+                        <Route path="/jewellery" element={<Catalog />} />
+                        <Route path="/product/:slug" element={<ProductDetails />} />
+                        <Route path="/products/:slug" element={<ProductDetails />} />
+                        <Route path="/stores" element={<Stores />} />
+                        <Route path="/our-stores" element={<Stores />} />
+                        <Route path="/contact" element={<Contact />} />
+                        <Route path="/inquire" element={<Contact />} />
+                        <Route path="/wishlist" element={<Wishlist />} />
+                        <Route path="/profile" element={<Profile />} />
+                        <Route path="/pages/:slug" element={<CustomPage />} />
+                        <Route path="/pages" element={<Home />} />
+                        {/* Fallback redirection to home */}
+                        <Route path="*" element={<Home />} />
+                      </Routes>
+                    </React.Suspense>
                   </div>
                   <ConditionalFooter />
                   <BottomNavigation />
@@ -170,7 +175,8 @@ export default function App(): React.JSX.Element {
             <Route
               path="/admin/*"
               element={
-                <AdminLayout>
+                <React.Suspense fallback={<div className="min-h-screen bg-stone-900" />}>
+                  <AdminLayout>
                   <div className="text-stone-700" id="admin-cms-placeholder">
                     <p className="text-sm font-medium mb-4 text-stone-500 uppercase tracking-wider">
                       Showroom Catalogue Management
@@ -194,8 +200,9 @@ export default function App(): React.JSX.Element {
                     </div>
                   </div>
                 </AdminLayout>
-              }
-            />
+              </React.Suspense>
+            }
+          />
           </Routes>
         </div>
       </BrowserRouter>

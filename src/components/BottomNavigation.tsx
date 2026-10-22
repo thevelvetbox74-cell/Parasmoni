@@ -16,7 +16,10 @@ import {
 } from 'lucide-react';
 import { useWebsiteSettings } from '../context/WebsiteSettingsContext';
 import { getWishlist } from '../utils/wishlistHelper';
-import { CustomerLiveChatModal } from './CustomerLiveChatModal';
+
+const CustomerLiveChatModal = React.lazy(() => 
+  import('./CustomerLiveChatModal').then(m => ({ default: m.CustomerLiveChatModal }))
+);
 
 export function BottomNavigation(): React.JSX.Element | null {
   const location = useLocation();
@@ -189,11 +192,15 @@ export function BottomNavigation(): React.JSX.Element | null {
 
       </div>
 
-      {/* Live Customer Chat Modal Drawer */}
-      <CustomerLiveChatModal 
-        isOpen={isChatOpen} 
-        onClose={() => setIsChatOpen(false)} 
-      />
+      {/* Live Customer Chat Modal Drawer (Loaded on-demand to protect initial TBT) */}
+      {isChatOpen && (
+        <React.Suspense fallback={null}>
+          <CustomerLiveChatModal 
+            isOpen={isChatOpen} 
+            onClose={() => setIsChatOpen(false)} 
+          />
+        </React.Suspense>
+      )}
     </div>
   );
 }

@@ -48,6 +48,9 @@ import {
   WhatsAppButton
 } from '../components/ShowroomComponents';
 import { getOptimizedShowroomUrl } from '../imagekit/client';
+import { OptimizedImage } from '../components/OptimizedImage';
+import { ProductGridSkeleton, BannerSkeleton } from '../components/Skeletons';
+import { getCachedData, setCachedData } from '../utils/cacheHelper';
 import { 
   mockBanners, 
   mockMetalPrices, 
@@ -493,11 +496,15 @@ const AboutCollectionSection = ({ content = {} }: { content: any }) => {
             style={{ borderColor: archBorderColor }}
           >
             <div className="w-full h-full rounded-t-full overflow-hidden relative">
-              <img 
-                src={getOptimizedShowroomUrl(image1) || image1} 
-                alt="About Collection Main" 
+              <OptimizedImage 
+                src={image1} 
+                alt="Parasmoni Jewellery Legacy Collection" 
+                width={400}
+                height={560}
+                aspectRatio="3/4.2"
+                quality={70}
+                sizes="(max-width: 768px) 50vw, 30vw"
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
-                referrerPolicy="no-referrer"
               />
             </div>
 
@@ -507,11 +514,15 @@ const AboutCollectionSection = ({ content = {} }: { content: any }) => {
               style={{ borderColor: archBorderColor }}
             >
               <div className="w-full h-full rounded-t-full overflow-hidden relative">
-                <img 
-                  src={getOptimizedShowroomUrl(image2) || image2} 
-                  alt="About Collection Sub" 
+                <OptimizedImage 
+                  src={image2} 
+                  alt="Parasmoni Jewellery Handcrafted Artistry" 
+                  width={200}
+                  height={260}
+                  aspectRatio="3/4"
+                  quality={70}
+                  sizes="(max-width: 768px) 25vw, 15vw"
                   className="w-full h-full object-cover group-hover/sub:scale-105 transition-transform duration-500"
-                  referrerPolicy="no-referrer"
                 />
               </div>
             </div>
@@ -879,30 +890,30 @@ export function Home({
   const currentSections = pageSectionsProp || sectionsOverride || pageSections;
   const currentLoadingSections = pageSectionsProp !== undefined ? (loadingSectionsProp ?? false) : loadingSections;
 
-  // Real-time & Loaded States
-  const [banners, setBanners] = useState<any[]>([]);
-  const [metalPrices, setMetalPrices] = useState<any[]>([]);
-  const [collections, setCollections] = useState<any[]>([]);
-  const [categories, setCategories] = useState<any[]>([]);
+  // Real-time & Loaded States (Stale-While-Revalidate with zero initial shift)
+  const [banners, setBanners] = useState<any[]>(() => getCachedData('home_banners', mockBanners));
+  const [metalPrices, setMetalPrices] = useState<any[]>(() => getCachedData('home_metal_prices', mockMetalPrices));
+  const [collections, setCollections] = useState<any[]>(() => getCachedData('home_collections', mockCollections));
+  const [categories, setCategories] = useState<any[]>(() => getCachedData('home_categories', DEFAULT_CATEGORIES_MOCK));
   const [allProducts, setAllProducts] = useState<any[]>([]);
-  const [featuredProducts, setFeaturedProducts] = useState<any[]>([]);
-  const [newArrivalProducts, setNewArrivalProducts] = useState<any[]>([]);
-  const [stores, setStores] = useState<any[]>([]);
+  const [featuredProducts, setFeaturedProducts] = useState<any[]>(() => getCachedData('home_featured', mockProducts.filter(p => p.isPopular)));
+  const [newArrivalProducts, setNewArrivalProducts] = useState<any[]>(() => getCachedData('home_new_arrivals', mockProducts.filter(p => !p.isPopular)));
+  const [stores, setStores] = useState<any[]>(() => getCachedData('home_stores', mockStores));
   const [currentStoreIdx, setCurrentStoreIdx] = useState(0);
   const [isBoutiqueInteracting, setIsBoutiqueInteracting] = useState(false);
-  const [testimonials, setTestimonials] = useState<any[]>([]);
+  const [testimonials, setTestimonials] = useState<any[]>(() => getCachedData('home_testimonials', defaultMockTestimonials));
   const [currentTestimonialIdx, setCurrentTestimonialIdx] = useState(0);
   const [isTestimonialsInteracting, setIsTestimonialsInteracting] = useState(false);
 
-  // Load Status tracking
-  const [loadingBanners, setLoadingBanners] = useState(isFirebaseConfigured);
-  const [loadingPrices, setLoadingPrices] = useState(isFirebaseConfigured);
-  const [loadingCollections, setLoadingCollections] = useState(isFirebaseConfigured);
-  const [loadingCategories, setLoadingCategories] = useState(isFirebaseConfigured);
-  const [loadingFeatured, setLoadingFeatured] = useState(isFirebaseConfigured);
-  const [loadingNewArrivals, setLoadingNewArrivals] = useState(isFirebaseConfigured);
-  const [loadingStores, setLoadingStores] = useState(isFirebaseConfigured);
-  const [loadingTestimonials, setLoadingTestimonials] = useState(isFirebaseConfigured);
+  // Load Status tracking - false if cached data exists
+  const [loadingBanners, setLoadingBanners] = useState(false);
+  const [loadingPrices, setLoadingPrices] = useState(false);
+  const [loadingCollections, setLoadingCollections] = useState(false);
+  const [loadingCategories, setLoadingCategories] = useState(false);
+  const [loadingFeatured, setLoadingFeatured] = useState(false);
+  const [loadingNewArrivals, setLoadingNewArrivals] = useState(false);
+  const [loadingStores, setLoadingStores] = useState(false);
+  const [loadingTestimonials, setLoadingTestimonials] = useState(false);
 
   // Last update tracker
   const [lastUpdatedPrice, setLastUpdatedPrice] = useState<string>('');
@@ -1001,6 +1012,7 @@ export function Home({
 
         if (items.length > 0) {
           setBanners(items);
+          setCachedData('home_banners', items);
         } else {
           setBanners(mockBanners); // Fallback if database is active but empty
         }
@@ -1065,6 +1077,7 @@ export function Home({
         }
 
         setMetalPrices(items);
+        setCachedData('home_metal_prices', items);
         setLoadingPrices(false);
       } catch (err) {
         handleFirestoreError(err, OperationType.LIST, 'metalPrices');
@@ -1101,6 +1114,7 @@ export function Home({
 
         if (items.length > 0) {
           setCollections(items);
+          setCachedData('home_collections', items);
         } else {
           setCollections(mockCollections);
         }
@@ -1151,8 +1165,12 @@ export function Home({
 
         if (items.length > 0) {
           setAllProducts(items);
-          setFeaturedProducts(items.filter(p => p.featured));
-          setNewArrivalProducts(items.filter(p => p.newArrival));
+          const featured = items.filter(p => p.featured);
+          const newArr = items.filter(p => p.newArrival);
+          setFeaturedProducts(featured);
+          setNewArrivalProducts(newArr);
+          setCachedData('home_featured', featured);
+          setCachedData('home_new_arrivals', newArr);
         } else {
           // If Firestore exists but is unpopulated, fallback to mock data
           setAllProducts(mockProducts);

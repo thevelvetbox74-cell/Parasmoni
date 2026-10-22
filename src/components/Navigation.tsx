@@ -260,7 +260,10 @@ export function Navigation({
             <img 
               src={settings.logoUrl || undefined} 
               alt={`${settings.brandName} Logo`} 
-              className="h-10 w-auto object-contain"
+              width={40}
+              height={40}
+              className="h-10 w-10 object-contain shrink-0"
+              style={{ aspectRatio: '1/1' }}
               referrerPolicy="no-referrer"
             />
             <div className="flex flex-col">

@@ -5,16 +5,23 @@
  */
 
 import express from 'express';
+import http from 'http';
 import path from 'path';
 import crypto from 'crypto';
 import dotenv from 'dotenv';
 import { createServer as createViteServer } from 'vite';
+
+// Ensure globalThis.__dirname is not set to '.' by tsx, which breaks ESM packages
+if ('__dirname' in globalThis && (globalThis as any).__dirname === '.') {
+  delete (globalThis as any).__dirname;
+}
 
 // Load environment variables from .env
 dotenv.config();
 
 async function startServer() {
   const app = express();
+  const httpServer = http.createServer(app);
   const PORT = 3000;
 
   // Middleware
@@ -98,7 +105,10 @@ async function startServer() {
   // Integrate Vite Dev Server Middleware or Serve Built Production Bundle
   if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({
-      server: { middlewareMode: true },
+      server: {
+        middlewareMode: true,
+        hmr: process.env.DISABLE_HMR === 'true' ? false : { server: httpServer }
+      },
       appType: 'spa',
     });
     app.use(vite.middlewares);
@@ -113,7 +123,7 @@ async function startServer() {
   }
 
   // Bind to port 3000 and interface 0.0.0.0 as required by the environment
-  app.listen(PORT, '0.0.0.0', () => {
+  httpServer.listen(PORT, '0.0.0.0', () => {
     console.log(`[SERVER START] Parasmoni Jewellers core active at http://localhost:${PORT}`);
   });
 }
