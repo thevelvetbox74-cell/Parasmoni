@@ -1300,7 +1300,7 @@ function UpScrollPrice({ value }: { value: string }): React.JSX.Element {
   );
 }
 
-export function MetalPriceCard({ price }: MetalPriceCardProps): React.JSX.Element {
+export const MetalPriceCard = React.memo(function MetalPriceCard({ price }: MetalPriceCardProps): React.JSX.Element {
   const isUp = price.change >= 0;
 
   return (
@@ -1335,7 +1335,7 @@ export function MetalPriceCard({ price }: MetalPriceCardProps): React.JSX.Elemen
       </div>
     </div>
   );
-}
+});
 
 // ==========================================
 // 6. Collection Card & Store Card
@@ -1346,7 +1346,7 @@ interface CollectionCardProps {
   collection: Collection;
 }
 
-export function CollectionCard({ collection }: CollectionCardProps): React.JSX.Element {
+export const CollectionCard = React.memo(function CollectionCard({ collection }: CollectionCardProps): React.JSX.Element {
   const isMobileWidth = typeof window !== 'undefined' ? window.innerWidth < 768 : false;
   const targetWidth = isMobileWidth ? 200 : 400;
   const optimizedUrl = ikUrl(collection.imageUrl, targetWidth, 60) || getOptimizedShowroomUrl(collection.imageUrl, { width: targetWidth, height: targetWidth });
@@ -1400,14 +1400,14 @@ export function CollectionCard({ collection }: CollectionCardProps): React.JSX.E
       </div>
     </Link>
   );
-}
+});
 
 interface StoreCardProps {
   key?: string | number;
   store: StoreLocation;
 }
 
-export function StoreCard({ store }: StoreCardProps): React.JSX.Element {
+export const StoreCard = React.memo(function StoreCard({ store }: StoreCardProps): React.JSX.Element {
   const optimizedUrl = getOptimizedShowroomUrl(store.imageUrl, { width: 500, height: 350 });
 
   return (
@@ -1490,4 +1490,4 @@ export function StoreCard({ store }: StoreCardProps): React.JSX.Element {
       </div>
     </div>
   );
-}
+});

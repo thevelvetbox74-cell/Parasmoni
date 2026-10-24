@@ -6,18 +6,16 @@
   },
   "entries": [
     {
-      "identifier": "urn:ai:parasmoni.in:knowledge:llms-txt",
-      "displayName": "Parasmoni Jewellers & Brothers website guide (llms.txt)",
-      "type": "text/plain",
+      "identifier": "urn:air:parasmoni.in:knowledge:llms-txt",
+      "displayName": "Parasmoni Jewellers & Brothers website guide",
+      "type": "text/markdown",
       "url": "https://parasmoni.in/llms.txt",
-      "description": "Plain-text index of the main pages and collections of the Parasmoni Jewellers & Brothers online jewellery catalogue."
-    },
-    {
-      "identifier": "urn:ai:parasmoni.in:knowledge:sitemap",
-      "displayName": "Parasmoni Jewellers & Brothers sitemap",
-      "type": "application/xml",
-      "url": "https://parasmoni.in/sitemap.xml",
-      "description": "XML sitemap of all public pages and product categories for Parasmoni Jewellers & Brothers."
+      "description": "Markdown index of the main pages and collections of the Parasmoni Jewellers & Brothers online jewellery catalogue.",
+      "representativeQueries": [
+        "What gold and diamond jewellery collections does Parasmoni Jewellers offer?",
+        "How do I contact Parasmoni Jewellers or book a Bowbazar showroom appointment?",
+        "Are all gold jewellery items at Parasmoni certified and 22K BIS hallmarked?"
+      ]
     }
   ]
 }
