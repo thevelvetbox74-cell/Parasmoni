@@ -37,11 +37,11 @@ export function ProductGridSkeleton({ count = 4 }: { count?: number }): React.JS
 
 export function BannerSkeleton(): React.JSX.Element {
   return (
-    <div className="w-full aspect-[14/9] md:aspect-[18/7] max-h-[540px] bg-stone-900 rounded-xl md:rounded-2xl border border-stone-800 animate-pulse relative overflow-hidden flex items-center px-6 md:px-16">
+    <div className="w-full aspect-[14/9] md:aspect-[18/7] max-h-[540px] bg-stone-100 rounded-xl md:rounded-2xl border border-stone-200 animate-pulse relative overflow-hidden flex items-center px-6 md:px-16">
       <div className="space-y-3 max-w-lg">
-        <div className="h-6 md:h-10 bg-stone-800 rounded-lg w-3/4" />
-        <div className="h-3 md:h-4 bg-stone-800/80 rounded w-full" />
-        <div className="h-8 md:h-11 bg-stone-800 rounded-md w-1/3 mt-4" />
+        <div className="h-6 md:h-10 bg-stone-200 rounded-lg w-3/4" />
+        <div className="h-3 md:h-4 bg-stone-200/80 rounded w-full" />
+        <div className="h-8 md:h-11 bg-stone-200 rounded-md w-1/3 mt-4" />
       </div>
     </div>
   );

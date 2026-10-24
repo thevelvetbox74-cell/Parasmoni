@@ -696,7 +696,7 @@ export function BannerSlider({ banners }: BannerSliderProps): React.JSX.Element 
     }
   }, [transitionEnabled]);
 
-  if (banners.length === 0) return <div className="h-[400px] bg-stone-950" />;
+  if (banners.length === 0) return <div className="h-[400px] bg-white" />;
 
   const handlePrev = () => {
     if (!hasMultiple) return;
@@ -761,7 +761,7 @@ export function BannerSlider({ banners }: BannerSliderProps): React.JSX.Element 
 
   return (
     <div 
-      className="relative w-full overflow-hidden bg-white pt-0 pb-6 md:pb-12 border-b border-stone-100 select-none" 
+      className="relative w-full overflow-hidden bg-stone-50 pt-0 pb-6 md:pb-12 select-none" 
       id="showroom-banner-slider"
       onMouseEnter={() => setIsInteracting(true)}
       onMouseLeave={() => {
@@ -821,13 +821,13 @@ export function BannerSlider({ banners }: BannerSliderProps): React.JSX.Element 
               className={`flex-shrink-0 aspect-[14/9] md:aspect-[18/7] w-full h-auto relative px-1.5 md:px-3.5 transition-all duration-700 ease-out select-none ${
                 isActive 
                   ? 'scale-100 z-10 opacity-100' 
-                  : 'scale-95 z-0 opacity-40 brightness-50 hover:opacity-60 hover:brightness-75 cursor-pointer'
+                  : 'scale-95 z-0 opacity-50 hover:opacity-75 cursor-pointer'
               }`}
               style={{ width: `${slideWidth}%` }}
               id={`slide-card-${banner.id}-${index}`}
             >
               {/* Nested rounded container matching luxury brand guidelines */}
-              <div className="w-full h-full relative rounded-xl md:rounded-2xl overflow-hidden shadow-2xl border border-stone-200/60 bg-stone-950">
+              <div className="w-full h-full relative rounded-xl md:rounded-2xl overflow-hidden shadow-2xl border border-stone-200/60 bg-white">
                 {/* Media Layer (Video or Image) */}
                 {hasVideo ? (
                   <video

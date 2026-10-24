@@ -1686,7 +1686,7 @@ function GoldRateCapsulePill({ metalPrices }: { metalPrices: any[] }): React.JSX
       : banners;
 
     return (
-      <div id="home-hero-banner-carousel" className="w-full relative pt-2 pb-1 space-y-2">
+      <div id="home-hero-banner-carousel" className="w-full relative pt-2 pb-1 space-y-2 bg-stone-50">
         <BannerSlider banners={activeBanners} />
         {/* Capsule Pill Gold Rate Bar - Visible strictly in Web App / Mobile View only */}
         <div className="block lg:hidden">
