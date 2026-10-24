@@ -114,7 +114,7 @@
       <p>
         You are currently offline or experiencing a weak network connection. Previously viewed jewellery masterpieces and gold prices remain available in your cache.
       </p>
-      <button class="btn" onclick="window.location.reload()">
+      <button class="btn" onclick="handleReconnect()">
         Try Reconnecting
       </button>
       <a class="btn btn-outline" href="tel:+913322419876">
@@ -124,5 +124,26 @@
         Parasmoni Jewellers &amp; Brothers &bull; Estd. 1974
       </div>
     </div>
+    <script>
+      function handleReconnect() {
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.getRegistrations().then(function(registrations) {
+            for (var reg of registrations) {
+              reg.update();
+            }
+          });
+        }
+        window.location.reload();
+      }
+      // If user comes back online or landed here by accident, automatically refresh to load the real SPA
+      window.addEventListener('online', function() {
+        handleReconnect();
+      });
+      if (navigator.onLine) {
+        setTimeout(function() {
+          handleReconnect();
+        }, 800);
+      }
+    </script>
   </body>
 </html>

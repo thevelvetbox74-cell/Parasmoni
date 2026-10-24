@@ -46,8 +46,10 @@ export default defineConfig(() => {
         workbox: {
           maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5MB
           globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2,jpg,jpeg,webp}'],
-          navigateFallback: '/offline.html',
-          navigateFallbackDenylist: [/^\/api\//],
+          navigateFallback: '/index.html',
+          navigateFallbackDenylist: [/^\/api\//, /^\/offline\.html$/],
+          skipWaiting: true,
+          clientsClaim: true,
           runtimeCaching: [
             {
               // ImageKit media (product photos, banners, showroom assets)

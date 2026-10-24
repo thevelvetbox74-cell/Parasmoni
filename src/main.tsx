@@ -5,10 +5,11 @@ import App from './App.tsx';
 import './index.css';
 
 // Automatically register service worker for instant App Shell and media caching
-registerSW({
+const updateSW = registerSW({
   immediate: true,
   onNeedRefresh() {
     console.log('Parasmoni App: New content available, updating background cache...');
+    updateSW(true);
   },
   onOfflineReady() {
     console.log('Parasmoni App: App Shell and assets are cached for offline/fast load.');
