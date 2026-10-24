@@ -37,8 +37,6 @@ import { OfflineIndicator } from './components/OfflineIndicator';
 import { MetalPriceBar } from './components/ShowroomComponents';
 import { mockMetalPrices } from './data/mockData';
 import { Home } from './pages/Home';
-import { db, isFirebaseConfigured } from './firebase/config';
-import { collection, onSnapshot } from 'firebase/firestore';
 import { WebsiteSettingsProvider } from './context/WebsiteSettingsContext';
 import { getCachedData, setCachedData } from './utils/cacheHelper';
 
@@ -56,73 +54,91 @@ export default function App(): React.JSX.Element {
   const [metalPrices, setMetalPrices] = useState<any[]>(() => getCachedData('home_metal_prices', mockMetalPrices));
   
   useEffect(() => {
-    if (!isFirebaseConfigured) {
-      // Local storage fallback for seamless developer/offline experience
-      const localStored = localStorage.getItem('local_metal_prices');
-      if (localStored) {
-        try {
-          const parsed = JSON.parse(localStored);
-          const mapped = parsed
-            .map((p: any) => {
-              const basePrice = Number(p.price || p.pricePerGram || 0);
-              return {
-                id: p.id,
-                metal: p.metalName || p.metal || '',
-                pricePerGram: basePrice,
-                lowPrice: p.lowPrice !== undefined ? Number(p.lowPrice) : (basePrice > 0 ? Math.floor(basePrice * 0.98) : 0),
-                highPrice: p.highPrice !== undefined ? Number(p.highPrice) : (basePrice > 0 ? Math.ceil(basePrice * 1.02) : 0),
-                change: Number(p.change || 0),
-                unit: p.unit || '1g',
-                status: p.status || 'active',
-                displayOrder: typeof p.displayOrder === 'number' ? p.displayOrder : 9999
-              };
-            })
-            .filter((p: any) => p.status === 'active');
-          mapped.sort((a: any, b: any) => a.displayOrder - b.displayOrder);
-          setMetalPrices(mapped);
-        } catch (e) {
-          setMetalPrices(mockMetalPrices);
-        }
-      } else {
-        setMetalPrices(mockMetalPrices);
-      }
-      return;
+    // 1. Initial cached/local metal prices are applied immediately
+    const localStored = typeof localStorage !== 'undefined' ? localStorage.getItem('local_metal_prices') : null;
+    if (localStored) {
+      try {
+        const parsed = JSON.parse(localStored);
+        const mapped = parsed
+          .map((p: any) => {
+            const basePrice = Number(p.price || p.pricePerGram || 0);
+            return {
+              id: p.id,
+              metal: p.metalName || p.metal || '',
+              pricePerGram: basePrice,
+              lowPrice: p.lowPrice !== undefined ? Number(p.lowPrice) : (basePrice > 0 ? Math.floor(basePrice * 0.98) : 0),
+              highPrice: p.highPrice !== undefined ? Number(p.highPrice) : (basePrice > 0 ? Math.ceil(basePrice * 1.02) : 0),
+              change: Number(p.change || 0),
+              unit: p.unit || '1g',
+              status: p.status || 'active',
+              displayOrder: typeof p.displayOrder === 'number' ? p.displayOrder : 9999
+            };
+          })
+          .filter((p: any) => p.status === 'active');
+        mapped.sort((a: any, b: any) => a.displayOrder - b.displayOrder);
+        setMetalPrices(mapped);
+      } catch (e) {}
     }
 
-    const pricesRef = collection(db, 'metalPrices');
-    const unsubscribe = onSnapshot(pricesRef, (snapshot) => {
-      if (snapshot.empty) {
-        setMetalPrices(mockMetalPrices);
-        return;
+    // 2. Defer live Firebase subscription until after first paint & idle
+    let unsubscribe: (() => void) | undefined;
+    let isCancelled = false;
+
+    const setupLivePrices = async () => {
+      // Defer execution until after initial render paint
+      if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+        await new Promise(resolve => (window as any).requestIdleCallback(resolve, { timeout: 1500 }));
+      } else {
+        await new Promise(resolve => setTimeout(resolve, 600));
       }
+      if (isCancelled) return;
 
-      const items = snapshot.docs
-        .map(doc => {
-          const data = doc.data();
-          const basePrice = Number(data.price || data.pricePerGram || data.ratePerGram || 0);
-          return {
-            id: doc.id,
-            metal: data.metal || data.metalType || data.metalName || '',
-            pricePerGram: basePrice,
-            lowPrice: data.lowPrice !== undefined ? Number(data.lowPrice) : (basePrice > 0 ? Math.floor(basePrice * 0.98) : 0),
-            highPrice: data.highPrice !== undefined ? Number(data.highPrice) : (basePrice > 0 ? Math.ceil(basePrice * 1.02) : 0),
-            change: Number(data.change || 0),
-            unit: data.unit || '1g',
-            status: data.status || 'active',
-            displayOrder: typeof data.displayOrder === 'number' ? data.displayOrder : 9999
-          };
-        })
-        .filter(p => p.status === 'active');
-      
-      items.sort((a, b) => a.displayOrder - b.displayOrder);
-      setMetalPrices(items);
-      setCachedData('home_metal_prices', items);
-    }, (error) => {
-      console.error('Error fetching live metal prices for App Bar:', error);
-      setMetalPrices(mockMetalPrices);
-    });
+      try {
+        const { db, isFirebaseConfigured } = await import('./firebase/config');
+        if (!isFirebaseConfigured || !db) return;
 
-    return () => unsubscribe();
+        const { collection, onSnapshot } = await import('firebase/firestore');
+        if (isCancelled) return;
+
+        const pricesRef = collection(db, 'metalPrices');
+        unsubscribe = onSnapshot(pricesRef, (snapshot) => {
+          if (snapshot.empty) return;
+
+          const items = snapshot.docs
+            .map(doc => {
+              const data = doc.data();
+              const basePrice = Number(data.price || data.pricePerGram || data.ratePerGram || 0);
+              return {
+                id: doc.id,
+                metal: data.metal || data.metalType || data.metalName || '',
+                pricePerGram: basePrice,
+                lowPrice: data.lowPrice !== undefined ? Number(data.lowPrice) : (basePrice > 0 ? Math.floor(basePrice * 0.98) : 0),
+                highPrice: data.highPrice !== undefined ? Number(data.highPrice) : (basePrice > 0 ? Math.ceil(basePrice * 1.02) : 0),
+                change: Number(data.change || 0),
+                unit: data.unit || '1g',
+                status: data.status || 'active',
+                displayOrder: typeof data.displayOrder === 'number' ? data.displayOrder : 9999
+              };
+            })
+            .filter(p => p.status === 'active');
+
+          items.sort((a, b) => a.displayOrder - b.displayOrder);
+          setMetalPrices(items);
+          setCachedData('home_metal_prices', items);
+        }, (error) => {
+          console.error('Error fetching live metal prices for App Bar:', error);
+        });
+      } catch (err) {
+        console.warn('Deferred Firebase initialization notice:', err);
+      }
+    };
+
+    setupLivePrices();
+
+    return () => {
+      isCancelled = true;
+      if (unsubscribe) unsubscribe();
+    };
   }, []);
 
   return (

@@ -68,17 +68,19 @@ export function BottomNavigation(): React.JSX.Element | null {
   }
 
   return (
-    <div 
+    <nav 
       className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/98 backdrop-blur-lg border-t border-stone-200/80 rounded-t-[30px] shadow-[0_-8px_30px_rgba(0,0,0,0.08)] px-3 pt-3 pb-[calc(10px+env(safe-area-inset-bottom))] transition-all duration-300"
       id="mobile-bottom-navigation"
+      aria-label="Mobile Navigation"
     >
       <div className="max-w-md mx-auto flex items-center justify-around">
         
         {/* 1. HOME TAB */}
         <Link 
           to="/" 
-          className="flex flex-col items-center justify-center relative w-16 group cursor-pointer"
+          className="flex flex-col items-center justify-center relative w-16 group cursor-pointer min-h-[48px]"
           id="nav-tab-home"
+          aria-label="Home"
         >
           <div className="flex flex-col items-center transition-transform duration-200 active:scale-95">
             <Home className={`w-6 h-6 transition-colors ${isHomeActive ? activeIconColor : inactiveIconColor}`} />
@@ -98,8 +100,9 @@ export function BottomNavigation(): React.JSX.Element | null {
         {/* 2. CATEGORIES TAB */}
         <Link 
           to="/catalog" 
-          className="flex flex-col items-center justify-center relative w-16 group cursor-pointer"
+          className="flex flex-col items-center justify-center relative w-16 group cursor-pointer min-h-[48px]"
           id="nav-tab-categories"
+          aria-label="Category"
         >
           <div className="flex flex-col items-center transition-transform duration-200 active:scale-95">
             <LayoutGrid className={`w-6 h-6 transition-colors ${isCategoryActive ? activeIconColor : inactiveIconColor}`} />
@@ -119,8 +122,9 @@ export function BottomNavigation(): React.JSX.Element | null {
         {/* 3. PROFILE TAB */}
         <Link 
           to="/profile" 
-          className="flex flex-col items-center justify-center relative w-16 group cursor-pointer"
+          className="flex flex-col items-center justify-center relative w-16 group cursor-pointer min-h-[48px]"
           id="nav-tab-profile"
+          aria-label="Profile"
         >
           <div className="flex flex-col items-center transition-transform duration-200 active:scale-95">
             <User className={`w-6 h-6 transition-colors ${isProfileActive ? activeIconColor : inactiveIconColor}`} />
@@ -141,8 +145,9 @@ export function BottomNavigation(): React.JSX.Element | null {
         <button 
           type="button"
           onClick={() => setIsChatOpen(true)}
-          className="flex flex-col items-center justify-center relative w-16 group cursor-pointer border-none bg-transparent"
+          className="flex flex-col items-center justify-center relative w-16 group cursor-pointer border-none bg-transparent min-h-[48px]"
           id="nav-tab-message"
+          aria-label="Message Customer Support"
         >
           <div className="flex flex-col items-center transition-transform duration-200 active:scale-95">
             <div className="relative">
@@ -165,8 +170,9 @@ export function BottomNavigation(): React.JSX.Element | null {
         {/* 5. WISHLIST TAB */}
         <Link 
           to="/wishlist" 
-          className="flex flex-col items-center justify-center relative w-16 group cursor-pointer"
+          className="flex flex-col items-center justify-center relative w-16 group cursor-pointer min-h-[48px]"
           id="nav-tab-wishlist"
+          aria-label="Wishlist"
         >
           <div className="flex flex-col items-center transition-transform duration-200 active:scale-95">
             <div className="relative">
@@ -201,6 +207,6 @@ export function BottomNavigation(): React.JSX.Element | null {
           />
         </React.Suspense>
       )}
-    </div>
+    </nav>
   );
 }

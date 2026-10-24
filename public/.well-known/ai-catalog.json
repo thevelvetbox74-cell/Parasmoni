@@ -1,0 +1,23 @@
+{
+  "specVersion": "1.0",
+  "host": {
+    "displayName": "Parasmoni Jewellers & Brothers",
+    "identifier": "parasmoni.in"
+  },
+  "entries": [
+    {
+      "identifier": "urn:ai:parasmoni.in:knowledge:llms-txt",
+      "displayName": "Parasmoni Jewellers & Brothers website guide (llms.txt)",
+      "type": "text/plain",
+      "url": "https://parasmoni.in/llms.txt",
+      "description": "Plain-text index of the main pages and collections of the Parasmoni Jewellers & Brothers online jewellery catalogue."
+    },
+    {
+      "identifier": "urn:ai:parasmoni.in:knowledge:sitemap",
+      "displayName": "Parasmoni Jewellers & Brothers sitemap",
+      "type": "application/xml",
+      "url": "https://parasmoni.in/sitemap.xml",
+      "description": "XML sitemap of all public pages and product categories for Parasmoni Jewellers & Brothers."
+    }
+  ]
+}

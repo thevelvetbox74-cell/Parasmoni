@@ -1,0 +1,17 @@
+# Parasmoni Jewellers & Brothers
+
+> Established in 1974 in Bowbazar, Kolkata. Parasmoni Jewellers offers handcrafted BIS hallmarked 22K gold, certified solitaires, polki, and heritage jewellery.
+
+## Main pages
+- [Home](https://parasmoni.in/): Official online showroom for handcrafted 22K gold, certified diamonds, polki, and heritage jewellery.
+- [Catalog](https://parasmoni.in/catalog): Browse handcrafted gold necklaces, earrings, bangles, rings, and bridal collections.
+- [Stores](https://parasmoni.in/stores): Visit our flagship Bowbazar showroom in Kolkata with address, timings, and directions.
+
+## Collections
+- [Collections](https://parasmoni.in/collections): Explore royal bridal, antique gold, polki, and contemporary diamond collections.
+
+## Contact
+- [Contact](https://parasmoni.in/contact): Get in touch with our master artisans, inquire on WhatsApp, or book a private showroom appointment.
+
+## Optional
+- [Sitemap](https://parasmoni.in/sitemap.xml): Complete XML sitemap of all public pages and jewellery categories.

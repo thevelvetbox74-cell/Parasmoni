@@ -1,6 +1,8 @@
 # User-agent rules for parasmoni.in
 User-agent: *
 Allow: /
+Allow: /llms.txt
+Allow: /.well-known/
 Disallow: /admin
 Disallow: /admin/*
 

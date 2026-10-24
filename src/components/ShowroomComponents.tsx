@@ -1347,7 +1347,9 @@ interface CollectionCardProps {
 }
 
 export function CollectionCard({ collection }: CollectionCardProps): React.JSX.Element {
-  const optimizedUrl = getOptimizedShowroomUrl(collection.imageUrl, { width: 400, height: 400 });
+  const isMobileWidth = typeof window !== 'undefined' ? window.innerWidth < 768 : false;
+  const targetWidth = isMobileWidth ? 200 : 400;
+  const optimizedUrl = ikUrl(collection.imageUrl, targetWidth, 60) || getOptimizedShowroomUrl(collection.imageUrl, { width: targetWidth, height: targetWidth });
 
   return (
     <Link 
@@ -1371,12 +1373,13 @@ export function CollectionCard({ collection }: CollectionCardProps): React.JSX.E
         />
       ) : (
         <OptimizedImage 
-          src={optimizedUrl || "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&q=70&w=400"} 
+          src={optimizedUrl || "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&q=60&w=200"} 
           alt={collection.name}
-          width={400}
-          height={300}
+          width={targetWidth}
+          height={Math.round(targetWidth * 0.75)}
           aspectRatio="4/3"
-          quality={70}
+          quality={60}
+          widths={[160, 200, 320, 400]}
           sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
           className="transform transition-transform duration-700 group-hover:scale-105 opacity-80"
         />

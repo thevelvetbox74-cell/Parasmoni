@@ -22,7 +22,24 @@
 [functions]
   directory = "netlify/functions"
 
-# 1. Immutable Long-Term Caching for Hashed Static Assets (1 Year)
+# 1. Agentic Browsing Headers
+[[headers]]
+  for = "/.well-known/ai-catalog.json"
+  [headers.values]
+    Content-Type = "application/json; charset=utf-8"
+    Cache-Control = "public, max-age=3600"
+    Access-Control-Allow-Origin = "*"
+    X-Content-Type-Options = "nosniff"
+
+[[headers]]
+  for = "/llms.txt"
+  [headers.values]
+    Content-Type = "text/plain; charset=utf-8"
+    Cache-Control = "public, max-age=3600"
+    Access-Control-Allow-Origin = "*"
+    X-Content-Type-Options = "nosniff"
+
+# 2. Immutable Long-Term Caching for Hashed Static Build Assets (1 Year)
 [[headers]]
   for = "/assets/*"
   [headers.values]
@@ -30,7 +47,7 @@
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
 
-# 2. Revalidation for HTML Entry Point
+# 3. Revalidation for HTML Entry Point & Root
 [[headers]]
   for = "/index.html"
   [headers.values]
@@ -38,7 +55,6 @@
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
 
-# 3. Revalidation for Root Route
 [[headers]]
   for = "/"
   [headers.values]
@@ -46,7 +62,7 @@
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
 
-# 4. Long-Term Caching for Static Images & Fonts (1 Year)
+# 4. Long-Term Caching for Static Images, Fonts, Scripts, Styles & Videos (1 Year)
 [[headers]]
   for = "/*.webp"
   [headers.values]
@@ -98,7 +114,7 @@
     Cache-Control = "public, max-age=86400"
     X-Content-Type-Options = "nosniff"
 
-# 5. Global Security Headers for All Routes (Safe, No CSP to avoid breaking Firebase/ImageKit)
+# 5. Global Security Headers for All Routes
 [[headers]]
   for = "/*"
   [headers.values]

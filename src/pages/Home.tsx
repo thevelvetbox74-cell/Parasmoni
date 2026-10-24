@@ -1791,7 +1791,7 @@ function GoldRateCapsulePill({ metalPrices }: { metalPrices: any[] }): React.JSX
               {/* MOBILE / WEB APP VIEW ONLY (100% Exact match to 2nd uploaded image) */}
               <div className="block md:hidden" id="mobile-categories-grid">
                 <div className="grid grid-cols-4 gap-x-2.5 gap-y-3.5 px-0.5 py-1">
-                  {displayCategories.map((cat) => {
+                  {displayCategories.map((cat, catIdx) => {
                     const itemLink = cat.linkedCollectionSlug 
                       ? `/collections/${cat.linkedCollectionSlug}` 
                       : `/category/${cat.slug || cat.id}`;
@@ -1824,13 +1824,15 @@ function GoldRateCapsulePill({ metalPrices }: { metalPrices: any[] }): React.JSX
                               }
                               return (
                                 <img
-                                  src={ikUrl(cat.imageUrl, 240, 70) || cat.imageUrl}
+                                  src={ikUrl(cat.imageUrl, 200, 60) || cat.imageUrl}
                                   alt={cat.customTitle || cat.name}
                                   referrerPolicy="no-referrer"
-                                  loading="lazy"
+                                  loading={catIdx < 4 ? 'eager' : 'lazy'}
+                                  fetchPriority={catIdx < 4 ? 'high' : 'auto'}
                                   decoding="async"
                                   width={100}
                                   height={100}
+                                  style={{ aspectRatio: '1/1' }}
                                   className="w-full h-full object-cover rounded-2xl"
                                 />
                               );
@@ -1921,13 +1923,14 @@ function GoldRateCapsulePill({ metalPrices }: { metalPrices: any[] }): React.JSX
                             }
                             return (
                               <img
-                                src={ikUrl(cat.imageUrl, 480, 70) || cat.imageUrl}
+                                src={ikUrl(cat.imageUrl, 480, 65) || cat.imageUrl}
                                 alt={cat.name}
                                 referrerPolicy="no-referrer"
                                 loading="lazy"
                                 decoding="async"
                                 width={240}
                                 height={320}
+                                style={{ aspectRatio: settings.categoryShowcaseLayout === 'single' ? '3/4' : '4/3' }}
                                 className="w-full h-full object-cover group-hover/tile:scale-105 transition-transform duration-500"
                               />
                             );

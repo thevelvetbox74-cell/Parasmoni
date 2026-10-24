@@ -389,7 +389,7 @@ export function Navigation({
           {/* Search Button */}
           <button 
             onClick={() => setSearchBarOpen(!searchBarOpen)}
-            className="min-w-[44px] min-h-[44px] flex items-center justify-center text-white/90 hover:text-white transition-colors cursor-pointer"
+            className="min-w-[48px] min-h-[48px] flex items-center justify-center text-white/90 hover:text-white transition-colors cursor-pointer"
             aria-label="Search Catalog"
             id="search-btn-toggle"
           >
@@ -399,7 +399,7 @@ export function Navigation({
           {/* Desktop/Tablet Wishlist Heart Icon - Visible on Desktop/Website view, Hidden on Mobile/Web App view */}
           <Link 
             to="/wishlist"
-            className="hidden md:flex min-w-[44px] min-h-[44px] items-center justify-center text-white/90 hover:text-white transition-colors cursor-pointer relative"
+            className="hidden md:flex min-w-[48px] min-h-[48px] items-center justify-center text-white/90 hover:text-white transition-colors cursor-pointer relative"
             aria-label="Wishlist"
             id="header-wishlist-btn"
           >
@@ -414,7 +414,7 @@ export function Navigation({
           {/* Store Locator Icon replacing Shopping Bag */}
           <button 
             onClick={() => setStorePanelOpen(!storePanelOpen)}
-            className="min-w-[44px] min-h-[44px] flex items-center justify-center text-white/90 hover:text-white transition-colors cursor-pointer relative"
+            className="min-w-[48px] min-h-[48px] flex items-center justify-center text-white/90 hover:text-white transition-colors cursor-pointer relative"
             aria-label="Find Our Stores"
             id="store-locator-btn-toggle"
           >
@@ -433,7 +433,7 @@ export function Navigation({
           {/* Mobile Hamburger Toggle */}
           <button 
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="xl:hidden min-w-[44px] min-h-[44px] flex items-center justify-center text-white/90 hover:text-white transition-colors cursor-pointer"
+            className="xl:hidden min-w-[48px] min-h-[48px] flex items-center justify-center text-white/90 hover:text-white transition-colors cursor-pointer"
             aria-label="Toggle Menu"
             id="mobile-menu-btn"
           >
