@@ -26,6 +26,8 @@ import { calculateProductPrice } from '../utils/calculateProductPrice';
 import { collection, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { isProductWishlisted, toggleWishlist } from '../utils/wishlistHelper';
+import { ikUrl } from '../utils/imagekit';
+import { cacheHeroBannerUrl } from '../utils/cacheHelper';
 
 // Global cache for metal prices to avoid duplicate listeners across many product cards
 let globalMetalPricesListeners: ((prices: any[]) => void)[] = [];
@@ -233,7 +235,7 @@ interface ProductCardProps {
   whatsappTemplate?: string;
 }
 
-export function ProductCard({ 
+export const ProductCard = React.memo(function ProductCard({ 
   product, 
   whatsappNumber,
   whatsappTemplate = "Hello Parasmoni Jewellers, I am highly interested in the following masterpiece:\n\n*Name*: {NAME}\n*SKU*: {SKU}\n*Weight*: {WEIGHT}\n\nPlease share design details and pricing."
@@ -389,7 +391,8 @@ export function ProductCard({
             width={400}
             height={400}
             aspectRatio="1/1"
-            quality={70}
+            quality={75}
+            widths={[320, 480, 640]}
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
             className="transition-transform duration-500 group-hover:scale-102"
           />
@@ -456,7 +459,7 @@ export function ProductCard({
       </div>
     </div>
   );
-}
+});
 
 interface ProductGridProps {
   products: Product[];
@@ -633,6 +636,18 @@ export function BannerSlider({ banners }: BannerSliderProps): React.JSX.Element 
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  // Cache the primary hero banner image URL to localStorage for instant LCP preload on subsequent visits
+  useEffect(() => {
+    if (banners && banners.length > 0) {
+      const firstBanner = banners[0];
+      const raw = (window.innerWidth < 768 && firstBanner.mobileImage) ? firstBanner.mobileImage : (firstBanner.desktopImage || firstBanner.image);
+      if (raw) {
+        const transformed = ikUrl(raw, window.innerWidth < 768 ? 768 : 1200, 80);
+        cacheHeroBannerUrl(transformed || raw);
+      }
+    }
+  }, [banners]);
 
   const hasMultiple = banners.length > 1;
 
@@ -831,14 +846,15 @@ export function BannerSlider({ banners }: BannerSliderProps): React.JSX.Element 
                   />
                 ) : (
                   <OptimizedImage
-                    src={displayImage}
+                    src={banner.image || banner.desktopImage || banner.mobileImage || displayImage}
                     alt={banner.title || 'Parasmoni Jewellery Hero Banner'}
                     width={1200}
                     height={540}
                     aspectRatio={isMobile ? '14/9' : '18/7'}
                     priority={isActive && index === virtualIndex}
-                    quality={75}
-                    sizes="(max-width: 768px) 85vw, 75vw"
+                    quality={80}
+                    widths={[480, 768, 1200, 1920]}
+                    sizes="100vw"
                     className={`transition-transform duration-[6000ms] ease-out ${
                       isActive ? 'scale-102' : 'scale-100'
                     }`}

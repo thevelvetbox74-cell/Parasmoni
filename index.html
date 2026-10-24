@@ -33,22 +33,56 @@
     <meta name="twitter:image" content="https://ik.imagekit.io/ugm0ru2xm/parasmoni/branding/JEWLLERS___GRAND_BROTHERS__6__5ekGzNryJ.png" />
     <link rel="canonical" href="https://parasmoni.in/" />
 
-    <!-- Performance Resource Preconnects -->
+    <!-- Performance Resource Preconnects & DNS-Prefetch -->
     <link rel="preconnect" href="https://ik.imagekit.io" crossorigin />
+    <link rel="dns-prefetch" href="https://ik.imagekit.io" />
+    <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin />
+    <link rel="dns-prefetch" href="https://firestore.googleapis.com" />
     <link rel="preconnect" href="https://images.unsplash.com" crossorigin />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin />
 
-    <!-- LCP Hero Image Preload with responsive srcset and high fetchpriority -->
-    <link 
-      rel="preload" 
-      as="image" 
-      href="https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&q=70&w=1200"
-      imagesrcset="https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&q=70&w=400 400w, https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&q=70&w=800 800w, https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&q=70&w=1200 1200w"
-      imagesizes="(max-width: 768px) 85vw, 75vw"
-      fetchpriority="high" 
-    />
+    <!-- Critical CSS for Instant Zero-CLS Paint & Space Reservation -->
+    <style>
+      html, body {
+        background-color: #fdfcf7;
+        color: #1c1917;
+        margin: 0;
+        padding: 0;
+        min-height: 100vh;
+      }
+      #root {
+        background-color: #fdfcf7;
+        min-height: 100vh;
+        width: 100%;
+      }
+      #main-navigation {
+        min-height: 56px;
+      }
+      #showroom-banner-slider {
+        min-height: 240px;
+        background-color: #0c0a09;
+      }
+      @media (min-width: 768px) {
+        #showroom-banner-slider {
+          min-height: 380px;
+        }
+      }
+    </style>
+
+    <!-- Dynamic & Static LCP Hero Image Preload -->
+    <script>
+      try {
+        var cachedHero = localStorage.getItem('pm_hero_banner_url');
+        var heroUrl = cachedHero || 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&q=80&w=1200';
+        var link = document.createElement('link');
+        link.rel = 'preload';
+        link.as = 'image';
+        link.fetchPriority = 'high';
+        link.href = heroUrl;
+        document.head.appendChild(link);
+      } catch (e) {}
+    </script>
 
     <!-- Google Fonts: Non-blocking async load with font-display: swap for minimal TBT -->
     <link 
@@ -127,43 +161,7 @@
     </script>
   </head>
   <body>
-    <!-- Crawlable Semantic HTML for Search Engines, Bots & First Paint -->
-    <div id="root">
-      <main style="padding: 24px; font-family: sans-serif; max-width: 1200px; margin: 0 auto; line-height: 1.6;">
-        <header style="text-align: center; margin-bottom: 32px;">
-          <h1 style="font-size: 26px; color: #1c1917; margin-bottom: 8px;">
-            Parasmoni Jewellers &amp; Brothers | Handcrafted Gold &amp; Diamond Masterpieces Since 1974
-          </h1>
-          <p style="font-size: 15px; color: #57524d; max-width: 720px; margin: 0 auto;">
-            Established in 1974 in historic Bowbazar, Kolkata. Explore BIS Hallmarked 22K sovereign gold, certified solitaires, royal polki, antique filigree, and bridal chokers.
-          </p>
-        </header>
-
-        <section style="margin-bottom: 32px;">
-          <h2 style="font-size: 20px; color: #1c1917; margin-bottom: 12px; border-bottom: 1px solid #e7e5e4; padding-bottom: 8px;">
-            Signature Jewellery Collections
-          </h2>
-          <ul style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; list-style: none; padding: 0;">
-            <li style="padding: 16px; background: #fafaf9; border: 1px solid #e7e5e4; border-radius: 8px;">
-              <strong style="color: #991b1b; display: block; margin-bottom: 4px;">Royal Kundan &amp; Polki</strong>
-              <span style="font-size: 13px; color: #78716c;">Sovereign-grade hand-set gemstones surrounded by fine 22K gold foil.</span>
-            </li>
-            <li style="padding: 16px; background: #fafaf9; border: 1px solid #e7e5e4; border-radius: 8px;">
-              <strong style="color: #991b1b; display: block; margin-bottom: 4px;">Heritage Nakashi Filigree</strong>
-              <span style="font-size: 13px; color: #78716c;">Intricate wirework and embossed motifs hammered by Kolkata master artisans.</span>
-            </li>
-            <li style="padding: 16px; background: #fafaf9; border: 1px solid #e7e5e4; border-radius: 8px;">
-              <strong style="color: #991b1b; display: block; margin-bottom: 4px;">Certified Solitaire Diamonds</strong>
-              <span style="font-size: 13px; color: #78716c;">IGI certified natural diamonds selected with optical clarity and symmetry.</span>
-            </li>
-          </ul>
-        </section>
-
-        <footer style="margin-top: 40px; text-align: center; font-size: 13px; color: #78716c;">
-          <p>Parasmoni Jewellers &amp; Brothers • Bowbazar, Kolkata, West Bengal • Since 1974</p>
-        </footer>
-      </main>
-    </div>
+    <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

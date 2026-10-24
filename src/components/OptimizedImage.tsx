@@ -5,17 +5,18 @@
  */
 
 import React, { useState } from 'react';
-import { getOptimizedShowroomUrl, buildResponsiveSrcSet } from '../imagekit/client';
+import { ikUrl, ikSrcSet } from '../utils/imagekit';
 
-export interface OptimizedImageProps extends React.HTMLAttributes<HTMLImageElement> {
+export interface OptimizedImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   src: string;
   alt: string;
   width?: number | string;
   height?: number | string;
   aspectRatio?: string; // e.g. "1/1", "4/3", "16/9", "14/9", "18/7"
   priority?: boolean; // For LCP elements
-  quality?: number; // Defaults to 70 for mobile performance (<40KB thumbnails, <100KB hero)
+  quality?: number; // Defaults to 75 for products, 80 for hero
   sizes?: string; // Responsive sizes attribute
+  widths?: number[]; // Custom responsive widths array
   className?: string;
   wrapperClassName?: string;
   objectFit?: 'cover' | 'contain' | 'fill' | 'none';
@@ -32,8 +33,9 @@ export function OptimizedImage({
   height,
   aspectRatio,
   priority = false,
-  quality = 70,
+  quality = 75,
   sizes = '(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw',
+  widths,
   className = '',
   wrapperClassName = '',
   objectFit = 'cover',
@@ -50,15 +52,15 @@ export function OptimizedImage({
 
   // Derive target primary width
   const numericWidth = typeof width === 'number' ? width : (width ? parseInt(width, 10) : 800);
-  const optimizedPrimaryUrl = getOptimizedShowroomUrl(effectiveSrc, {
-    width: numericWidth || 800,
-    quality
-  });
+  
+  // Transform primary URL with ImageKit helper
+  const optimizedPrimaryUrl = ikUrl(effectiveSrc, numericWidth || 800, quality) || effectiveSrc;
 
-  // Generate responsive srcset
-  const responsiveSrcSet = buildResponsiveSrcSet(effectiveSrc, [400, 800, 1200, 1600], quality);
+  // Responsive srcset calculation
+  const targetWidths = widths || (priority ? [480, 768, 1200, 1920] : [320, 480, 640]);
+  const responsiveSrcSet = ikSrcSet(effectiveSrc, targetWidths, quality);
 
-  // Aspect ratio calculation for style
+  // Aspect ratio wrapper calculation to prevent CLS
   const wrapperStyle: React.CSSProperties = {
     position: 'relative',
     overflow: 'hidden',
@@ -100,3 +102,5 @@ export function OptimizedImage({
     </div>
   );
 }
+
+export default OptimizedImage;

@@ -683,7 +683,8 @@ Product Link: ${currentUrl}`;
                           width={80}
                           height={80}
                           aspectRatio="1/1"
-                          quality={65}
+                          quality={75}
+                          widths={[120, 200]}
                           sizes="80px"
                           className="w-full h-full object-cover"
                         />
@@ -713,6 +714,7 @@ Product Link: ${currentUrl}`;
                     aspectRatio="1/1"
                     priority={true}
                     quality={75}
+                    widths={[640, 960, 1280]}
                     objectFit="contain"
                     sizes="(max-width: 1024px) 100vw, 50vw"
                     className="p-2"

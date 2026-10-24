@@ -125,22 +125,22 @@ export default defineConfig(() => {
       minify: 'esbuild',
       cssCodeSplit: true,
       sourcemap: false,
-      chunkSizeWarningLimit: 800,
+      chunkSizeWarningLimit: 600,
       rollupOptions: {
         output: {
           manualChunks: (id) => {
             if (id.includes('node_modules')) {
               if (id.includes('firebase')) {
-                return 'vendor-firebase';
+                return 'firebase';
               }
-              if (id.includes('framer-motion') || id.includes('motion')) {
+              if (id.includes('react-router-dom') || id.includes('/react/') || id.includes('/react-dom/')) {
+                return 'react-vendor';
+              }
+              if (id.includes('framer-motion') || id.includes('/motion/')) {
                 return 'vendor-motion';
               }
               if (id.includes('lucide-react')) {
                 return 'vendor-icons';
-              }
-              if (id.includes('react') || id.includes('react-dom') || id.includes('react-router-dom')) {
-                return 'vendor-react';
               }
             }
           }

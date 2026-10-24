@@ -1,6 +1,7 @@
 /**
  * @license
  * SPDX-License-Identifier: Apache-2.0
+ * Parasmoni Jewellers - Modular Firebase Integration Configuration
  */
 
 import { initializeApp, getApps, getApp } from 'firebase/app';
@@ -9,9 +10,7 @@ import {
   initializeFirestore, 
   getFirestore, 
   persistentLocalCache, 
-  persistentMultipleTabManager,
-  enableMultiTabIndexedDbPersistence,
-  enableIndexedDbPersistence 
+  persistentMultipleTabManager 
 } from 'firebase/firestore';
 
 const env = (typeof import.meta !== 'undefined' && import.meta.env) ? import.meta.env : {} as Record<string, string | undefined>;
@@ -29,7 +28,7 @@ const firebaseConfig = {
 // Robust check to see if Firebase environment variables are defined
 export const isFirebaseConfigured = !!(firebaseConfig.apiKey && firebaseConfig.projectId);
 
-let app;
+let app: any = null;
 let db: any = null;
 let auth: any = null;
 

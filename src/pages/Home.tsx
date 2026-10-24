@@ -70,6 +70,7 @@ import {
   where, 
   getDocs, 
   orderBy, 
+  limit,
   Timestamp,
   doc,
   setDoc
@@ -1133,7 +1134,8 @@ export function Home({
         const productsRef = collection(db, 'products');
         const q = query(
           productsRef, 
-          where('status', '==', 'published')
+          where('status', '==', 'published'),
+          limit(24)
         );
         const snapshot = await getDocs(q);
         
