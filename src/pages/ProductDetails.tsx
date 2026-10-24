@@ -1066,9 +1066,13 @@ Product Link: ${currentUrl}`;
                       className="bg-white border border-stone-200/80 rounded-2xl p-2.5 shadow-2xs group hover:shadow-md transition-all block font-sans"
                     >
                       <div className="aspect-square rounded-xl bg-stone-100 overflow-hidden mb-2">
-                        <img 
-                          src={getOptimizedShowroomUrl(relP.imageUrl, { width: 300, height: 300 })} 
+                        <OptimizedImage 
+                          src={relP.imageUrl} 
                           alt={relP.name}
+                          widths={[240, 360, 480]}
+                          sizes="(max-width: 768px) 50vw, 20vw"
+                          quality={70}
+                          loading="lazy"
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         />
                       </div>

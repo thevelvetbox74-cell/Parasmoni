@@ -46,6 +46,8 @@ export default defineConfig(() => {
         workbox: {
           maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5MB
           globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2,jpg,jpeg,webp}'],
+          navigateFallback: '/offline.html',
+          navigateFallbackDenylist: [/^\/api\//],
           runtimeCaching: [
             {
               // ImageKit media (product photos, banners, showroom assets)
@@ -54,7 +56,7 @@ export default defineConfig(() => {
               options: {
                 cacheName: 'imagekit-media-cache',
                 expiration: {
-                  maxEntries: 300,
+                  maxEntries: 60,
                   maxAgeSeconds: 30 * 24 * 60 * 60 // 30 days
                 },
                 cacheableResponse: {

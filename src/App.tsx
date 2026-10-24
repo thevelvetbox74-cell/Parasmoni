@@ -129,6 +129,12 @@ export default function App(): React.JSX.Element {
     <WebsiteSettingsProvider>
       <BrowserRouter>
         <div className="min-h-screen bg-stone-50 flex flex-col font-sans selection:bg-stone-200 selection:text-stone-900 w-full max-w-full overflow-x-clip" id="showroom-app-root">
+          <a 
+            href="#main-content" 
+            className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[999999] focus:bg-amber-600 focus:text-white focus:px-4 focus:py-2 focus:rounded-md focus:font-semibold focus:shadow-lg"
+          >
+            Skip to content
+          </a>
           <Routes>
             {/* Public Showroom Catalog Routes */}
             <Route
@@ -141,7 +147,7 @@ export default function App(): React.JSX.Element {
                     <MetalPriceBar prices={metalPrices} />
                   </div>
                   <Navigation />
-                  <div className="flex-1 pb-20 md:pb-0">
+                  <main id="main-content" tabIndex={-1} className="flex-1 pb-20 md:pb-0 outline-none">
                     <React.Suspense fallback={<div className="min-h-[70vh] bg-stone-50" />}>
                       <Routes>
                         <Route path="/" element={<Home />} />
@@ -164,7 +170,7 @@ export default function App(): React.JSX.Element {
                         <Route path="*" element={<Home />} />
                       </Routes>
                     </React.Suspense>
-                  </div>
+                  </main>
                   <ConditionalFooter />
                   <BottomNavigation />
                 </>

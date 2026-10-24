@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "in.parasmoni.app",
+      "sha256_cert_fingerprints": [
+        "14:6D:E9:7D:0F:52:AB:CA:83:B0:9C:BF:19:D2:FD:7F:50:87:69:B1:6F:7E:55:52:A0:F6:17:F1:C9:87:72:75"
+      ]
+    }
+  }
+]

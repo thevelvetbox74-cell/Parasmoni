@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#E31C24" />
+    <title>Parasmoni Jewellers — Offline Mode</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        background-color: #fafaf9;
+        color: #1c1917;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        text-align: center;
+      }
+      .card {
+        background: #ffffff;
+        border: 1px solid #e7e5e4;
+        border-radius: 24px;
+        padding: 36px 28px;
+        max-width: 420px;
+        width: 100%;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+      }
+      .logo {
+        width: 64px;
+        height: 64px;
+        margin: 0 auto 20px;
+        border-radius: 16px;
+        object-fit: contain;
+      }
+      .tag {
+        display: inline-block;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: #b45309;
+        background: #fef3c7;
+        padding: 4px 10px;
+        border-radius: 6px;
+        margin-bottom: 12px;
+      }
+      h1 {
+        font-family: Georgia, serif;
+        font-size: 22px;
+        font-weight: 700;
+        color: #1c1917;
+        margin-bottom: 10px;
+        line-height: 1.3;
+      }
+      p {
+        font-size: 13px;
+        line-height: 1.6;
+        color: #78716c;
+        margin-bottom: 24px;
+      }
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        padding: 12px 20px;
+        background-color: #E31C24;
+        color: #ffffff;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        text-decoration: none;
+        transition: background-color 0.2s;
+        margin-bottom: 10px;
+      }
+      .btn:hover {
+        background-color: #c4141c;
+      }
+      .btn-outline {
+        background-color: transparent;
+        color: #44403c;
+        border: 1px solid #d6d3d1;
+      }
+      .btn-outline:hover {
+        background-color: #f5f5f4;
+      }
+      .footer-text {
+        font-size: 11px;
+        color: #a8a29e;
+        margin-top: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <img
+        class="logo"
+        src="https://ik.imagekit.io/ugm0ru2xm/parasmoni/branding/JEWLLERS___GRAND_BROTHERS__6__5ekGzNryJ.png?tr=w-128,q-70,f-auto"
+        alt="Parasmoni Jewellers"
+      />
+      <div class="tag">Showroom Offline Notice</div>
+      <h1>Connection Lost</h1>
+      <p>
+        You are currently offline or experiencing a weak network connection. Previously viewed jewellery masterpieces and gold prices remain available in your cache.
+      </p>
+      <button class="btn" onclick="window.location.reload()">
+        Try Reconnecting
+      </button>
+      <a class="btn btn-outline" href="tel:+913322419876">
+        Call Bowbazar Showroom
+      </a>
+      <div class="footer-text">
+        Parasmoni Jewellers &amp; Brothers &bull; Estd. 1974
+      </div>
+    </div>
+  </body>
+</html>

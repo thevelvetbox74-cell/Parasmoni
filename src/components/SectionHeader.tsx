@@ -62,7 +62,7 @@ export const SectionHeader: React.FC<SectionHeaderProps> = ({
         <p 
           style={subtitleStyle}
           className={`text-xs max-w-xl font-medium leading-relaxed ${
-            theme === 'dark' ? 'text-stone-400' : 'text-stone-500'
+            theme === 'dark' ? 'text-stone-400' : 'text-stone-600'
           }`}
         >
           {subtitle}

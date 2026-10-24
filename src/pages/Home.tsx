@@ -51,6 +51,8 @@ import { getOptimizedShowroomUrl } from '../imagekit/client';
 import { OptimizedImage } from '../components/OptimizedImage';
 import { ProductGridSkeleton, BannerSkeleton } from '../components/Skeletons';
 import { getCachedData, setCachedData } from '../utils/cacheHelper';
+import { defaultHeroSlide } from '../data/heroFallback';
+import { ikUrl } from '../utils/imagekit';
 import { 
   mockBanners, 
   mockMetalPrices, 
@@ -882,17 +884,17 @@ export function Home({
 }: HomeProps = {}): React.JSX.Element {
   const { settings } = useWebsiteSettings();
   
-  // Dynamic Section & SEO State
-  const [pageSections, setPageSections] = useState<any[]>([]);
+  // Dynamic Section & SEO State (pre-warmed from cache or defaults for zero CLS)
+  const [pageSections, setPageSections] = useState<any[]>(() => getCachedData('home_page_sections', DEFAULT_PAGE_SECTIONS));
   const [pageSeo, setPageSeo] = useState<any>(null);
-  const [loadingSections, setLoadingSections] = useState(true);
+  const [loadingSections, setLoadingSections] = useState(false);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
 
   const currentSections = pageSectionsProp || sectionsOverride || pageSections;
   const currentLoadingSections = pageSectionsProp !== undefined ? (loadingSectionsProp ?? false) : loadingSections;
 
   // Real-time & Loaded States (Stale-While-Revalidate with zero initial shift)
-  const [banners, setBanners] = useState<any[]>(() => getCachedData('home_banners', mockBanners));
+  const [banners, setBanners] = useState<any[]>(() => getCachedData('home_banners', [defaultHeroSlide, ...mockBanners.slice(1)]));
   const [metalPrices, setMetalPrices] = useState<any[]>(() => getCachedData('home_metal_prices', mockMetalPrices));
   const [collections, setCollections] = useState<any[]>(() => getCachedData('home_collections', mockCollections));
   const [categories, setCategories] = useState<any[]>(() => getCachedData('home_categories', DEFAULT_CATEGORIES_MOCK));
@@ -944,6 +946,7 @@ export function Home({
         const data = snapshot.data();
         if (data && Array.isArray(data.sections) && data.sections.length > 0) {
           setPageSections(data.sections);
+          setCachedData('home_page_sections', data.sections);
         } else {
           setPageSections(DEFAULT_PAGE_SECTIONS);
         }
@@ -2078,8 +2081,12 @@ function GoldRateCapsulePill({ metalPrices }: { metalPrices: any[] }): React.JSX
           >
             {test.reviewerPhotoUrl ? (
               <img 
-                src={test.reviewerPhotoUrl} 
+                src={ikUrl(test.reviewerPhotoUrl, 400, 70)} 
                 alt={test.reviewText || "Customer photo"} 
+                loading="lazy"
+                decoding="async"
+                width={400}
+                height={320}
                 className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
                 referrerPolicy="no-referrer"
               />
@@ -3841,6 +3848,10 @@ function GoldRateCapsulePill({ metalPrices }: { metalPrices: any[] }): React.JSX
             return (
               <div 
                 key={section.id ? `${section.id}-${index}` : `section-${index}`}
+                style={{
+                  contentVisibility: (!isBuilder && index > 1) ? 'auto' : undefined,
+                  containIntrinsicSize: (!isBuilder && index > 1) ? 'auto 500px' : undefined
+                }}
                 onClick={(e) => {
                   if (isBuilder) {
                     e.preventDefault();

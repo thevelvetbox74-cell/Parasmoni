@@ -26,6 +26,7 @@ import { db } from '../firebase/config';
 import { collection, getDocs, query } from 'firebase/firestore';
 import { mockWebsiteSettings } from '../data/mockSettings';
 import { getWishlist } from '../utils/wishlistHelper';
+import { PWAInstallButton } from './PWAInstallButton';
 
 export function Navigation({ 
   customNavItems, 
@@ -270,7 +271,7 @@ export function Navigation({
               <span className="font-display text-[11px] md:text-xs tracking-wider text-white font-bold leading-tight uppercase">
                 {settings.brandName.split('&')[0].trim()}
               </span>
-              <span className="text-[7px] md:text-[8px] text-stone-200 tracking-widest uppercase font-bold">
+              <span className="text-[7px] md:text-[8px] text-stone-100 tracking-widest uppercase font-bold">
                 {settings.brandName.includes('&') ? '& ' + settings.brandName.split('&').slice(1).join('&').trim() : 'JEWELLERS'}
               </span>
             </div>
@@ -384,11 +385,11 @@ export function Navigation({
         </nav>
 
         {/* Action Controls */}
-        <div className="flex items-center gap-2 sm:gap-4">
+        <div className="flex items-center gap-1 sm:gap-2">
           {/* Search Button */}
           <button 
             onClick={() => setSearchBarOpen(!searchBarOpen)}
-            className="p-2 text-white/90 hover:text-white transition-colors cursor-pointer"
+            className="min-w-[44px] min-h-[44px] flex items-center justify-center text-white/90 hover:text-white transition-colors cursor-pointer"
             aria-label="Search Catalog"
             id="search-btn-toggle"
           >
@@ -398,13 +399,13 @@ export function Navigation({
           {/* Desktop/Tablet Wishlist Heart Icon - Visible on Desktop/Website view, Hidden on Mobile/Web App view */}
           <Link 
             to="/wishlist"
-            className="hidden md:flex p-2 text-white/90 hover:text-white transition-colors cursor-pointer relative"
+            className="hidden md:flex min-w-[44px] min-h-[44px] items-center justify-center text-white/90 hover:text-white transition-colors cursor-pointer relative"
             aria-label="Wishlist"
             id="header-wishlist-btn"
           >
             <Heart className={`w-5 h-5 transition-all ${wishlistCount > 0 ? 'fill-white text-white scale-110' : ''}`} />
             {wishlistCount > 0 && (
-              <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white font-sans text-[8px] font-extrabold w-4 h-4 rounded-full border border-brand-red-600 flex items-center justify-center shadow-xs">
+              <span className="absolute top-1 right-1 bg-red-500 text-white font-sans text-[8px] font-extrabold w-4 h-4 rounded-full border border-brand-red-600 flex items-center justify-center shadow-xs">
                 {wishlistCount}
               </span>
             )}
@@ -413,7 +414,7 @@ export function Navigation({
           {/* Store Locator Icon replacing Shopping Bag */}
           <button 
             onClick={() => setStorePanelOpen(!storePanelOpen)}
-            className="p-2 text-white/90 hover:text-white transition-colors cursor-pointer relative"
+            className="min-w-[44px] min-h-[44px] flex items-center justify-center text-white/90 hover:text-white transition-colors cursor-pointer relative"
             aria-label="Find Our Stores"
             id="store-locator-btn-toggle"
           >
@@ -423,7 +424,7 @@ export function Navigation({
           {/* Desktop Contact CTA Button with Inverted Colors */}
           <Link 
             to="/contact" 
-            className="hidden md:flex h-8 px-3.5 bg-white hover:scale-[1.02] hover:shadow-md text-brand-red-600 border border-white text-[10px] font-bold tracking-widest uppercase transition-all duration-300 rounded items-center justify-center gap-1.5 cursor-pointer"
+            className="hidden md:flex h-9 px-4 bg-white hover:scale-[1.02] hover:shadow-md text-brand-red-600 border border-white text-[10px] font-bold tracking-widest uppercase transition-all duration-300 rounded items-center justify-center gap-1.5 cursor-pointer ml-1"
           >
             <Phone className="w-3 h-3 text-brand-red-600" />
             <span>CONTACT US</span>
@@ -432,7 +433,7 @@ export function Navigation({
           {/* Mobile Hamburger Toggle */}
           <button 
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="xl:hidden p-2 text-white/90 hover:text-white transition-colors cursor-pointer"
+            className="xl:hidden min-w-[44px] min-h-[44px] flex items-center justify-center text-white/90 hover:text-white transition-colors cursor-pointer"
             aria-label="Toggle Menu"
             id="mobile-menu-btn"
           >
@@ -679,7 +680,8 @@ export function Navigation({
             })}
           </div>
 
-          <div className="pt-4 border-t border-stone-100 space-y-4">
+          <div className="pt-4 border-t border-stone-100 space-y-3">
+            <PWAInstallButton className="w-full justify-center h-10" />
             <Link 
               to="/contact"
               onClick={() => setMobileMenuOpen(false)}

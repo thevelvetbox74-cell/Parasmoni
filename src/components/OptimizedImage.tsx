@@ -14,6 +14,7 @@ export interface OptimizedImageProps extends React.ImgHTMLAttributes<HTMLImageEl
   height?: number | string;
   aspectRatio?: string; // e.g. "1/1", "4/3", "16/9", "14/9", "18/7"
   priority?: boolean; // For LCP elements
+  loading?: 'lazy' | 'eager';
   quality?: number; // Defaults to 75 for products, 80 for hero
   sizes?: string; // Responsive sizes attribute
   widths?: number[]; // Custom responsive widths array
@@ -33,6 +34,7 @@ export function OptimizedImage({
   height,
   aspectRatio,
   priority = false,
+  loading: customLoading,
   quality = 75,
   sizes = '(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw',
   widths,
@@ -86,7 +88,7 @@ export function OptimizedImage({
         alt={alt}
         width={width}
         height={height}
-        loading={priority ? 'eager' : 'lazy'}
+        loading={customLoading || (priority ? 'eager' : 'lazy')}
         fetchPriority={priority ? 'high' : 'low'}
         decoding="async"
         referrerPolicy={referrerPolicy}

@@ -9,11 +9,12 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Parasmoni Jewellers & Brothers" />
     
-    <link rel="icon" type="image/png" sizes="192x192" href="https://ik.imagekit.io/ugm0ru2xm/parasmoni/branding/JEWLLERS___GRAND_BROTHERS__6__5ekGzNryJ.png" />
-    <link rel="icon" type="image/png" sizes="32x32" href="https://ik.imagekit.io/ugm0ru2xm/parasmoni/branding/JEWLLERS___GRAND_BROTHERS__6__5ekGzNryJ.png" />
-    <link rel="icon" type="image/png" sizes="16x16" href="https://ik.imagekit.io/ugm0ru2xm/parasmoni/branding/JEWLLERS___GRAND_BROTHERS__6__5ekGzNryJ.png" />
-    <link rel="shortcut icon" href="https://ik.imagekit.io/ugm0ru2xm/parasmoni/branding/JEWLLERS___GRAND_BROTHERS__6__5ekGzNryJ.png" />
-    <link rel="apple-touch-icon" sizes="180x180" href="https://ik.imagekit.io/ugm0ru2xm/parasmoni/branding/JEWLLERS___GRAND_BROTHERS__6__5ekGzNryJ.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="https://ik.imagekit.io/ugm0ru2xm/parasmoni/branding/JEWLLERS___GRAND_BROTHERS__6__5ekGzNryJ.png?tr=w-192,q-70,f-auto" />
+    <link rel="icon" type="image/png" sizes="32x32" href="https://ik.imagekit.io/ugm0ru2xm/parasmoni/branding/JEWLLERS___GRAND_BROTHERS__6__5ekGzNryJ.png?tr=w-32,q-70,f-auto" />
+    <link rel="icon" type="image/png" sizes="16x16" href="https://ik.imagekit.io/ugm0ru2xm/parasmoni/branding/JEWLLERS___GRAND_BROTHERS__6__5ekGzNryJ.png?tr=w-16,q-70,f-auto" />
+    <link rel="shortcut icon" href="https://ik.imagekit.io/ugm0ru2xm/parasmoni/branding/JEWLLERS___GRAND_BROTHERS__6__5ekGzNryJ.png?tr=w-32,q-70,f-auto" />
+    <link rel="apple-touch-icon" sizes="180x180" href="https://ik.imagekit.io/ugm0ru2xm/parasmoni/branding/JEWLLERS___GRAND_BROTHERS__6__5ekGzNryJ.png?tr=w-180,q-70,f-auto" />
+    <link rel="manifest" href="/manifest.webmanifest" />
     
     <title>Parasmoni Jewellers & Brothers | Handcrafted Gold & Diamonds Since 1974</title>
     <meta name="description" content="Established in 1974 in Bowbazar, Kolkata. Parasmoni Jewellers offers handcrafted BIS hallmarked 22K gold, certified solitaires, polki, and heritage jewellery." />
@@ -24,28 +25,24 @@
     <meta property="og:site_name" content="Parasmoni Jewellers & Brothers" />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://parasmoni.in/" />
-    <meta property="og:image" content="https://ik.imagekit.io/ugm0ru2xm/parasmoni/branding/JEWLLERS___GRAND_BROTHERS__6__5ekGzNryJ.png" />
+    <meta property="og:image" content="https://ik.imagekit.io/ugm0ru2xm/parasmoni/branding/JEWLLERS___GRAND_BROTHERS__6__5ekGzNryJ.png?tr=w-1200,q-70,f-auto" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Parasmoni Jewellers & Brothers" />
     <meta name="twitter:description" content="Handcrafted gold and diamond jewellery masterworks since 1974." />
-    <meta name="twitter:image" content="https://ik.imagekit.io/ugm0ru2xm/parasmoni/branding/JEWLLERS___GRAND_BROTHERS__6__5ekGzNryJ.png" />
+    <meta name="twitter:image" content="https://ik.imagekit.io/ugm0ru2xm/parasmoni/branding/JEWLLERS___GRAND_BROTHERS__6__5ekGzNryJ.png?tr=w-1200,q-70,f-auto" />
     <link rel="canonical" href="https://parasmoni.in/" />
 
-    <!-- Performance Resource Preconnects & DNS-Prefetch -->
+    <!-- Performance Resource Preconnects (Strictly 2 targets: ImageKit CDN + Google Fonts origin pair) -->
     <link rel="preconnect" href="https://ik.imagekit.io" crossorigin />
-    <link rel="dns-prefetch" href="https://ik.imagekit.io" />
-    <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin />
-    <link rel="dns-prefetch" href="https://firestore.googleapis.com" />
-    <link rel="preconnect" href="https://images.unsplash.com" crossorigin />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 
     <!-- Critical CSS for Instant Zero-CLS Paint & Space Reservation -->
     <style>
       html, body {
-        background-color: #fdfcf7;
+        background-color: #fafaf9;
         color: #1c1917;
         margin: 0;
         padding: 0;
@@ -59,37 +56,70 @@
       #main-navigation {
         min-height: 56px;
       }
+      #home-hero-banner-carousel {
+        min-height: 240px;
+        background-color: #fafaf9;
+      }
       #showroom-banner-slider {
         min-height: 240px;
         background-color: #fafaf9;
       }
       @media (min-width: 768px) {
+        #home-hero-banner-carousel,
         #showroom-banner-slider {
           min-height: 380px;
         }
       }
     </style>
 
-    <!-- Dynamic & Static LCP Hero Image Preload -->
+    <!-- Static & Dynamic LCP Hero Image Preload with matching srcset and sizes -->
+    <link 
+      rel="preload" 
+      as="image" 
+      id="hero-lcp-preload"
+      href="https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&q=80&w=1200" 
+      imagesrcset="https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&q=80&w=480 480w, https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&q=80&w=768 768w, https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&q=80&w=1080 1080w, https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&q=80&w=1440 1440w, https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&q=80&w=1920 1920w"
+      imagesizes="100vw"
+      fetchpriority="high"
+    />
     <script>
       try {
-        var cachedHero = localStorage.getItem('pm_hero_banner_url');
-        var heroUrl = cachedHero || 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&q=80&w=1200';
-        var link = document.createElement('link');
-        link.rel = 'preload';
-        link.as = 'image';
-        link.fetchPriority = 'high';
-        link.href = heroUrl;
-        document.head.appendChild(link);
+        var cachedData = localStorage.getItem('pm_hero_banner_data');
+        var cachedUrl = localStorage.getItem('pm_hero_banner_url');
+        var targetUrl = cachedUrl;
+        if (cachedData) {
+          try {
+            var parsed = JSON.parse(cachedData);
+            if (parsed && (parsed.image || parsed.desktopImage)) {
+              targetUrl = parsed.desktopImage || parsed.image;
+            }
+          } catch(e){}
+        }
+        if (targetUrl && targetUrl.indexOf('photo-1599643478518') === -1) {
+          var preloadEl = document.getElementById('hero-lcp-preload');
+          if (preloadEl) {
+            preloadEl.href = targetUrl;
+            if (targetUrl.indexOf('ik.imagekit.io') !== -1) {
+              var widths = [480, 768, 1080, 1440, 1920];
+              var sep = targetUrl.indexOf('?') !== -1 ? '&' : '?';
+              var srcsets = widths.map(function(w) {
+                return targetUrl + sep + 'tr=w-' + w + ',q-75,f-auto ' + w + 'w';
+              }).join(', ');
+              preloadEl.setAttribute('imagesrcset', srcsets);
+            } else {
+              preloadEl.removeAttribute('imagesrcset');
+            }
+          }
+        }
       } catch (e) {}
     </script>
 
-    <!-- Google Fonts: Non-blocking async load with font-display: swap for minimal TBT -->
+    <!-- Google Fonts: Non-blocking print-swap pattern with font-display: swap -->
     <link 
-      rel="preload" 
-      as="style" 
+      rel="stylesheet" 
       href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Cormorant+Garamond:wght@400;600;700&display=swap" 
-      onload="this.onload=null;this.rel='stylesheet'" 
+      media="print" 
+      onload="this.media='all'" 
     />
     <noscript>
       <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Cormorant+Garamond:wght@400;600;700&display=swap" />
@@ -116,8 +146,8 @@
           "name": "Parasmoni Jewellers & Brothers",
           "alternateName": "Parasmoni Jewellers",
           "url": "https://parasmoni.in/",
-          "logo": "https://ik.imagekit.io/ugm0ru2xm/parasmoni/branding/JEWLLERS___GRAND_BROTHERS__6__5ekGzNryJ.png",
-          "image": "https://ik.imagekit.io/ugm0ru2xm/parasmoni/branding/JEWLLERS___GRAND_BROTHERS__6__5ekGzNryJ.png",
+          "logo": "https://ik.imagekit.io/ugm0ru2xm/parasmoni/branding/JEWLLERS___GRAND_BROTHERS__6__5ekGzNryJ.png?tr=w-500,q-75,f-auto",
+          "image": "https://ik.imagekit.io/ugm0ru2xm/parasmoni/branding/JEWLLERS___GRAND_BROTHERS__6__5ekGzNryJ.png?tr=w-1200,q-75,f-auto",
           "telephone": "+919051412413",
           "priceRange": "₹₹₹₹",
           "foundingDate": "1974",

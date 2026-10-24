@@ -28,6 +28,7 @@ import { db } from '../firebase/config';
 import { isProductWishlisted, toggleWishlist } from '../utils/wishlistHelper';
 import { ikUrl } from '../utils/imagekit';
 import { cacheHeroBannerUrl } from '../utils/cacheHelper';
+import { cacheHeroSlide } from '../data/heroFallback';
 
 // Global cache for metal prices to avoid duplicate listeners across many product cards
 let globalMetalPricesListeners: ((prices: any[]) => void)[] = [];
@@ -382,7 +383,7 @@ export const ProductCard = React.memo(function ProductCard({
             loop
             muted
             playsInline
-            preload="auto"
+            preload="none"
           />
         ) : (
           <OptimizedImage 
@@ -391,8 +392,8 @@ export const ProductCard = React.memo(function ProductCard({
             width={400}
             height={400}
             aspectRatio="1/1"
-            quality={75}
-            widths={[320, 480, 640]}
+            quality={70}
+            widths={[240, 360, 480, 640]}
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
             className="transition-transform duration-500 group-hover:scale-102"
           />
@@ -474,6 +475,34 @@ export function ProductGrid({
   emptyMessage = "No signature masterpieces match your query. Contact our master artisan for customized designs.",
   gridClassName = "grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6"
 }: ProductGridProps): React.JSX.Element {
+  // Low-end mobile device optimization: progressive virtualization/pagination
+  // Render initial 12 items, load 12 more as user scrolls near bottom to avoid DOM & memory thrashing
+  const [visibleCount, setVisibleCount] = useState(12);
+  const sentinelRef = useRef<HTMLDivElement>(null);
+
+  // Reset visible count when product filter/collection changes
+  useEffect(() => {
+    setVisibleCount(12);
+  }, [products]);
+
+  useEffect(() => {
+    if (visibleCount >= products.length) return;
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setVisibleCount((prev) => Math.min(prev + 12, products.length));
+        }
+      },
+      { rootMargin: '400px' }
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [visibleCount, products.length]);
+
   if (products.length === 0) {
     return (
       <div className="text-center py-12 px-6 border border-dashed border-stone-300 rounded bg-stone-50 max-w-xl mx-auto" id="empty-products-view">
@@ -490,11 +519,23 @@ export function ProductGrid({
     );
   }
 
+  const visibleProducts = products.slice(0, visibleCount);
+
   return (
-    <div className={gridClassName} id="showroom-products-grid">
-      {products.map((p) => (
-        <ProductCard key={p.id} product={p} whatsappNumber={whatsappNumber} />
-      ))}
+    <div className="space-y-4">
+      <div className={gridClassName} id="showroom-products-grid">
+        {visibleProducts.map((p) => (
+          <ProductCard key={p.id} product={p} whatsappNumber={whatsappNumber} />
+        ))}
+      </div>
+      {visibleCount < products.length && (
+        <div ref={sentinelRef} className="py-4 text-center">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-stone-100 text-stone-500 rounded-full text-xs font-medium">
+            <span className="w-2 h-2 rounded-full bg-amber-600 animate-pulse" />
+            <span>Loading more pieces ({visibleCount} of {products.length})...</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -643,8 +684,18 @@ export function BannerSlider({ banners }: BannerSliderProps): React.JSX.Element 
       const firstBanner = banners[0];
       const raw = (window.innerWidth < 768 && firstBanner.mobileImage) ? firstBanner.mobileImage : (firstBanner.desktopImage || firstBanner.image);
       if (raw) {
-        const transformed = ikUrl(raw, window.innerWidth < 768 ? 768 : 1200, 80);
+        const transformed = ikUrl(raw, window.innerWidth < 768 ? 768 : 1200, 75);
         cacheHeroBannerUrl(transformed || raw);
+        cacheHeroSlide({
+          title: firstBanner.title,
+          subtitle: firstBanner.subtitle,
+          image: raw,
+          desktopImage: firstBanner.desktopImage || firstBanner.image,
+          mobileImage: firstBanner.mobileImage || firstBanner.image,
+          alt: firstBanner.title,
+          buttonText: firstBanner.buttonText,
+          buttonLink: firstBanner.buttonLink
+        });
       }
     }
   }, [banners]);
@@ -749,20 +800,23 @@ export function BannerSlider({ banners }: BannerSliderProps): React.JSX.Element 
 
   // Get properly transformed, ultra-high-definition ImageKit responsive URLs
   const getBannerImage = (banner: Banner) => {
-    const rawImage = (isMobile && banner.mobileImage) ? banner.mobileImage : (banner.desktopImage || banner.image) || 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&q=80&w=1600';
-    const targetWidth = isMobile ? 1200 : 2560;
-    return getOptimizedShowroomUrl(rawImage, { width: targetWidth, quality: 95 }) || rawImage;
+    const rawImage = (isMobile && banner.mobileImage) ? banner.mobileImage : (banner.desktopImage || banner.image) || 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&q=80&w=1200';
+    return getOptimizedShowroomUrl(rawImage, { width: 1200, quality: 75 }) || rawImage;
   };
 
   // Math-guided Peek Carousel Track translates (percentage based)
-  const slideWidth = isMobile ? 85 : 75; // 85% width on mobile, 75% on desktop
-  const centerOffset = (100 - slideWidth) / 2; // Centers the active slide exactly
-  const trackTranslate = centerOffset - (virtualIndex * slideWidth);
+  const slideWidth = isMobile ? 90 : 86;
+  const centerOffset = isMobile ? 5 : 7;
+  const trackTranslate = centerOffset - (virtualIndex * slideWidth) + (dragOffset / (typeof window !== 'undefined' ? (window.innerWidth || 1000) : 1000) * 100);
 
   return (
     <div 
       className="relative w-full overflow-hidden bg-stone-50 pt-0 pb-6 md:pb-12 select-none" 
       id="showroom-banner-slider"
+      role="region"
+      aria-roledescription="carousel"
+      aria-label="Featured Jewellery Banners"
+      aria-live="polite"
       onMouseEnter={() => setIsInteracting(true)}
       onMouseLeave={() => {
         setIsInteracting(false);
@@ -773,7 +827,7 @@ export function BannerSlider({ banners }: BannerSliderProps): React.JSX.Element 
       <div 
         className={`flex w-full ${isDragging || !transitionEnabled ? 'transition-none' : 'transition-transform duration-700'}`}
         style={{ 
-          transform: `translate3d(calc(${trackTranslate}% + ${dragOffset}px), 0px, 0px)`,
+          transform: `translate3d(${trackTranslate}%, 0px, 0px)`,
           transitionTimingFunction: 'cubic-bezier(0.25, 1, 0.5, 1)'
         }}
         onTransitionEnd={handleTransitionEnd}
@@ -812,13 +866,17 @@ export function BannerSlider({ banners }: BannerSliderProps): React.JSX.Element 
           return (
             <div
               key={`${banner.id}-clone-${index}`}
+              role="group"
+              aria-roledescription="slide"
+              aria-label={`Slide ${displayActiveIndex + 1} of ${banners.length}`}
+              aria-hidden={!isActive}
               onClick={() => {
                 if (!isActive) {
                   // Click advances the relative distance to keep movement in same direction
                   setCurrentIndex((prev) => prev + (index - virtualIndex));
                 }
               }}
-              className={`flex-shrink-0 aspect-[14/9] md:aspect-[18/7] w-full h-auto relative px-1.5 md:px-3.5 transition-all duration-700 ease-out select-none ${
+              className={`flex-shrink-0 aspect-[14/9] md:aspect-[18/7] h-auto relative px-1.5 md:px-3.5 transition-all duration-700 ease-out select-none ${
                 isActive 
                   ? 'scale-100 z-10 opacity-100' 
                   : 'scale-95 z-0 opacity-50 hover:opacity-75 cursor-pointer'
@@ -833,11 +891,11 @@ export function BannerSlider({ banners }: BannerSliderProps): React.JSX.Element 
                   <video
                     src={getOptimizedShowroomUrl(activeVideoUrl) || activeVideoUrl || undefined}
                     className="w-full h-full object-cover"
-                    autoPlay
+                    autoPlay={isActive}
                     loop
                     muted
                     playsInline
-                    preload="auto"
+                    preload="none"
                     onEnded={(e) => {
                       e.currentTarget.currentTime = 0;
                       e.currentTarget.play().catch(() => {});
@@ -845,24 +903,21 @@ export function BannerSlider({ banners }: BannerSliderProps): React.JSX.Element 
                     draggable={false}
                   />
                 ) : (
-                  <OptimizedImage
-                    src={banner.image || banner.desktopImage || banner.mobileImage || displayImage}
+                  <img
+                    src={displayImage}
                     alt={banner.title || 'Parasmoni Jewellery Hero Banner'}
-                    width={1200}
-                    height={540}
-                    aspectRatio={isMobile ? '14/9' : '18/7'}
-                    priority={isActive && index === virtualIndex}
-                    quality={80}
-                    widths={[480, 768, 1200, 1920]}
-                    sizes="100vw"
-                    className={`transition-transform duration-[6000ms] ease-out ${
+                    className={`w-full h-full object-cover transition-transform duration-[6000ms] ease-out ${
                       isActive ? 'scale-102' : 'scale-100'
                     }`}
                     draggable={false}
+                    loading={isActive ? "eager" : "lazy"}
+                    fetchPriority={isActive ? "high" : "low"}
+                    decoding="async"
+                    referrerPolicy="no-referrer"
                   />
                 )}
                 
-                {/* Visual shading layers (kept transparent for maximum jewelry sparkle/vibrancy) */}
+                {/* Visual shading layers */}
                 <div className="absolute inset-0 bg-transparent" />
                 
                 {/* Readable Text Overlay - Only rendered on the central active card if text content exists */}
@@ -872,15 +927,27 @@ export function BannerSlider({ banners }: BannerSliderProps): React.JSX.Element 
                   >
                     <div className="max-w-sm sm:max-w-md md:max-w-lg lg:max-w-2xl space-y-1 sm:space-y-1.5 md:space-y-2 lg:space-y-4 xl:space-y-6 text-left select-text">
                       {banner.title?.trim() && (
-                        <h2 
-                          className="text-[13px] sm:text-[14px] md:text-[16px] lg:text-[28px] xl:text-[38px] font-normal tracking-wide leading-[1.15] drop-shadow-lg animate-fade-in"
-                          style={{
-                            fontFamily: banner.titleFont === 'sans' ? "'Inter', 'Plus Jakarta Sans', sans-serif" : "'Playfair Display', Georgia, serif",
-                            color: banner.titleColor || '#ffffff'
-                          }}
-                        >
-                          {banner.title}
-                        </h2>
+                        index === virtualIndex ? (
+                          <h1 
+                            className="text-[13px] sm:text-[14px] md:text-[16px] lg:text-[28px] xl:text-[38px] font-normal tracking-wide leading-[1.15] drop-shadow-lg"
+                            style={{
+                              fontFamily: banner.titleFont === 'sans' ? "'Inter', 'Plus Jakarta Sans', sans-serif" : "'Playfair Display', Georgia, serif",
+                              color: banner.titleColor || '#ffffff'
+                            }}
+                          >
+                            {banner.title}
+                          </h1>
+                        ) : (
+                          <h2 
+                            className="text-[13px] sm:text-[14px] md:text-[16px] lg:text-[28px] xl:text-[38px] font-normal tracking-wide leading-[1.15] drop-shadow-lg"
+                            style={{
+                              fontFamily: banner.titleFont === 'sans' ? "'Inter', 'Plus Jakarta Sans', sans-serif" : "'Playfair Display', Georgia, serif",
+                              color: banner.titleColor || '#ffffff'
+                            }}
+                          >
+                            {banner.title}
+                          </h2>
+                        )
                       )}
                       {banner.subtitle?.trim() && (
                         <p 
@@ -916,21 +983,32 @@ export function BannerSlider({ banners }: BannerSliderProps): React.JSX.Element 
         })}
       </div>
 
-      {/* Navigation Indicators */}
+      {/* Navigation Indicators with 44x44px accessible touch targets */}
       {banners.length > 1 && (
-        <div className="absolute bottom-3 sm:bottom-4 md:bottom-8 lg:bottom-10 left-1/2 -translate-x-1/2 z-20 flex gap-2">
+        <div 
+          className="absolute bottom-2 sm:bottom-3 md:bottom-6 lg:bottom-8 left-1/2 -translate-x-1/2 z-20 flex gap-1"
+          role="tablist"
+          aria-label="Slide controls"
+        >
           {banners.map((_, index) => (
             <button
               key={index}
+              role="tab"
+              aria-selected={index === displayActiveIndex}
+              aria-current={index === displayActiveIndex ? 'true' : undefined}
+              aria-label={`Go to slide ${index + 1}`}
               onClick={(e) => {
                 e.stopPropagation();
                 setCurrentIndex(index);
               }}
-              className={`h-1.5 rounded-full transition-all duration-500 cursor-pointer ${
-                index === displayActiveIndex ? 'bg-brand-red-600 w-5 md:w-6' : 'bg-stone-400/40 hover:bg-stone-600/60 w-1.5 md:w-2'
-              }`}
-              aria-label={`Go to slide ${index + 1}`}
-            />
+              className="min-w-[44px] min-h-[44px] flex items-center justify-center p-2 cursor-pointer focus:outline-none focus:ring-1 focus:ring-white rounded-full"
+            >
+              <span 
+                className={`h-1.5 rounded-full transition-all duration-500 block ${
+                  index === displayActiveIndex ? 'bg-brand-red-600 w-5 md:w-6' : 'bg-stone-400/50 hover:bg-stone-600/70 w-1.5 md:w-2'
+                }`}
+              />
+            </button>
           ))}
         </div>
       )}
