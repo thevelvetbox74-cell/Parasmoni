@@ -24,7 +24,7 @@ import { getOptimizedShowroomUrl } from '../imagekit/client';
 import { OptimizedImage } from './OptimizedImage';
 import { calculateProductPrice } from '../utils/calculateProductPrice';
 import { isProductWishlisted, toggleWishlist } from '../utils/wishlistHelper';
-import { ikUrl } from '../utils/imagekit';
+import { ikUrl, ikSrcSet } from '../utils/imagekit';
 import { cacheHeroBannerUrl } from '../utils/cacheHelper';
 import { cacheHeroSlide } from '../data/heroFallback';
 import { getLazyFirebase } from '../utils/lazyFirebase';
@@ -291,7 +291,7 @@ export const ProductCard = React.memo(function ProductCard({
     return subscribeToMetalPrices(setMetalRates);
   }, []);
 
-  const optimizedUrl = getOptimizedShowroomUrl(product.imageUrl || (product.images && product.images[0]) || "", { width: 500, height: 500 });
+  const optimizedUrl = ikUrl(product.imageUrl || (product.images && product.images[0]) || "", 360, 60);
   
   // Calculate dynamic price live if not already pre-calculated by parent
   let finalPrice = product.price;
@@ -828,9 +828,20 @@ export function BannerSlider({
   };
 
   // Get properly transformed, ultra-high-definition ImageKit responsive URLs
-  const getBannerImage = (banner: Banner) => {
+  const getBannerImage = (banner: Banner, index: number) => {
     const rawImage = (isMobile && banner.mobileImage) ? banner.mobileImage : (banner.desktopImage || banner.image) || 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&q=80&w=1200';
-    return getOptimizedShowroomUrl(rawImage, { width: 1200, quality: 75 }) || rawImage;
+    if (index === virtualIndex) {
+      return isMobile ? ikUrl(rawImage, 720, 60) : ikUrl(rawImage, 1200, 70);
+    }
+    return ikUrl(rawImage, 400, 45);
+  };
+
+  const getBannerSrcSet = (banner: Banner, index: number) => {
+    if (index !== virtualIndex) return undefined;
+    const rawImage = (isMobile && banner.mobileImage) ? banner.mobileImage : (banner.desktopImage || banner.image) || 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&q=80&w=1200';
+    return isMobile
+      ? ikSrcSet(rawImage, [480, 720, 1080], 60)
+      : ikSrcSet(rawImage, [800, 1200, 1600], 70);
   };
 
   // Math-guided Peek Carousel Track translates (percentage based)
@@ -879,7 +890,8 @@ export function BannerSlider({
       >
         {clonedBanners.map((banner, index) => {
           const isActive = index === virtualIndex;
-          const displayImage = getBannerImage(banner);
+          const displayImage = getBannerImage(banner, index);
+          const displaySrcSet = getBannerSrcSet(banner, index);
           
           // Check if video file should be rendered (with auto-detection support)
           const isUrlVideo = (url?: string) => {
@@ -922,6 +934,8 @@ export function BannerSlider({
                     {/* Instant Poster <img> for zero-CLS and immediate LCP */}
                     <img
                       src={displayImage}
+                      srcSet={displaySrcSet}
+                      sizes={isActive ? (isMobile ? "100vw" : "(min-width:1024px) 70vw, 100vw") : undefined}
                       alt={banner.title || 'Parasmoni Jewellery Hero Banner'}
                       className="w-full h-full object-cover"
                       draggable={false}
@@ -930,10 +944,11 @@ export function BannerSlider({
                       decoding="async"
                       width={1200}
                       height={isMobile ? 771 : 467}
+                      style={{ aspectRatio: isMobile ? '14/9' : '18/7' }}
                     />
                     {canPlayVideo && (
                       <video
-                        src={getOptimizedShowroomUrl(activeVideoUrl) || activeVideoUrl || undefined}
+                        src={ikUrl(activeVideoUrl) || activeVideoUrl || undefined}
                         className="absolute inset-0 w-full h-full object-cover"
                         autoPlay={isActive}
                         loop
@@ -951,6 +966,8 @@ export function BannerSlider({
                 ) : (
                   <img
                     src={displayImage}
+                    srcSet={displaySrcSet}
+                    sizes={isActive ? (isMobile ? "100vw" : "(min-width:1024px) 70vw, 100vw") : undefined}
                     alt={banner.title || 'Parasmoni Jewellery Hero Banner'}
                     className={`w-full h-full object-cover transition-transform duration-[6000ms] ease-out ${
                       isActive ? 'scale-102' : 'scale-100'
@@ -962,6 +979,7 @@ export function BannerSlider({
                     referrerPolicy="no-referrer"
                     width={1200}
                     height={isMobile ? 771 : 467}
+                    style={{ aspectRatio: isMobile ? '14/9' : '18/7' }}
                   />
                 )}
                 

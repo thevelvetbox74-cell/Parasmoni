@@ -59,8 +59,8 @@ export function BottomNavigation(): React.JSX.Element | null {
   // Active brand color (Parasmoni Royal Burgundy)
   const activeTextColor = 'text-[#6B1F2A] font-bold';
   const activeIconColor = 'text-[#6B1F2A] stroke-[2.4]';
-  const inactiveTextColor = 'text-stone-500 font-medium';
-  const inactiveIconColor = 'text-stone-400 stroke-[1.8] hover:text-[#6B1F2A]';
+  const inactiveTextColor = 'text-stone-700 font-medium';
+  const inactiveIconColor = 'text-stone-600 stroke-[1.8] hover:text-[#6B1F2A]';
 
   // Do not render bottom nav on Admin dashboard layouts
   if (currentPath.startsWith('/admin')) {

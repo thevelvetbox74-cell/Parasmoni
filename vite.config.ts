@@ -1,14 +1,32 @@
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
-import { defineConfig } from 'vite';
+import { defineConfig, Plugin } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
+
+function inlineBuiltCss(): Plugin {
+  return {
+    name: 'inline-built-css',
+    enforce: 'post',
+    transformIndexHtml(html, ctx) {
+      const bundle = ctx.bundle;
+      if (!bundle) return html;
+      return html.replace(/<link rel="stylesheet"[^>]*href="([^"]+\.css)"[^>]*>/g, (match, href: string) => {
+        const cleanHref = href.replace(/^\//, '');
+        const asset = bundle[cleanHref];
+        if (asset && asset.type === 'asset') return '<style>' + String(asset.source) + '</style>';
+        return match;
+      });
+    },
+  };
+}
 
 export default defineConfig(() => {
   return {
     plugins: [
       react(), 
       tailwindcss(),
+      inlineBuiltCss(),
       VitePWA({
         registerType: 'autoUpdate',
         includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'icon.svg'],
@@ -24,19 +42,19 @@ export default defineConfig(() => {
           scope: '/',
           icons: [
             {
-              src: 'https://ik.imagekit.io/ugm0ru2xm/parasmoni/branding/JEWLLERS___GRAND_BROTHERS__6__5ekGzNryJ.png',
+              src: 'https://ik.imagekit.io/ugm0ru2xm/parasmoni/branding/JEWLLERS___GRAND_BROTHERS__6__5ekGzNryJ.png?tr=w-192,q-75,f-auto',
               sizes: '192x192',
               type: 'image/png',
               purpose: 'any'
             },
             {
-              src: 'https://ik.imagekit.io/ugm0ru2xm/parasmoni/branding/JEWLLERS___GRAND_BROTHERS__6__5ekGzNryJ.png',
+              src: 'https://ik.imagekit.io/ugm0ru2xm/parasmoni/branding/JEWLLERS___GRAND_BROTHERS__6__5ekGzNryJ.png?tr=w-512,q-75,f-auto',
               sizes: '512x512',
               type: 'image/png',
               purpose: 'any'
             },
             {
-              src: 'https://ik.imagekit.io/ugm0ru2xm/parasmoni/branding/JEWLLERS___GRAND_BROTHERS__6__5ekGzNryJ.png',
+              src: 'https://ik.imagekit.io/ugm0ru2xm/parasmoni/branding/JEWLLERS___GRAND_BROTHERS__6__5ekGzNryJ.png?tr=w-512,q-75,f-auto',
               sizes: '512x512',
               type: 'image/png',
               purpose: 'maskable'
@@ -127,7 +145,7 @@ export default defineConfig(() => {
     build: {
       target: 'es2020',
       minify: 'esbuild',
-      cssCodeSplit: true,
+      cssCodeSplit: false,
       sourcemap: false,
       chunkSizeWarningLimit: 600,
       rollupOptions: {
@@ -155,10 +173,7 @@ export default defineConfig(() => {
       drop: process.env.NODE_ENV === 'production' ? ['console', 'debugger'] : []
     },
     server: {
-      // HMR is disabled in AI Studio via DISABLE_HMR env var.
-      // Do not modifyâfile watching is disabled to prevent flickering during agent edits.
       hmr: process.env.DISABLE_HMR !== 'true',
-      // Disable file watching when DISABLE_HMR is true to save CPU during agent edits.
       watch: process.env.DISABLE_HMR === 'true' ? null : {},
     },
   };

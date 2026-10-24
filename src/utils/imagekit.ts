@@ -1,17 +1,13 @@
+import { isImageKitUrl, ikUrl as sharedIkUrl, ikSrcSet as sharedIkSrcSet } from './imagekit.shared.mjs';
+
 export const IMAGEKIT_VIDEO_TRANSFORMS = false;
 
+export { isImageKitUrl };
+
 /**
- * Transforms an ImageKit URL with responsive width, quality, and auto format (WebP/AVIF).
- *
- * Rules:
- * - If the URL is empty or undefined, returns empty string.
- * - If the URL is video/blob/data URL, returns pristine source.
- * - Handles Unsplash fallbacks with optimal width & format.
- * - If the URL contains "ik.imagekit.io", strips any existing tr= and appends
- *   tr=w-{width},q-{quality},f-auto using width ONLY (never height or crop mode)
- *   to preserve exact visual aspect ratio.
+ * Transforms an ImageKit or Unsplash URL with responsive width, quality, and auto format.
  */
-export function ikUrl(url: string | null | undefined, width?: number, quality = 70): string {
+export function ikUrl(url: string | null | undefined, width?: number, quality = 65): string {
   if (!url || typeof url !== 'string') return '';
   const trimmed = url.trim();
   if (!trimmed) return '';
@@ -31,33 +27,13 @@ export function ikUrl(url: string | null | undefined, width?: number, quality = 
     return `${baseUrl}?auto=format&fit=crop&q=${quality}&w=${w}`;
   }
 
-  // If not ImageKit, return unchanged
-  if (!trimmed.includes('ik.imagekit.io')) {
-    return trimmed;
-  }
-
-  // Strip existing tr parameter to apply exact requested width & quality
-  const urlWithoutTr = trimmed
-    .replace(/[?&]tr=[^&]*/, '')
-    .replace(/\?&/, '?')
-    .replace(/\?$/, '');
-
-  const w = width && width > 0 ? Math.round(width) : undefined;
-  const q = Math.max(1, Math.min(100, Math.round(quality)));
-  const trParts: string[] = [];
-  if (w) trParts.push(`w-${w}`);
-  trParts.push(`q-${q}`);
-  trParts.push('f-auto');
-
-  const separator = urlWithoutTr.includes('?') ? '&' : '?';
-  return `${urlWithoutTr}${separator}tr=${trParts.join(',')}`;
+  return sharedIkUrl(trimmed, width, quality);
 }
 
 /**
- * Returns a valid HTML srcset string for ImageKit images.
- * Example output: "url1 480w, url2 800w, url3 1200w"
+ * Returns a valid HTML srcset string for ImageKit or Unsplash images.
  */
-export function ikSrcSet(url: string | null | undefined, widths: number[], quality = 70): string {
+export function ikSrcSet(url: string | null | undefined, widths: number[], quality = 65): string {
   if (!url || typeof url !== 'string' || !widths || widths.length === 0) return '';
   const trimmed = url.trim();
   if (!trimmed) return '';

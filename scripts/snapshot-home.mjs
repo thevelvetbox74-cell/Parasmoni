@@ -7,6 +7,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { ikUrl } from '../src/utils/imagekit.shared.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -47,12 +48,13 @@ async function generateSnapshot() {
       const fields = doc.fields || {};
       const name = fields.name?.stringValue || fields.title?.stringValue || `Category ${idx + 1}`;
       const slug = fields.slug?.stringValue || name.toLowerCase().replace(/\s+/g, '-');
-      const imageUrl = fields.imageUrl?.stringValue || fields.image?.stringValue || '';
+      const rawImageUrl = fields.imageUrl?.stringValue || fields.image?.stringValue || '';
+      const transformedUrl = ikUrl(rawImageUrl, 240, 55);
       return {
         id: doc.name.split('/').pop(),
         name,
         slug,
-        imageUrl,
+        imageUrl: transformedUrl,
         link: `/jewellery?category=${encodeURIComponent(slug)}`
       };
     }).filter(c => c.imageUrl);
