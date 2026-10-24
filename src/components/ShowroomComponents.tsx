@@ -656,18 +656,41 @@ export function ProductHorizontalCarousel({
 
 interface BannerSliderProps {
   banners: Banner[];
+  backgroundColor?: string;
 }
 
-export function BannerSlider({ banners }: BannerSliderProps): React.JSX.Element {
+export function BannerSlider({ 
+  banners, 
+  backgroundColor = '#ffffff' 
+}: BannerSliderProps): React.JSX.Element {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [transitionEnabled, setTransitionEnabled] = useState(true);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [dragOffset, setDragOffset] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [isInteracting, setIsInteracting] = useState(false);
+  const [canPlayVideo, setCanPlayVideo] = useState(false);
   
   const startXRef = useRef(0);
   const autoPlayRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Defer hero video mount until after load + idle to guarantee image LCP paint first
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const isDataSaver = (navigator as any)?.connection?.saveData === true;
+    const isSlowConn = (navigator as any)?.connection?.effectiveType === '2g' || (navigator as any)?.connection?.effectiveType === 'slow-2g';
+    if (isDataSaver || isSlowConn) return;
+
+    const timer = setTimeout(() => {
+      if ('requestIdleCallback' in window) {
+        (window as any).requestIdleCallback(() => setCanPlayVideo(true), { timeout: 2000 });
+      } else {
+        setCanPlayVideo(true);
+      }
+    }, 1500);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   // Responsive break observer
   useEffect(() => {
@@ -811,7 +834,8 @@ export function BannerSlider({ banners }: BannerSliderProps): React.JSX.Element 
 
   return (
     <div 
-      className="relative w-full overflow-hidden bg-stone-50 pt-0 pb-6 md:pb-12 select-none" 
+      className="relative w-full overflow-hidden pt-0 pb-6 md:pb-12 select-none transition-colors duration-300" 
+      style={{ backgroundColor }}
       id="showroom-banner-slider"
       role="region"
       aria-roledescription="carousel"
@@ -888,20 +912,36 @@ export function BannerSlider({ banners }: BannerSliderProps): React.JSX.Element 
               <div className="w-full h-full relative rounded-xl md:rounded-2xl overflow-hidden shadow-2xl border border-stone-200/60 bg-white">
                 {/* Media Layer (Video or Image) */}
                 {hasVideo ? (
-                  <video
-                    src={getOptimizedShowroomUrl(activeVideoUrl) || activeVideoUrl || undefined}
-                    className="w-full h-full object-cover"
-                    autoPlay={isActive}
-                    loop
-                    muted
-                    playsInline
-                    preload="none"
-                    onEnded={(e) => {
-                      e.currentTarget.currentTime = 0;
-                      e.currentTarget.play().catch(() => {});
-                    }}
-                    draggable={false}
-                  />
+                  <div className="w-full h-full relative">
+                    {/* Instant Poster <img> for zero-CLS and immediate LCP */}
+                    <img
+                      src={displayImage}
+                      alt={banner.title || 'Parasmoni Jewellery Hero Banner'}
+                      className="w-full h-full object-cover"
+                      draggable={false}
+                      loading={isActive ? "eager" : "lazy"}
+                      fetchPriority={isActive ? "high" : "low"}
+                      decoding="async"
+                      width={1200}
+                      height={isMobile ? 771 : 467}
+                    />
+                    {canPlayVideo && (
+                      <video
+                        src={getOptimizedShowroomUrl(activeVideoUrl) || activeVideoUrl || undefined}
+                        className="absolute inset-0 w-full h-full object-cover"
+                        autoPlay={isActive}
+                        loop
+                        muted
+                        playsInline
+                        preload="none"
+                        onEnded={(e) => {
+                          e.currentTarget.currentTime = 0;
+                          e.currentTarget.play().catch(() => {});
+                        }}
+                        draggable={false}
+                      />
+                    )}
+                  </div>
                 ) : (
                   <img
                     src={displayImage}
@@ -914,6 +954,8 @@ export function BannerSlider({ banners }: BannerSliderProps): React.JSX.Element 
                     fetchPriority={isActive ? "high" : "low"}
                     decoding="async"
                     referrerPolicy="no-referrer"
+                    width={1200}
+                    height={isMobile ? 771 : 467}
                   />
                 )}
                 

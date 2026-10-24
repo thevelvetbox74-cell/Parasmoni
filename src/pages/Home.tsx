@@ -859,7 +859,7 @@ export const OfferBannerB1: React.FC<OfferBannerB1Props> = (props) => {
 };
 
 export const DEFAULT_PAGE_SECTIONS = [
-  { id: 'sec-hero', type: 'Hero Banner', content: {} },
+  { id: 'sec-hero', type: 'Hero Banner', content: { backgroundColor: '#ffffff' } },
   { id: 'sec-categories', type: 'Category Cards', content: {} },
   { id: 'sec-products-featured', type: 'Product Carousel', content: { title: 'Featured Sovereign Jewellery', productsType: 'featured' } },
   { id: 'sec-story', type: 'About Collection', content: {} },
@@ -1687,10 +1687,15 @@ function GoldRateCapsulePill({ metalPrices }: { metalPrices: any[] }): React.JSX
     const activeBanners = (content && Array.isArray(content.banners) && content.banners.length > 0)
       ? content.banners
       : banners;
+    const sectionBg = content.backgroundColor || content.bgColor || '#ffffff';
 
     return (
-      <div id="home-hero-banner-carousel" className="w-full relative pt-2 pb-1 space-y-2 bg-stone-50">
-        <BannerSlider banners={activeBanners} />
+      <div 
+        id="home-hero-banner-carousel" 
+        className="w-full relative pt-2 pb-1 space-y-2 transition-colors duration-300"
+        style={{ backgroundColor: sectionBg }}
+      >
+        <BannerSlider banners={activeBanners} backgroundColor={sectionBg} />
         {/* Capsule Pill Gold Rate Bar - Visible strictly in Web App / Mobile View only */}
         <div className="block lg:hidden">
           <GoldRateCapsulePill metalPrices={metalPrices} />
@@ -1819,9 +1824,13 @@ function GoldRateCapsulePill({ metalPrices }: { metalPrices: any[] }): React.JSX
                               }
                               return (
                                 <img
-                                  src={cat.imageUrl}
+                                  src={ikUrl(cat.imageUrl, 240, 70) || cat.imageUrl}
                                   alt={cat.customTitle || cat.name}
                                   referrerPolicy="no-referrer"
+                                  loading="lazy"
+                                  decoding="async"
+                                  width={100}
+                                  height={100}
                                   className="w-full h-full object-cover rounded-2xl"
                                 />
                               );
@@ -1912,9 +1921,13 @@ function GoldRateCapsulePill({ metalPrices }: { metalPrices: any[] }): React.JSX
                             }
                             return (
                               <img
-                                src={cat.imageUrl}
+                                src={ikUrl(cat.imageUrl, 480, 70) || cat.imageUrl}
                                 alt={cat.name}
                                 referrerPolicy="no-referrer"
+                                loading="lazy"
+                                decoding="async"
+                                width={240}
+                                height={320}
                                 className="w-full h-full object-cover group-hover/tile:scale-105 transition-transform duration-500"
                               />
                             );

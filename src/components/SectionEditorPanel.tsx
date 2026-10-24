@@ -3870,7 +3870,96 @@ export function SectionEditorPanel({
               }
 
               return (
-                <div className="space-y-4">
+                <div className="space-y-5">
+                  {/* Hero Banner Section Background Color Settings */}
+                  <div className="p-4 bg-stone-900/60 border border-stone-800 rounded-xl space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Palette className="w-4 h-4 text-amber-500" />
+                        <label className="text-[11px] font-bold text-stone-200 uppercase tracking-wide">
+                          Hero Banner Background Color
+                        </label>
+                      </div>
+                      <span className="text-[10px] font-mono text-amber-400 bg-stone-950 px-2 py-0.5 rounded border border-stone-800 font-bold">
+                        {content.backgroundColor || content.bgColor || '#ffffff'}
+                      </span>
+                    </div>
+
+                    <p className="text-[10px] text-stone-400 leading-normal">
+                      Hero banner section ka background color code enter karein (e.g. #FFFFFF for white) ya color picker se select karein.
+                    </p>
+
+                    <div className="flex items-center gap-3">
+                      <div className="relative flex items-center">
+                        <input
+                          type="color"
+                          value={content.backgroundColor || content.bgColor || '#ffffff'}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            updateMultipleProps({
+                              backgroundColor: val,
+                              bgColor: val
+                            });
+                          }}
+                          className="w-10 h-10 rounded-lg border border-stone-700 bg-stone-950 cursor-pointer outline-none p-1 shrink-0"
+                          title="Choose color code"
+                        />
+                      </div>
+
+                      <div className="flex-1 space-y-1">
+                        <div className="flex items-center bg-stone-950 border border-stone-800 rounded-lg px-3 py-2 focus-within:border-amber-500 transition-colors">
+                          <span className="text-stone-500 font-mono text-xs mr-1">HEX</span>
+                          <input
+                            type="text"
+                            value={content.backgroundColor || content.bgColor || '#ffffff'}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              updateMultipleProps({
+                                backgroundColor: val,
+                                bgColor: val
+                              });
+                            }}
+                            placeholder="#FFFFFF"
+                            className="bg-transparent border-none text-stone-100 text-xs font-mono w-full focus:outline-none uppercase"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Quick Preset Color Buttons */}
+                    <div className="flex flex-wrap items-center gap-2 pt-1">
+                      <span className="text-[9px] font-bold text-stone-500 uppercase tracking-wider">Quick Presets:</span>
+                      {[
+                        { label: 'Pure White', hex: '#ffffff', textDark: true },
+                        { label: 'Soft Stone', hex: '#fafaf9', textDark: true },
+                        { label: 'Ivory Cream', hex: '#fffdfa', textDark: true },
+                        { label: 'Regal Rose', hex: '#fff1f2', textDark: true },
+                        { label: 'Deep Maroon', hex: '#1c0507', textDark: false },
+                        { label: 'Midnight Black', hex: '#000000', textDark: false },
+                      ].map((preset) => (
+                        <button
+                          key={preset.hex}
+                          type="button"
+                          onClick={() => {
+                            updateMultipleProps({
+                              backgroundColor: preset.hex,
+                              bgColor: preset.hex
+                            });
+                          }}
+                          className="px-2.5 py-1 text-[10px] font-semibold rounded-md border flex items-center gap-1.5 transition-all hover:scale-105 cursor-pointer shadow-xs"
+                          style={{
+                            backgroundColor: preset.hex,
+                            color: preset.textDark ? '#1c1917' : '#ffffff',
+                            borderColor: (content.backgroundColor || content.bgColor || '#ffffff').toLowerCase() === preset.hex.toLowerCase() ? '#f59e0b' : 'rgba(120, 113, 108, 0.3)'
+                          }}
+                        >
+                          <span className="w-2 h-2 rounded-full border border-black/20" style={{ backgroundColor: preset.hex }} />
+                          <span>{preset.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
                   <div className="flex items-center justify-between border-b border-stone-800 pb-2">
                     <span className="text-[10px] font-bold uppercase tracking-wider text-stone-400">Promotional Slides List</span>
                     <button
@@ -4004,6 +4093,37 @@ export function SectionEditorPanel({
                     >
                       Media Right
                     </button>
+                  </div>
+                </div>
+              )}
+
+              {type === 'Hero Banner' && (
+                <div className="space-y-3 p-4 bg-stone-900/60 border border-stone-800 rounded-xl">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[10px] font-bold text-stone-300 uppercase block tracking-wider">
+                      Hero Banner Background Color
+                    </label>
+                    <span className="text-[10px] font-mono text-amber-400 bg-stone-950 px-2 py-0.5 rounded border border-stone-800 font-bold">
+                      {content.backgroundColor || content.bgColor || '#ffffff'}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="color"
+                      value={content.backgroundColor || content.bgColor || '#ffffff'}
+                      onChange={(e) => updateMultipleProps({ backgroundColor: e.target.value, bgColor: e.target.value })}
+                      className="w-10 h-10 rounded-lg border border-stone-700 bg-stone-950 cursor-pointer outline-none p-1 shrink-0"
+                    />
+                    <div className="flex-1 flex items-center bg-stone-950 border border-stone-800 rounded-lg px-3 py-2">
+                      <span className="text-stone-500 font-mono text-xs mr-1">HEX</span>
+                      <input
+                        type="text"
+                        value={content.backgroundColor || content.bgColor || '#ffffff'}
+                        onChange={(e) => updateMultipleProps({ backgroundColor: e.target.value, bgColor: e.target.value })}
+                        placeholder="#FFFFFF"
+                        className="bg-transparent border-none text-stone-100 text-xs font-mono w-full focus:outline-none uppercase"
+                      />
+                    </div>
                   </div>
                 </div>
               )}

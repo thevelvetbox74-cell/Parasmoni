@@ -58,16 +58,23 @@
       }
       #home-hero-banner-carousel {
         min-height: 240px;
-        background-color: #fafaf9;
+        background-color: #ffffff;
       }
       #showroom-banner-slider {
         min-height: 240px;
-        background-color: #fafaf9;
+        background-color: #ffffff;
       }
       @media (min-width: 768px) {
         #home-hero-banner-carousel,
         #showroom-banner-slider {
           min-height: 380px;
+        }
+        .static-hero-wrapper {
+          width: 86% !important;
+          border-radius: 16px !important;
+        }
+        #static-hero-img {
+          aspect-ratio: 18/7 !important;
         }
       }
     </style>
@@ -97,6 +104,7 @@
         }
         if (targetUrl && targetUrl.indexOf('photo-1599643478518') === -1) {
           var preloadEl = document.getElementById('hero-lcp-preload');
+          var staticImg = document.getElementById('static-hero-img');
           if (preloadEl) {
             preloadEl.href = targetUrl;
             if (targetUrl.indexOf('ik.imagekit.io') !== -1) {
@@ -106,8 +114,16 @@
                 return targetUrl + sep + 'tr=w-' + w + ',q-75,f-auto ' + w + 'w';
               }).join(', ');
               preloadEl.setAttribute('imagesrcset', srcsets);
+              if (staticImg) {
+                staticImg.src = targetUrl + sep + 'tr=w-1200,q-75,f-auto';
+                staticImg.srcset = srcsets;
+              }
             } else {
               preloadEl.removeAttribute('imagesrcset');
+              if (staticImg) {
+                staticImg.src = targetUrl;
+                staticImg.removeAttribute('srcset');
+              }
             }
           }
         }
@@ -191,7 +207,52 @@
     </script>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!-- Static App Shell for Instant 0-JS First Contentful Paint & Largest Contentful Paint -->
+      <div id="static-app-shell">
+        <!-- Static Navigation Header (56px brand red) -->
+        <header id="static-header" style="height: 56px; background-color: #E31C24; border-bottom: 1px solid rgba(185, 28, 28, 0.5); display: flex; align-items: center; justify-content: space-between; padding: 0 16px; box-sizing: border-box; width: 100%;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <img 
+              src="https://ik.imagekit.io/ugm0ru2xm/parasmoni/branding/JEWLLERS___GRAND_BROTHERS__6__5ekGzNryJ.png?tr=w-80,q-75,f-auto" 
+              alt="Parasmoni Jewellers &amp; Brothers Logo" 
+              width="40" 
+              height="40" 
+              style="width: 40px; height: 40px; object-fit: contain; aspect-ratio: 1/1;" 
+            />
+            <div style="display: flex; flex-direction: column; color: #ffffff;">
+              <span style="font-family: 'Playfair Display', Georgia, serif; font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; line-height: 1.2;">PARASMONI</span>
+              <span style="font-family: sans-serif; font-size: 8px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #f5f5f4;">&amp; BROTHERS</span>
+            </div>
+          </div>
+        </header>
+
+        <!-- Static Hero Banner Container Matching BannerSlider -->
+        <div id="static-hero-container" style="width: 100%; background-color: #ffffff; padding: 0 0 24px 0; overflow: hidden;">
+          <div class="static-hero-wrapper" style="width: 90%; max-width: 1300px; margin: 8px auto 0 auto; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); border: 1px solid rgba(231, 229, 228, 0.8); background-color: #ffffff;">
+            <img 
+              id="static-hero-img"
+              src="https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&q=80&w=1200" 
+              srcset="https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&q=80&w=480 480w, https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&q=80&w=768 768w, https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&q=80&w=1080 1080w, https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&q=80&w=1440 1440w, https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&q=80&w=1920 1920w"
+              sizes="100vw"
+              alt="Parasmoni Jewellers Sovereign Bridal Gold"
+              width="1200"
+              height="771"
+              fetchpriority="high"
+              decoding="async"
+              style="width: 100%; height: 100%; aspect-ratio: 14/9; object-fit: cover; display: block;"
+            />
+          </div>
+        </div>
+      </div>
+      <script>
+        // Clear hero from shell if inner route so inner pages never flash the home hero
+        if (window.location.pathname !== '/' && window.location.pathname !== '') {
+          var staticHero = document.getElementById('static-hero-container');
+          if (staticHero) staticHero.style.display = 'none';
+        }
+      </script>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
