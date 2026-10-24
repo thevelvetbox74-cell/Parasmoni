@@ -1,8 +1,4 @@
-/**
- * @license
- * SPDX-License-Identifier: Apache-2.0
- * Parasmoni Jewellers - ImageKit Image Optimization Utility for Core Web Vitals
- */
+export const IMAGEKIT_VIDEO_TRANSFORMS = false;
 
 /**
  * Transforms an ImageKit URL with responsive width, quality, and auto format (WebP/AVIF).

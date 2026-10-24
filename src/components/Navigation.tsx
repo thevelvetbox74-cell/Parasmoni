@@ -446,14 +446,19 @@ export function Navigation({
           <>
             {/* Click outside backdrop */}
             <div 
-              className="fixed inset-0 bg-stone-950/60 z-40 backdrop-blur-xs transition-opacity duration-300"
+              className="fixed inset-0 bg-stone-950/70 z-[99990] backdrop-blur-xs transition-opacity duration-300"
               onClick={() => setStorePanelOpen(false)}
             />
 
-            {/* Panel Container (Pop-over on desktop, modal on mobile) */}
-            <div className="fixed inset-x-0 bottom-0 max-h-[85vh] md:max-h-none md:absolute md:top-full md:bottom-auto md:right-8 md:left-auto md:w-96 md:mt-2 bg-white rounded-t-2xl md:rounded-lg shadow-2xl border border-stone-200 z-50 flex flex-col overflow-hidden text-stone-800 animate-fade-in-up" id="store-locator-popover">
+            {/* Panel Container (Pop-over on desktop, modal bottom drawer on mobile) */}
+            <div className="fixed inset-x-0 bottom-0 max-h-[90vh] md:max-h-none md:absolute md:top-full md:bottom-auto md:right-8 md:left-auto md:w-96 md:mt-2 bg-white rounded-t-3xl md:rounded-lg shadow-2xl border border-stone-200 z-[99995] flex flex-col overflow-hidden text-stone-800 animate-fade-in-up" id="store-locator-popover">
+              {/* Drag Pill for Mobile Sheet UI */}
+              <div className="pt-2 pb-1 bg-stone-50 md:hidden flex justify-center">
+                <div className="w-10 h-1 bg-stone-300 rounded-full" />
+              </div>
+
               {/* Header */}
-              <div className="p-4 border-b border-stone-100 flex items-center justify-between bg-stone-50">
+              <div className="p-4 pt-2 md:pt-4 border-b border-stone-100 flex items-center justify-between bg-stone-50 shrink-0">
                 <div className="flex items-center gap-2">
                   <Store className="w-4 h-4 text-brand-red-600" />
                   <span className="font-serif font-bold text-stone-900 text-sm tracking-wide">
@@ -468,18 +473,18 @@ export function Navigation({
                       setStorePanelOpen(false);
                     }
                   }}
-                  className="p-1 rounded-full hover:bg-stone-200 text-stone-400 hover:text-stone-700 transition-colors cursor-pointer"
+                  className="px-2 py-1 rounded-md hover:bg-stone-200 text-stone-500 hover:text-stone-800 transition-colors cursor-pointer"
                 >
                   {selectedStore && stores.length > 1 ? (
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-brand-red-600">Back</span>
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-brand-red-600">Back</span>
                   ) : (
-                    <X className="w-4 h-4" />
+                    <X className="w-5 h-5" />
                   )}
                 </button>
               </div>
 
-              {/* Content Area */}
-              <div className="overflow-y-auto p-4 space-y-4 max-h-[60vh] md:max-h-[420px]">
+              {/* Content Area with smooth touch scrolling and generous bottom padding */}
+              <div className="flex-1 overflow-y-auto p-4 space-y-4 max-h-[75vh] md:max-h-[440px] pb-28 md:pb-6 touch-pan-y scrollbar-thin">
                 {loadingStores ? (
                   <div className="py-12 text-center">
                     <div className="w-6 h-6 border-2 border-brand-red-600 border-t-transparent rounded-full animate-spin mx-auto" />
@@ -491,17 +496,18 @@ export function Navigation({
                     const s = selectedStore || stores[0];
                     const displayImg = s.imageUrl || "https://images.unsplash.com/photo-1569058242253-92a9c755a0ec?auto=format&fit=crop&q=80&w=600";
                     const resolvedHours = s.hours || s.workingHours || "11:30 AM - 8:00 PM";
-                    const resolvedWeeklyOff = s.weeklyOff || "Sunday";
+                    const resolvedWeeklyOff = s.weeklyOff || "None";
 
                     // Formulate call & wa URLs
-                    const cleanPhone = s.phone.replace(/[^0-9+]/g, '');
-                    const cleanWhatsapp = (s.whatsapp || '').replace(/[^0-9]/g, '');
+                    const cleanPhone = (s.phone || settings.contactNumber || '').replace(/[^0-9+]/g, '');
+                    const rawWa = s.whatsapp || settings.whatsappNumber || '';
+                    const cleanWhatsapp = rawWa.replace(/[^0-9]/g, '');
                     const directionUrl = s.googleMapsUrl || s.mapUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(s.name + ' ' + s.address)}`;
 
                     return (
                       <div className="space-y-4 text-stone-700">
                         {/* Image Panel */}
-                        <div className="relative aspect-video rounded overflow-hidden bg-stone-100 border border-stone-250 shadow-2xs">
+                        <div className="relative aspect-video rounded-xl overflow-hidden bg-stone-100 border border-stone-200 shadow-2xs">
                           <img 
                             src={displayImg} 
                             alt={s.name} 
@@ -509,7 +515,7 @@ export function Navigation({
                             referrerPolicy="no-referrer"
                           />
                           {s.city && (
-                            <span className="absolute top-2 left-2 bg-stone-950/80 backdrop-blur-xs text-stone-100 text-[8px] font-bold tracking-widest uppercase px-2 py-0.5 rounded">
+                            <span className="absolute top-2 left-2 bg-stone-950/80 backdrop-blur-xs text-stone-100 text-[9px] font-bold tracking-widest uppercase px-2 py-0.5 rounded">
                               {s.city}
                             </span>
                           )}
@@ -522,53 +528,49 @@ export function Navigation({
                           </h4>
                           <div className="flex gap-2 items-start text-xs text-stone-600">
                             <MapPin className="w-3.5 h-3.5 text-brand-red-600 shrink-0 mt-0.5" />
-                            <span className="font-sans leading-relaxed text-[11px]">{s.address}</span>
+                            <span className="font-sans leading-relaxed text-xs">{s.address}</span>
                           </div>
                         </div>
 
                         {/* Timing Schedule */}
-                        <div className="bg-stone-50 p-3 rounded border border-stone-200/60 space-y-1.5 text-[11px] text-stone-600 font-sans">
+                        <div className="bg-stone-50 p-3 rounded-xl border border-stone-200/80 space-y-1.5 text-xs text-stone-600 font-sans">
                           <div className="flex gap-2 items-center">
                             <Clock className="w-3.5 h-3.5 text-brand-red-600 shrink-0" />
-                            <span>Timings: {resolvedHours}</span>
+                            <span>Timings: <strong>{resolvedHours}</strong></span>
                           </div>
-                          {resolvedWeeklyOff && (
-                            <div className="flex gap-2 items-center">
-                              <Calendar className="w-3.5 h-3.5 text-brand-red-600 shrink-0" />
-                              <span>Weekly Off: <strong className="text-brand-red-700">{resolvedWeeklyOff}</strong></span>
-                            </div>
-                          )}
+                          <div className="flex gap-2 items-center">
+                            <Calendar className="w-3.5 h-3.5 text-brand-red-600 shrink-0" />
+                            <span>Weekly Closed: <strong className="text-brand-red-700">{resolvedWeeklyOff}</strong></span>
+                          </div>
                         </div>
 
-                        {/* CTA Buttons */}
-                        <div className="grid grid-cols-2 gap-2 pt-1">
+                        {/* CTA Buttons - Hollow Call & WhatsApp, Warm Cream Directions */}
+                        <div className="grid grid-cols-2 gap-2.5 pt-2 pb-2">
                           <a
                             href={`tel:${cleanPhone}`}
-                            className="flex items-center justify-center gap-1.5 h-9 border border-stone-200 hover:bg-stone-50 text-stone-700 text-[10px] font-bold tracking-widest uppercase rounded transition-colors"
+                            className="flex items-center justify-center gap-1.5 h-11 border-2 border-brand-red-600 bg-white hover:bg-brand-red-50 text-brand-red-600 text-[11px] font-extrabold tracking-wider uppercase rounded-xl transition-all shadow-2xs active:scale-98"
                           >
-                            <Phone className="w-3 h-3 text-brand-red-600" />
+                            <Phone className="w-4 h-4 text-brand-red-600" />
                             <span>Call Now</span>
                           </a>
 
-                          {cleanWhatsapp && (
-                            <a
-                              href={`https://wa.me/${cleanWhatsapp}?text=${encodeURIComponent(`Hello Parasmoni Jewellers, I'm interested in visiting your ${s.name} branch.`)}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="flex items-center justify-center gap-1.5 h-9 border border-stone-200 hover:bg-stone-50 text-stone-700 text-[10px] font-bold tracking-widest uppercase rounded transition-colors"
-                            >
-                              <MessageCircle className="w-3 h-3 text-emerald-600" />
-                              <span>WhatsApp</span>
-                            </a>
-                          )}
+                          <a
+                            href={`https://wa.me/${cleanWhatsapp}?text=${encodeURIComponent(`Hello Parasmoni Jewellers, I'm interested in visiting your ${s.name} branch.`)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center justify-center gap-1.5 h-11 border-2 border-emerald-600 bg-white hover:bg-emerald-50 text-emerald-600 text-[11px] font-extrabold tracking-wider uppercase rounded-xl transition-all shadow-2xs active:scale-98"
+                          >
+                            <MessageCircle className="w-4 h-4 text-emerald-600" />
+                            <span>WhatsApp</span>
+                          </a>
 
                           <a
                             href={directionUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="col-span-2 flex items-center justify-center gap-1.5 h-9.5 bg-stone-900 hover:bg-stone-800 text-stone-50 text-[10px] font-bold tracking-widest uppercase rounded transition-colors mt-0.5"
+                            className="col-span-2 flex items-center justify-center gap-2 h-11 bg-[#FAF6EF] hover:bg-[#F3ECE0] border border-[#E6DCCF] text-stone-900 text-[11px] font-extrabold tracking-wider uppercase rounded-xl transition-all shadow-2xs active:scale-98 mt-0.5"
                           >
-                            <Compass className="w-3.5 h-3.5 text-amber-400" />
+                            <Compass className="w-4.5 h-4.5 text-[#B8860B]" />
                             <span>Get Directions</span>
                           </a>
                         </div>
@@ -577,25 +579,25 @@ export function Navigation({
                   })()
                 ) : (
                   /* MULTIPLE ACTIVE SHOWROOMS SELECTOR */
-                  <div className="space-y-2">
-                    <p className="text-[9px] text-stone-400 uppercase tracking-widest font-bold pb-1">
-                      Select a Showroom to View Details
+                  <div className="space-y-2.5">
+                    <p className="text-[10px] text-stone-500 uppercase tracking-widest font-bold pb-1">
+                      Select a Showroom to View Details ({stores.length} Available)
                     </p>
                     {stores.map((s) => (
                       <button
                         key={s.id}
                         onClick={() => setSelectedStore(s)}
-                        className="w-full text-left p-3 rounded border border-stone-200 hover:border-brand-red-600/30 hover:bg-stone-50/50 transition-all flex items-center justify-between group cursor-pointer"
+                        className="w-full text-left p-3.5 rounded-xl border border-stone-200 hover:border-brand-red-600/50 hover:bg-stone-50 transition-all flex items-center justify-between group cursor-pointer bg-white shadow-2xs"
                       >
-                        <div className="space-y-0.5">
-                          <h4 className="font-serif font-bold text-stone-800 text-xs group-hover:text-brand-red-600 transition-colors">
+                        <div className="space-y-1">
+                          <h4 className="font-serif font-bold text-stone-900 text-xs sm:text-sm group-hover:text-brand-red-600 transition-colors">
                             {s.name}
                           </h4>
-                          <p className="text-[10px] text-stone-500 font-sans">
-                            {s.city || "Kolkata"}, {s.area || "West Bengal"}
+                          <p className="text-[11px] text-stone-500 font-sans leading-tight">
+                            {s.address ? s.address.split(',')[0] : (s.city || "Kolkata")}
                           </p>
                         </div>
-                        <ChevronRight className="w-4 h-4 text-stone-400 group-hover:translate-x-0.5 transition-transform" />
+                        <ChevronRight className="w-4 h-4 text-stone-400 group-hover:text-brand-red-600 group-hover:translate-x-1 transition-all shrink-0 ml-2" />
                       </button>
                     ))}
                   </div>

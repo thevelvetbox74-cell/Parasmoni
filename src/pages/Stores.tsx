@@ -422,8 +422,8 @@ export function Stores(): React.JSX.Element {
                             {resolvedWeeklyOff && (
                               <div className="flex gap-2.5 items-center">
                                 <Calendar className="w-4 h-4 text-amber-600 shrink-0" />
-                                <span className="font-sans font-medium text-amber-800 bg-amber-50 px-2 py-0.5 rounded">
-                                  Weekly Off: {resolvedWeeklyOff}
+                                <span className="font-sans font-medium text-brand-red-800 bg-brand-red-50/50 px-2 py-0.5 rounded">
+                                  Weekly Closed: {resolvedWeeklyOff}
                                 </span>
                               </div>
                             )}
@@ -441,20 +441,20 @@ export function Stores(): React.JSX.Element {
                             href={directionUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center justify-center gap-1.5 bg-stone-900 hover:bg-stone-800 text-stone-50 text-[10px] font-bold tracking-widest uppercase transition-colors rounded px-5 py-3 cursor-pointer"
+                            className="inline-flex items-center justify-center gap-1.5 bg-[#FAF6EF] hover:bg-[#F3ECE0] border border-[#E6DCCF] text-stone-900 text-[10px] font-bold tracking-widest uppercase transition-colors rounded px-5 py-3 cursor-pointer shadow-2xs"
                             id={`directions-btn-${store.id}`}
                           >
-                            <Compass className="w-3.5 h-3.5" />
+                            <Compass className="w-4 h-4 text-[#B8860B]" />
                             <span>Get Directions</span>
                           </a>
 
                           {/* Call Now */}
                           <a
                             href={`tel:${cleanPhone}`}
-                            className="inline-flex items-center justify-center gap-1.5 border border-stone-200 hover:bg-stone-50 text-stone-700 text-[10px] font-bold tracking-widest uppercase transition-colors rounded px-5 py-3 cursor-pointer"
+                            className="inline-flex items-center justify-center gap-1.5 border-2 border-brand-red-600 bg-white hover:bg-brand-red-50 text-brand-red-600 text-[10px] font-bold tracking-widest uppercase transition-colors rounded px-5 py-3 cursor-pointer shadow-2xs"
                             id={`call-btn-${store.id}`}
                           >
-                            <Phone className="w-3.5 h-3.5 text-amber-600" />
+                            <Phone className="w-3.5 h-3.5 text-brand-red-600" />
                             <span>Call</span>
                           </a>
 
@@ -464,7 +464,7 @@ export function Stores(): React.JSX.Element {
                               href={`https://wa.me/${cleanWhatsapp}?text=${encodeURIComponent(`Hello Parasmoni Jewellers, I would like to schedule a showroom visit/consultation at your ${store.name} branch.`)}`}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="inline-flex items-center justify-center gap-1.5 border border-stone-200 hover:bg-stone-50 text-stone-700 text-[10px] font-bold tracking-widest uppercase transition-colors rounded px-5 py-3 cursor-pointer"
+                              className="inline-flex items-center justify-center gap-1.5 border-2 border-emerald-600 bg-white hover:bg-emerald-50 text-emerald-600 text-[10px] font-bold tracking-widest uppercase transition-colors rounded px-5 py-3 cursor-pointer shadow-2xs"
                               id={`whatsapp-btn-${store.id}`}
                             >
                               <MessageCircle className="w-3.5 h-3.5 text-emerald-600" />

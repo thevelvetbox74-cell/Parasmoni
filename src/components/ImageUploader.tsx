@@ -1,21 +1,23 @@
 /**
  * @license
  * SPDX-License-Identifier: Apache-2.0
+ * Parasmoni Jewellers - Admin Auto-Optimizing Image & Video Uploader
  */
 
 import React, { useState, useRef } from 'react';
 import { uploadToImageKit } from '../imagekit/upload';
 import { IMAGEKIT_FOLDERS } from '../imagekit/client';
-import { UploadCloud, X, ImageIcon, AlertCircle, CheckCircle, FolderOpen } from 'lucide-react';
+import { UploadCloud, X, AlertCircle, CheckCircle } from 'lucide-react';
 import { MediaLibraryDrawer } from './MediaLibraryDrawer';
-import { isSvgFile, convertToWebP } from '../utils/imageConverter';
-import { UploadChoiceModal } from './UploadChoiceModal';
+import { optimizeImage } from '../admin/media/optimizeImage';
+import { optimizeVideo } from '../admin/media/optimizeVideo';
+import { MediaOptimizeStatus, MediaStatusItem } from '../admin/media/MediaOptimizeStatus';
 
 interface ImageUploaderProps {
   id: string;
   multiple?: boolean;
   value: string | string[];
-  onChange: (value: string | string[]) => void;
+  onChange: (value: string | string[], dimensions?: { width?: number; height?: number; posterUrl?: string }) => void;
   folder?: typeof IMAGEKIT_FOLDERS[keyof typeof IMAGEKIT_FOLDERS];
   recommendedDimensions?: string;
   autoWebP?: boolean;
@@ -28,20 +30,20 @@ export function ImageUploader({
   onChange,
   folder = IMAGEKIT_FOLDERS.products,
   recommendedDimensions,
-  autoWebP = false,
 }: ImageUploaderProps): React.JSX.Element {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  const [statusItems, setStatusItems] = useState<MediaStatusItem[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Compute recommended resolution hints if not explicitly passed
   const getDimensionHint = () => {
     if (recommendedDimensions) return recommendedDimensions;
     if (folder === IMAGEKIT_FOLDERS.banners) {
-      return "Desktop: 2560 x 1080 px (21:9 HD) | Mobile: 1080 x 1350 px (4:5 HD) | Video: 1080p MP4";
+      return "Desktop: 2560 x 1080 px (21:9 HD) | Mobile: 1080 x 1350 px (4:5 HD) | Video: Max 30s MP4/WebM";
     }
     if (folder === IMAGEKIT_FOLDERS.products) {
       return "1200 x 1200 px (1:1 HD Square) or 1500 x 1500 px";
@@ -63,10 +65,6 @@ export function ImageUploader({
 
   const effectiveDimensions = getDimensionHint();
 
-  // Optimization Prompt States
-  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
-  const [isChoiceModalOpen, setIsChoiceModalOpen] = useState(false);
-
   // Cast values correctly
   const images = multiple 
     ? (Array.isArray(value) ? value : (value ? [value] : [])) 
@@ -74,97 +72,125 @@ export function ImageUploader({
 
   const handleFiles = (files: FileList) => {
     if (files.length === 0) return;
-    
     const filesArray = Array.from(files);
     const filesToProcess = multiple ? filesArray : [filesArray[0]];
-
-    // Check if there are any images in the selection
-    const hasImages = filesToProcess.some(f => f.type.startsWith('image/'));
-
-    if (hasImages) {
-      if (autoWebP || folder === IMAGEKIT_FOLDERS.banners) {
-        executeUpload(filesToProcess, 'webp');
-      } else {
-        setPendingFiles(filesToProcess);
-        setIsChoiceModalOpen(true);
-      }
-    } else {
-      // Direct upload (e.g. for videos)
-      executeUpload(filesToProcess, 'raw');
-    }
+    executeUpload(filesToProcess);
   };
 
-  const handleChoiceDecision = async (mode: 'raw' | 'webp') => {
-    setIsChoiceModalOpen(false);
-    const filesToUpload = [...pendingFiles];
-    setPendingFiles([]);
-    await executeUpload(filesToUpload, mode);
-  };
-
-  const handleChoiceCancel = () => {
-    setIsChoiceModalOpen(false);
-    setPendingFiles([]);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  };
-
-  const executeUpload = async (filesToUpload: File[], mode: 'raw' | 'webp') => {
+  const executeUpload = async (filesToUpload: File[]) => {
     setUploading(true);
     setError(null);
     setSuccessMsg(null);
-    setProgress(10); // Start progress bar
+    setProgress(10);
+
+    const initialItems: MediaStatusItem[] = filesToUpload.map(f => ({
+      fileName: f.name,
+      originalSize: f.size,
+      status: 'optimizing'
+    }));
+    setStatusItems(initialItems);
 
     const uploadedUrls: string[] = [];
+    let lastMeta: { width?: number; height?: number; posterUrl?: string } = {};
 
     try {
       const stepValue = Math.floor(80 / filesToUpload.length);
-      
+
       for (let i = 0; i < filesToUpload.length; i++) {
-        let file = filesToUpload[i];
-        
-        // Validate file type
-        const isImage = file.type.startsWith('image/');
-        const isVideo = file.type.startsWith('video/');
-        
+        const originalFile = filesToUpload[i];
+        let fileToUpload = originalFile;
+        let posterUrl: string | null = null;
+        let width = 0;
+        let height = 0;
+
+        const isImage = originalFile.type.startsWith('image/') || /\.(jpg|jpeg|png|webp|avif|gif|bmp|tif|tiff|heic|heif|ico|svg)$/i.test(originalFile.name);
+        const isVideo = originalFile.type.startsWith('video/') || /\.(mp4|mov|m4v|avi|mkv|webm|3gp|wmv|flv|mpg|mpeg|ts)$/i.test(originalFile.name);
+
         if (!isImage && !isVideo) {
-          throw new Error(`File "${file.name}" is not a supported format.`);
+          throw new Error(`File "${originalFile.name}" is not a supported image or video format.`);
         }
 
-        // Validate size (allow high-definition images up to 25MB and HD videos up to 100MB)
-        const limitSize = isVideo ? 100 * 1024 * 1024 : 25 * 1024 * 1024;
-        if (file.size > limitSize) {
-          throw new Error(`File "${file.name}" exceeds the allowed size limit (${isVideo ? '100MB for videos' : '25MB for images'}).`);
+        // 1. Client-side Auto Optimization
+        if (isImage) {
+          const optRes = await optimizeImage(originalFile, {
+            isBanner: folder === IMAGEKIT_FOLDERS.banners,
+            maxSizeMB: 50
+          });
+          fileToUpload = optRes.file;
+          width = optRes.width;
+          height = optRes.height;
+
+          setStatusItems(prev => {
+            const copy = [...prev];
+            copy[i] = {
+              fileName: originalFile.name,
+              originalSize: optRes.originalSize,
+              optimizedSize: optRes.optimizedSize,
+              savedPercent: optRes.savedPercent,
+              status: 'uploading',
+              note: optRes.note
+            };
+            return copy;
+          });
+        } else if (isVideo) {
+          const optVideoRes = await optimizeVideo(originalFile, folder);
+          fileToUpload = optVideoRes.file;
+          posterUrl = optVideoRes.posterUrl;
+
+          setStatusItems(prev => {
+            const copy = [...prev];
+            copy[i] = {
+              fileName: originalFile.name,
+              originalSize: optVideoRes.originalSize,
+              optimizedSize: optVideoRes.optimizedSize,
+              savedPercent: optVideoRes.savedPercent,
+              status: 'uploading',
+              note: optVideoRes.note
+            };
+            return copy;
+          });
         }
 
-        // Apply WebP conversion on client-side if selected & convertible
-        if (mode === 'webp' && isImage && !isSvgFile(file)) {
-          setProgress(prev => Math.min(prev + 5, 95));
-          file = await convertToWebP(file);
-        }
-
-        const result = await uploadToImageKit(file, folder);
+        // 2. ImageKit Upload
+        const result = await uploadToImageKit(fileToUpload, folder);
         uploadedUrls.push(result.url);
-        
+
+        lastMeta = {
+          width: width || undefined,
+          height: height || undefined,
+          posterUrl: posterUrl || undefined
+        };
+
+        setStatusItems(prev => {
+          const copy = [...prev];
+          copy[i] = {
+            ...copy[i],
+            status: 'done'
+          };
+          return copy;
+        });
+
         setProgress(prev => Math.min(prev + stepValue, 90));
       }
 
       setProgress(100);
-      setSuccessMsg(`Successfully uploaded ${uploadedUrls.length} asset(s).`);
+      setSuccessMsg(`Successfully optimized and uploaded ${uploadedUrls.length} asset(s).`);
 
       if (multiple) {
-        onChange([...images, ...uploadedUrls]);
+        onChange([...images, ...uploadedUrls], lastMeta);
       } else {
-        onChange(uploadedUrls[0]);
+        onChange(uploadedUrls[0], lastMeta);
       }
 
-      // Reset file input
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
     } catch (err: any) {
-      console.error('ImageKit Upload error:', err);
-      setError(err.message || 'Failed to upload image assets. Please try again.');
+      console.error('Auto-Optimize Upload error:', err);
+      const errMsg = err.message || 'Failed to optimize and upload assets. Please try again.';
+      setError(errMsg);
+
+      setStatusItems(prev => prev.map(item => item.status !== 'done' ? { ...item, status: 'error', errorMsg: errMsg } : item));
     } finally {
       setTimeout(() => {
         setUploading(false);
@@ -200,6 +226,7 @@ export function ImageUploader({
     }
     setSuccessMsg(null);
     setError(null);
+    setStatusItems([]);
   };
 
   return (
@@ -222,7 +249,7 @@ export function ImageUploader({
           id={`input-file-${id}`}
           ref={fileInputRef}
           multiple={multiple}
-          accept="image/*,video/*"
+          accept="image/*,video/*,.jpg,.jpeg,.png,.webp,.avif,.gif,.bmp,.tif,.tiff,.heic,.heif,.ico,.svg,.mp4,.mov,.m4v,.avi,.mkv,.webm,.3gp,.wmv,.flv,.mpg,.mpeg,.ts"
           className="hidden"
           disabled={uploading}
           onChange={(e) => e.target.files && handleFiles(e.target.files)}
@@ -235,10 +262,14 @@ export function ImageUploader({
           
           <div className="space-y-1">
             <p className="text-xs font-semibold text-stone-800">
-              {uploading ? 'Processing & uploading...' : 'Click to choose from Media Library / Drag & Drop'}
+              {uploading ? 'Auto-Optimizing & Uploading...' : 'Click to choose from Media Library / Drag & Drop'}
             </p>
             <p className="text-[10px] text-stone-500">
-              Select existing media (Images/Videos) or drag & drop to upload new
+              Select existing media or drag & drop new files for instant browser WebP compression
+            </p>
+            {/* Admin Auto-Optimization Hint Text */}
+            <p className="text-[10px] text-amber-800 font-medium font-sans pt-0.5">
+              Any image or video format is accepted. Images are converted to WebP and compressed automatically.
             </p>
           </div>
 
@@ -253,7 +284,7 @@ export function ImageUploader({
         {uploading && (
           <div className="mt-4 max-w-xs mx-auto space-y-1.5" id={`progress-wrapper-${id}`}>
             <div className="flex items-center justify-between text-[10px] text-stone-600 font-mono">
-              <span>Uploading assets...</span>
+              <span>Optimizing assets...</span>
               <span>{progress}%</span>
             </div>
             <div className="w-full bg-stone-200 h-1.5 rounded-full overflow-hidden border border-stone-300">
@@ -265,6 +296,16 @@ export function ImageUploader({
           </div>
         )}
       </div>
+
+      {/* Auto Optimization Per-File Status Feedback */}
+      <MediaOptimizeStatus
+        items={statusItems}
+        onRetry={(idx) => {
+          if (fileInputRef.current?.files) {
+            handleFiles(fileInputRef.current.files);
+          }
+        }}
+      />
 
       {/* Notifications banner */}
       {error && (
@@ -373,14 +414,6 @@ export function ImageUploader({
         }}
         currentValue={value}
         defaultFolder={folder}
-      />
-
-      {/* Image Optimization Selector Modal */}
-      <UploadChoiceModal
-        isOpen={isChoiceModalOpen}
-        files={pendingFiles}
-        onChoose={handleChoiceDecision}
-        onCancel={handleChoiceCancel}
       />
     </div>
   );
