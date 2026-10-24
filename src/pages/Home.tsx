@@ -64,19 +64,7 @@ import { mockWebsiteSettings } from '../data/mockSettings';
 import { useWebsiteSettings } from '../context/WebsiteSettingsContext';
 import { PageSEOHead } from '../components/PageSEOHead';
 import { SectionHeader } from '../components/SectionHeader';
-import { db, isFirebaseConfigured } from '../firebase/config';
-import { 
-  collection, 
-  onSnapshot, 
-  query, 
-  where, 
-  getDocs, 
-  orderBy, 
-  limit,
-  Timestamp,
-  doc,
-  setDoc
-} from 'firebase/firestore';
+import { getLazyFirebase } from '../utils/lazyFirebase';
 
 const DEFAULT_CATEGORIES_MOCK = [
   {
@@ -922,7 +910,7 @@ export function Home({
   const [lastUpdatedPrice, setLastUpdatedPrice] = useState<string>('');
 
   // Fallback state trackers
-  const [fallbackActive, setFallbackActive] = useState(!isFirebaseConfigured);
+  const [fallbackActive, setFallbackActive] = useState(false);
 
   // Load page sections (builder vs viewer)
   useEffect(() => {
@@ -932,43 +920,391 @@ export function Home({
       return;
     }
 
-    if (!isFirebaseConfigured || !db) {
-      setPageSections(DEFAULT_PAGE_SECTIONS);
-      setLoadingSections(false);
-      return;
-    }
-
-    // Subscribe to page sections for the home page (or specific pageId)
+    let unsubscribe: (() => void) | undefined;
     const targetDocId = pageId || 'home';
-    const docRef = doc(db, 'pageSections', targetDocId);
-    const unsubscribe = onSnapshot(docRef, (snapshot) => {
-      if (snapshot.exists()) {
-        const data = snapshot.data();
-        if (data && Array.isArray(data.sections) && data.sections.length > 0) {
-          setPageSections(data.sections);
-          setCachedData('home_page_sections', data.sections);
+
+    getLazyFirebase().then(fb => {
+      if (!fb) {
+        setPageSections(DEFAULT_PAGE_SECTIONS);
+        setLoadingSections(false);
+        return;
+      }
+      const { db, firestore } = fb;
+      const docRef = firestore.doc(db, 'pageSections', targetDocId);
+      unsubscribe = firestore.onSnapshot(docRef, (snapshot) => {
+        if (snapshot.exists()) {
+          const data = snapshot.data();
+          if (data && Array.isArray(data.sections) && data.sections.length > 0) {
+            setPageSections(data.sections);
+            setCachedData('home_page_sections', data.sections);
+          } else {
+            setPageSections(DEFAULT_PAGE_SECTIONS);
+          }
+          if (data && data.seo) {
+            setPageSeo(data.seo);
+          }
         } else {
           setPageSections(DEFAULT_PAGE_SECTIONS);
         }
-        if (data && data.seo) {
-          setPageSeo(data.seo);
-        }
-      } else {
+        setLoadingSections(false);
+      }, (error) => {
+        handleFirestoreError(error, OperationType.GET, `pageSections/${targetDocId}`);
         setPageSections(DEFAULT_PAGE_SECTIONS);
-      }
-      setLoadingSections(false);
-    }, (error) => {
-      handleFirestoreError(error, OperationType.GET, `pageSections/${targetDocId}`);
+        setLoadingSections(false);
+      });
+    }).catch(() => {
       setPageSections(DEFAULT_PAGE_SECTIONS);
       setLoadingSections(false);
     });
 
-    return () => unsubscribe();
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
   }, [isBuilder, sectionsOverride, pageId]);
 
   useEffect(() => {
-    if (!isFirebaseConfigured) {
-      // Gracefully default to highly realistic mock datasets instantly (Priority Rule 1)
+    let unsubs: (() => void)[] = [];
+
+    getLazyFirebase().then(fb => {
+      if (!fb) {
+        setBanners(mockBanners);
+        setMetalPrices(mockMetalPrices);
+        setCollections(mockCollections);
+        setCategories(DEFAULT_CATEGORIES_MOCK);
+        setFeaturedProducts(mockProducts.filter(p => p.isPopular));
+        setNewArrivalProducts(mockProducts.filter(p => !p.isPopular));
+        setStores(mockStores);
+        setTestimonials(defaultMockTestimonials);
+        setLastUpdatedPrice('Live Demo Backup');
+        setFallbackActive(true);
+        setLoadingTestimonials(false);
+        return;
+      }
+
+      const { db, firestore } = fb;
+
+      // 1. Live Banner Stream
+      const bannersRef = firestore.collection(db, 'banners');
+      const bannersQuery = firestore.query(bannersRef, firestore.where('status', '==', 'active'));
+      const unsubBanners = firestore.onSnapshot(bannersQuery, (snapshot) => {
+        try {
+          const now = new Date();
+          const items = snapshot.docs.map(doc => {
+            const data = doc.data();
+            return {
+              id: doc.id,
+              title: data.title || '',
+              subtitle: data.subtitle || '',
+              image: data.imageUrl || data.image || '',
+              buttonText: data.buttonText || 'EXPLORE MASTERPIECES',
+              buttonLink: data.linkUrl || data.buttonLink || '/catalog',
+              displayOrder: typeof data.displayOrder === 'number' ? data.displayOrder : 99,
+              startDate: data.startDate ? new Date(data.startDate) : null,
+              endDate: data.endDate ? new Date(data.endDate) : null,
+            };
+          })
+          .filter(b => {
+            if (b.startDate && b.startDate > now) return false;
+            if (b.endDate && b.endDate < now) return false;
+            return true;
+          })
+          .sort((a, b) => a.displayOrder - b.displayOrder);
+
+          if (items.length > 0) {
+            setBanners(items);
+            setCachedData('home_banners', items);
+          } else {
+            setBanners(mockBanners);
+          }
+          setLoadingBanners(false);
+        } catch (err) {
+          handleFirestoreError(err, OperationType.LIST, 'banners');
+          setBanners(mockBanners);
+          setLoadingBanners(false);
+        }
+      }, (error) => {
+        handleFirestoreError(error, OperationType.LIST, 'banners');
+        setBanners(mockBanners);
+        setLoadingBanners(false);
+      });
+      unsubs.push(unsubBanners);
+
+      // 2. Live Metal Rates Stream
+      const pricesRef = firestore.collection(db, 'metalPrices');
+      const unsubPrices = firestore.onSnapshot(pricesRef, (snapshot) => {
+        try {
+          if (snapshot.empty) {
+            setMetalPrices(mockMetalPrices);
+            setLastUpdatedPrice('Pre-loaded Market Rates');
+            setLoadingPrices(false);
+            return;
+          }
+
+          const items = snapshot.docs
+            .map(doc => {
+              const data = doc.data();
+              let updateTimeStr = '';
+              if (data.updatedAt) {
+                const upVal = data.updatedAt;
+                if (upVal instanceof firestore.Timestamp) {
+                  updateTimeStr = upVal.toDate().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) + ', ' + upVal.toDate().toLocaleDateString('en-IN');
+                } else {
+                  const parsedDate = new Date(upVal);
+                  updateTimeStr = isNaN(parsedDate.getTime()) ? '' : parsedDate.toLocaleTimeString('en-IN') + ', ' + parsedDate.toLocaleDateString('en-IN');
+                }
+              }
+              return {
+                id: doc.id,
+                metal: data.metal || data.metalType || data.metalName || '',
+                pricePerGram: Number(data.pricePerGram || data.ratePerGram || data.price || 0),
+                change: Number(data.change || 0),
+                unit: data.unit || '1g',
+                status: data.status || 'active',
+                displayOrder: typeof data.displayOrder === 'number' ? data.displayOrder : 9999,
+                updateTimeStr
+              };
+            })
+            .filter(p => p.status === 'active');
+
+          items.sort((a, b) => a.displayOrder - b.displayOrder);
+
+          const timestamps = items.map(item => item.updateTimeStr).filter(Boolean);
+          if (timestamps.length > 0) {
+            setLastUpdatedPrice(timestamps[0]);
+          } else {
+            setLastUpdatedPrice(new Date().toLocaleTimeString('en-IN') + ', ' + new Date().toLocaleDateString('en-IN'));
+          }
+
+          setMetalPrices(items);
+          setCachedData('home_metal_prices', items);
+          setLoadingPrices(false);
+        } catch (err) {
+          handleFirestoreError(err, OperationType.LIST, 'metalPrices');
+          setMetalPrices(mockMetalPrices);
+          setLoadingPrices(false);
+        }
+      }, (error) => {
+        handleFirestoreError(error, OperationType.LIST, 'metalPrices');
+        setMetalPrices(mockMetalPrices);
+        setLoadingPrices(false);
+      });
+      unsubs.push(unsubPrices);
+
+      // 3. Fetch Active Collections (getDocs)
+      const fetchCollections = async () => {
+        try {
+          const collectionsRef = firestore.collection(db, 'collections');
+          const snapshot = await firestore.getDocs(collectionsRef);
+          let items = snapshot.docs.map(doc => {
+            const data = doc.data();
+            return {
+              id: doc.id,
+              name: data.name || '',
+              description: data.description || '',
+              imageUrl: data.imageUrl || data.coverImageUrl || '',
+              slug: data.slug || '',
+              displayOrder: typeof data.displayOrder === 'number' ? data.displayOrder : (typeof data.order === 'number' ? data.order : 99),
+              status: data.status || (data.isActive ? 'active' : 'inactive')
+            };
+          })
+          .filter(c => c.status === 'active')
+          .sort((a, b) => a.displayOrder - b.displayOrder);
+
+          if (items.length > 0) {
+            setCollections(items);
+            setCachedData('home_collections', items);
+          } else {
+            setCollections(mockCollections);
+          }
+          setLoadingCollections(false);
+        } catch (err) {
+          handleFirestoreError(err, OperationType.LIST, 'collections');
+          setCollections(mockCollections);
+          setLoadingCollections(false);
+        }
+      };
+      fetchCollections();
+
+      // 4. Fetch All Published Products
+      const fetchAllProducts = async () => {
+        try {
+          const productsRef = firestore.collection(db, 'products');
+          const q = firestore.query(
+            productsRef, 
+            firestore.where('status', '==', 'published'),
+            firestore.limit(24)
+          );
+          const snapshot = await firestore.getDocs(q);
+          const items = snapshot.docs.map(doc => {
+            const data = doc.data();
+            return {
+              ...data,
+              id: doc.id,
+              name: data.name || data.productName || '',
+              sku: data.sku || data.productCode || '',
+              description: data.description || '',
+              category: data.category || data.categoryId || '',
+              collection: data.collection || data.collectionId || '',
+              metalType: data.metalType || data.purity || '',
+              approxWeight: data.approxWeight || (data.grossWeight ? `${data.grossWeight}g` : ''),
+              imageUrl: data.imageUrl || data.thumbnailUrl || (data.images && data.images[0]) || '',
+              featured: data.featured === true,
+              newArrival: data.newArrival === true,
+              isPopular: data.featured === true,
+              badgeLabel: data.badgeLabel || '',
+              badgeColor: data.badgeColor || '#927230',
+              rating: data.rating !== undefined && data.rating !== null ? Number(data.rating) : null,
+              reviewCount: data.reviewCount !== undefined && data.reviewCount !== null ? Number(data.reviewCount) : null,
+              price: data.price !== undefined && data.price !== null ? Number(data.price) : 0,
+              mrp: data.mrp !== undefined && data.mrp !== null ? Number(data.mrp) : null,
+              priceVisibility: data.priceVisibility !== undefined ? data.priceVisibility : true
+            };
+          });
+
+          if (items.length > 0) {
+            setAllProducts(items);
+            const featured = items.filter(p => p.featured);
+            const newArr = items.filter(p => p.newArrival);
+            setFeaturedProducts(featured);
+            setNewArrivalProducts(newArr);
+            setCachedData('home_featured', featured);
+            setCachedData('home_new_arrivals', newArr);
+          } else {
+            setAllProducts(mockProducts);
+            setFeaturedProducts(mockProducts.filter(p => p.isPopular));
+            setNewArrivalProducts(mockProducts.filter(p => !p.isPopular));
+          }
+          setLoadingFeatured(false);
+          setLoadingNewArrivals(false);
+        } catch (err) {
+          handleFirestoreError(err, OperationType.LIST, 'products');
+          setAllProducts(mockProducts);
+          setFeaturedProducts(mockProducts.filter(p => p.isPopular));
+          setNewArrivalProducts(mockProducts.filter(p => !p.isPopular));
+          setLoadingFeatured(false);
+          setLoadingNewArrivals(false);
+        }
+      };
+      fetchAllProducts();
+
+      // 5. Fetch Active Stores
+      const fetchStores = async () => {
+        try {
+          const storesRef = firestore.collection(db, 'stores');
+          const snapshot = await firestore.getDocs(storesRef);
+          const items = snapshot.docs.map(doc => {
+            const data = doc.data();
+            return {
+              id: doc.id,
+              name: data.name || '',
+              address: data.address || '',
+              phone: data.phone || '',
+              whatsapp: data.whatsapp || data.whatsappNumber || '',
+              hours: data.hours || data.workingHours || '',
+              openingTime: data.openingTime || '',
+              closingTime: data.closingTime || '',
+              weeklyOff: data.weeklyOff || '',
+              mapUrl: data.mapUrl || data.mapEmbedUrl || '',
+              imageUrl: data.imageUrl || '',
+              status: data.status || (data.isActive ? 'active' : 'inactive')
+            };
+          })
+          .filter(s => s.status === 'active');
+
+          if (items.length > 0) {
+            setStores(items);
+          } else {
+            setStores(mockStores);
+          }
+          setLoadingStores(false);
+        } catch (err) {
+          handleFirestoreError(err, OperationType.LIST, 'stores');
+          setStores(mockStores);
+          setLoadingStores(false);
+        }
+      };
+      fetchStores();
+
+      // 6. Live Categories Stream
+      const categoriesRef = firestore.collection(db, 'categories');
+      const unsubCategories = firestore.onSnapshot(categoriesRef, (snapshot) => {
+        try {
+          if (snapshot.empty) {
+            setCategories(DEFAULT_CATEGORIES_MOCK);
+            setLoadingCategories(false);
+            return;
+          }
+          
+          const items = snapshot.docs.map(doc => {
+            const data = doc.data();
+            return {
+              id: doc.id,
+              name: data.name || '',
+              slug: data.slug || '',
+              imageUrl: data.imageUrl || data.coverImageUrl || '',
+              displayOrder: typeof data.displayOrder === 'number' ? data.displayOrder : (typeof data.order === 'number' ? data.order : 99),
+              status: data.status || (data.isActive ? 'active' : 'inactive'),
+              offerTag: data.offerTag || '',
+              customTitle: data.customTitle || '',
+              customSubtitle: data.customSubtitle || '',
+              fontStyle: data.fontStyle || 'serif',
+              textColor: data.textColor || '#ffffff',
+              subtitleColor: data.subtitleColor || '#fecdd3',
+              offerTagColor: data.offerTagColor || '#ffffff',
+              offerTagBgColor: data.offerTagBgColor || '#e11d48',
+              overlayShadeColor: data.overlayShadeColor || '#000000'
+            };
+          })
+          .filter(c => c.status === 'active')
+          .sort((a, b) => a.displayOrder - b.displayOrder);
+
+          if (items.length > 0) {
+            setCategories(items);
+          } else {
+            setCategories(DEFAULT_CATEGORIES_MOCK);
+          }
+          setLoadingCategories(false);
+        } catch (err) {
+          handleFirestoreError(err, OperationType.LIST, 'categories');
+          setCategories(DEFAULT_CATEGORIES_MOCK);
+          setLoadingCategories(false);
+        }
+      }, (error) => {
+        handleFirestoreError(error, OperationType.LIST, 'categories');
+        setCategories(DEFAULT_CATEGORIES_MOCK);
+        setLoadingCategories(false);
+      });
+      unsubs.push(unsubCategories);
+
+      // 7. Live Testimonials Stream
+      const testimonialsRef = firestore.collection(db, 'testimonials');
+      const unsubTestimonials = firestore.onSnapshot(testimonialsRef, (snapshot) => {
+        try {
+          const items = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+          }))
+          .filter((t: any) => t.status === 'active')
+          .sort((a: any, b: any) => (a.displayOrder || 1) - (b.displayOrder || 1));
+
+          if (items.length > 0) {
+            setTestimonials(items);
+          } else {
+            setTestimonials(defaultMockTestimonials);
+          }
+          setLoadingTestimonials(false);
+        } catch (err) {
+          handleFirestoreError(err, OperationType.LIST, 'testimonials');
+          setTestimonials(defaultMockTestimonials);
+          setLoadingTestimonials(false);
+        }
+      }, (error) => {
+        handleFirestoreError(error, OperationType.LIST, 'testimonials');
+        setTestimonials(defaultMockTestimonials);
+        setLoadingTestimonials(false);
+      });
+      unsubs.push(unsubTestimonials);
+    }).catch(() => {
       setBanners(mockBanners);
       setMetalPrices(mockMetalPrices);
       setCollections(mockCollections);
@@ -977,347 +1313,11 @@ export function Home({
       setNewArrivalProducts(mockProducts.filter(p => !p.isPopular));
       setStores(mockStores);
       setTestimonials(defaultMockTestimonials);
-      setLastUpdatedPrice('Live Demo Backup');
-      setFallbackActive(true);
-      setLoadingTestimonials(false);
-      return;
-    }
-
-    // 1. Live Banner Real-time Stream
-    // status=active, ordered by displayOrder (client sorted to protect against missing compound indexes)
-    const bannersRef = collection(db, 'banners');
-    const bannersQuery = query(bannersRef, where('status', '==', 'active'));
-    
-    const unsubscribeBanners = onSnapshot(bannersQuery, (snapshot) => {
-      try {
-        const now = new Date();
-        const items = snapshot.docs.map(doc => {
-          const data = doc.data();
-          return {
-            id: doc.id,
-            title: data.title || '',
-            subtitle: data.subtitle || '',
-            image: data.imageUrl || data.image || '',
-            buttonText: data.buttonText || 'EXPLORE MASTERPIECES',
-            buttonLink: data.linkUrl || data.buttonLink || '/catalog',
-            displayOrder: typeof data.displayOrder === 'number' ? data.displayOrder : 99,
-            startDate: data.startDate ? new Date(data.startDate) : null,
-            endDate: data.endDate ? new Date(data.endDate) : null,
-          };
-        })
-        // Filter campaign dates locally for safety
-        .filter(b => {
-          if (b.startDate && b.startDate > now) return false;
-          if (b.endDate && b.endDate < now) return false;
-          return true;
-        })
-        // Sort by displayOrder
-        .sort((a, b) => a.displayOrder - b.displayOrder);
-
-        if (items.length > 0) {
-          setBanners(items);
-          setCachedData('home_banners', items);
-        } else {
-          setBanners(mockBanners); // Fallback if database is active but empty
-        }
-        setLoadingBanners(false);
-      } catch (err) {
-        handleFirestoreError(err, OperationType.LIST, 'banners');
-        setBanners(mockBanners);
-        setLoadingBanners(false);
-      }
-    }, (error) => {
-      handleFirestoreError(error, OperationType.LIST, 'banners');
-      setBanners(mockBanners);
-      setLoadingBanners(false);
-    });
-
-    // 2. Live Metal Rates Real-time Stream
-    const pricesRef = collection(db, 'metalPrices');
-    const unsubscribePrices = onSnapshot(pricesRef, (snapshot) => {
-      try {
-        if (snapshot.empty) {
-          setMetalPrices(mockMetalPrices);
-          setLastUpdatedPrice('Pre-loaded Market Rates');
-          setLoadingPrices(false);
-          return;
-        }
-
-        const items = snapshot.docs
-          .map(doc => {
-            const data = doc.data();
-            // Extract dynamic updated timestamp
-            let updateTimeStr = '';
-            if (data.updatedAt) {
-              const upVal = data.updatedAt;
-              if (upVal instanceof Timestamp) {
-                updateTimeStr = upVal.toDate().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) + ', ' + upVal.toDate().toLocaleDateString('en-IN');
-              } else {
-                const parsedDate = new Date(upVal);
-                updateTimeStr = isNaN(parsedDate.getTime()) ? '' : parsedDate.toLocaleTimeString('en-IN') + ', ' + parsedDate.toLocaleDateString('en-IN');
-              }
-            }
-            return {
-              id: doc.id,
-              metal: data.metal || data.metalType || data.metalName || '',
-              pricePerGram: Number(data.pricePerGram || data.ratePerGram || data.price || 0),
-              change: Number(data.change || 0),
-              unit: data.unit || '1g',
-              status: data.status || 'active',
-              displayOrder: typeof data.displayOrder === 'number' ? data.displayOrder : 9999,
-              updateTimeStr
-            };
-          })
-          .filter(p => p.status === 'active');
-
-        items.sort((a, b) => a.displayOrder - b.displayOrder);
-
-        // Set last updated tracker
-        const timestamps = items.map(item => item.updateTimeStr).filter(Boolean);
-        if (timestamps.length > 0) {
-          setLastUpdatedPrice(timestamps[0]);
-        } else {
-          setLastUpdatedPrice(new Date().toLocaleTimeString('en-IN') + ', ' + new Date().toLocaleDateString('en-IN'));
-        }
-
-        setMetalPrices(items);
-        setCachedData('home_metal_prices', items);
-        setLoadingPrices(false);
-      } catch (err) {
-        handleFirestoreError(err, OperationType.LIST, 'metalPrices');
-        setMetalPrices(mockMetalPrices);
-        setLoadingPrices(false);
-      }
-    }, (error) => {
-      handleFirestoreError(error, OperationType.LIST, 'metalPrices');
-      setMetalPrices(mockMetalPrices);
-      setLoadingPrices(false);
-    });
-
-    // 3. Fetch Active Collections (getDocs)
-    const fetchCollections = async () => {
-      try {
-        const collectionsRef = collection(db, 'collections');
-        // Accept either isActive or status active for maximum resilience
-        const snapshot = await getDocs(collectionsRef);
-        
-        let items = snapshot.docs.map(doc => {
-          const data = doc.data();
-          return {
-            id: doc.id,
-            name: data.name || '',
-            description: data.description || '',
-            imageUrl: data.imageUrl || data.coverImageUrl || '',
-            slug: data.slug || '',
-            displayOrder: typeof data.displayOrder === 'number' ? data.displayOrder : (typeof data.order === 'number' ? data.order : 99),
-            status: data.status || (data.isActive ? 'active' : 'inactive')
-          };
-        })
-        .filter(c => c.status === 'active')
-        .sort((a, b) => a.displayOrder - b.displayOrder);
-
-        if (items.length > 0) {
-          setCollections(items);
-          setCachedData('home_collections', items);
-        } else {
-          setCollections(mockCollections);
-        }
-        setLoadingCollections(false);
-      } catch (err) {
-        handleFirestoreError(err, OperationType.LIST, 'collections');
-        setCollections(mockCollections);
-        setLoadingCollections(false);
-      }
-    };
-    fetchCollections();
-
-    // 4. Fetch All Published Products
-    const fetchAllProducts = async () => {
-      try {
-        const productsRef = collection(db, 'products');
-        const q = query(
-          productsRef, 
-          where('status', '==', 'published'),
-          limit(24)
-        );
-        const snapshot = await getDocs(q);
-        
-        const items = snapshot.docs.map(doc => {
-          const data = doc.data();
-          return {
-            ...data,
-            id: doc.id,
-            name: data.name || data.productName || '',
-            sku: data.sku || data.productCode || '',
-            description: data.description || '',
-            category: data.category || data.categoryId || '',
-            collection: data.collection || data.collectionId || '',
-            metalType: data.metalType || data.purity || '',
-            approxWeight: data.approxWeight || (data.grossWeight ? `${data.grossWeight}g` : ''),
-            imageUrl: data.imageUrl || data.thumbnailUrl || (data.images && data.images[0]) || '',
-            featured: data.featured === true,
-            newArrival: data.newArrival === true,
-            isPopular: data.featured === true,
-            badgeLabel: data.badgeLabel || '',
-            badgeColor: data.badgeColor || '#927230',
-            rating: data.rating !== undefined && data.rating !== null ? Number(data.rating) : null,
-            reviewCount: data.reviewCount !== undefined && data.reviewCount !== null ? Number(data.reviewCount) : null,
-            price: data.price !== undefined && data.price !== null ? Number(data.price) : 0,
-            mrp: data.mrp !== undefined && data.mrp !== null ? Number(data.mrp) : null,
-            priceVisibility: data.priceVisibility !== undefined ? data.priceVisibility : true
-          };
-        });
-
-        if (items.length > 0) {
-          setAllProducts(items);
-          const featured = items.filter(p => p.featured);
-          const newArr = items.filter(p => p.newArrival);
-          setFeaturedProducts(featured);
-          setNewArrivalProducts(newArr);
-          setCachedData('home_featured', featured);
-          setCachedData('home_new_arrivals', newArr);
-        } else {
-          // If Firestore exists but is unpopulated, fallback to mock data
-          setAllProducts(mockProducts);
-          setFeaturedProducts(mockProducts.filter(p => p.isPopular));
-          setNewArrivalProducts(mockProducts.filter(p => !p.isPopular));
-        }
-        setLoadingFeatured(false);
-        setLoadingNewArrivals(false);
-      } catch (err) {
-        handleFirestoreError(err, OperationType.LIST, 'products');
-        setAllProducts(mockProducts);
-        setFeaturedProducts(mockProducts.filter(p => p.isPopular));
-        setNewArrivalProducts(mockProducts.filter(p => !p.isPopular));
-        setLoadingFeatured(false);
-        setLoadingNewArrivals(false);
-      }
-    };
-    fetchAllProducts();
-
-    // 6. Fetch Active Stores
-    const fetchStores = async () => {
-      try {
-        const storesRef = collection(db, 'stores');
-        const snapshot = await getDocs(storesRef);
-        
-        const items = snapshot.docs.map(doc => {
-          const data = doc.data();
-          return {
-            id: doc.id,
-            name: data.name || '',
-            address: data.address || '',
-            phone: data.phone || '',
-            whatsapp: data.whatsapp || data.whatsappNumber || '',
-            hours: data.hours || data.workingHours || '',
-            openingTime: data.openingTime || '',
-            closingTime: data.closingTime || '',
-            weeklyOff: data.weeklyOff || '',
-            mapUrl: data.mapUrl || data.mapEmbedUrl || '',
-            imageUrl: data.imageUrl || '',
-            status: data.status || (data.isActive ? 'active' : 'inactive')
-          };
-        })
-        .filter(s => s.status === 'active');
-
-        if (items.length > 0) {
-          setStores(items);
-        } else {
-          setStores(mockStores);
-        }
-        setLoadingStores(false);
-      } catch (err) {
-        handleFirestoreError(err, OperationType.LIST, 'stores');
-        setStores(mockStores);
-        setLoadingStores(false);
-      }
-    };
-    fetchStores();
-
-    // 7. Live Categories Real-time Stream
-    const categoriesRef = collection(db, 'categories');
-    const unsubscribeCategories = onSnapshot(categoriesRef, (snapshot) => {
-      try {
-        if (snapshot.empty) {
-          setCategories(DEFAULT_CATEGORIES_MOCK);
-          setLoadingCategories(false);
-          return;
-        }
-        
-        const items = snapshot.docs.map(doc => {
-          const data = doc.data();
-          return {
-            id: doc.id,
-            name: data.name || '',
-            slug: data.slug || '',
-            imageUrl: data.imageUrl || data.coverImageUrl || '',
-            displayOrder: typeof data.displayOrder === 'number' ? data.displayOrder : (typeof data.order === 'number' ? data.order : 99),
-            status: data.status || (data.isActive ? 'active' : 'inactive'),
-            offerTag: data.offerTag || '',
-            customTitle: data.customTitle || '',
-            customSubtitle: data.customSubtitle || '',
-            fontStyle: data.fontStyle || 'serif',
-            textColor: data.textColor || '#ffffff',
-            subtitleColor: data.subtitleColor || '#fecdd3',
-            offerTagColor: data.offerTagColor || '#ffffff',
-            offerTagBgColor: data.offerTagBgColor || '#e11d48',
-            overlayShadeColor: data.overlayShadeColor || '#000000'
-          };
-        })
-        .filter(c => c.status === 'active')
-        .sort((a, b) => a.displayOrder - b.displayOrder);
-
-        if (items.length > 0) {
-          setCategories(items);
-        } else {
-          setCategories(DEFAULT_CATEGORIES_MOCK);
-        }
-        setLoadingCategories(false);
-      } catch (err) {
-        handleFirestoreError(err, OperationType.LIST, 'categories');
-        setCategories(DEFAULT_CATEGORIES_MOCK);
-        setLoadingCategories(false);
-      }
-    }, (error) => {
-      handleFirestoreError(error, OperationType.LIST, 'categories');
-      setCategories(DEFAULT_CATEGORIES_MOCK);
-      setLoadingCategories(false);
-    });
-
-    // 4. Live Testimonials Real-time Stream
-    const testimonialsRef = collection(db, 'testimonials');
-    const unsubscribeTestimonials = onSnapshot(testimonialsRef, (snapshot) => {
-      try {
-        const items = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }))
-        .filter((t: any) => t.status === 'active')
-        .sort((a: any, b: any) => (a.displayOrder || 1) - (b.displayOrder || 1));
-
-        if (items.length > 0) {
-          setTestimonials(items);
-        } else {
-          setTestimonials(defaultMockTestimonials);
-        }
-        setLoadingTestimonials(false);
-      } catch (err) {
-        handleFirestoreError(err, OperationType.LIST, 'testimonials');
-        setTestimonials(defaultMockTestimonials);
-        setLoadingTestimonials(false);
-      }
-    }, (error) => {
-      handleFirestoreError(error, OperationType.LIST, 'testimonials');
-      setTestimonials(defaultMockTestimonials);
       setLoadingTestimonials(false);
     });
 
-    // Clean up streams on unmount
     return () => {
-      unsubscribeBanners();
-      unsubscribePrices();
-      unsubscribeCategories();
-      unsubscribeTestimonials();
+      unsubs.forEach(fn => fn());
     };
   }, []);
 

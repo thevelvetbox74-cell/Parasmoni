@@ -23,12 +23,11 @@ import {
 import { getOptimizedShowroomUrl } from '../imagekit/client';
 import { OptimizedImage } from './OptimizedImage';
 import { calculateProductPrice } from '../utils/calculateProductPrice';
-import { collection, onSnapshot } from 'firebase/firestore';
-import { db } from '../firebase/config';
 import { isProductWishlisted, toggleWishlist } from '../utils/wishlistHelper';
 import { ikUrl } from '../utils/imagekit';
 import { cacheHeroBannerUrl } from '../utils/cacheHelper';
 import { cacheHeroSlide } from '../data/heroFallback';
+import { getLazyFirebase } from '../utils/lazyFirebase';
 
 // Global cache for metal prices to avoid duplicate listeners across many product cards
 let globalMetalPricesListeners: ((prices: any[]) => void)[] = [];
@@ -43,9 +42,11 @@ function subscribeToMetalPrices(callback: (prices: any[]) => void) {
   
   if (!isListeningToMetalPrices) {
     isListeningToMetalPrices = true;
-    try {
-      const pricesRef = collection(db, 'metalPrices');
-      onSnapshot(pricesRef, (snapshot) => {
+    getLazyFirebase().then(fb => {
+      if (!fb) return;
+      const { db, firestore } = fb;
+      const pricesRef = firestore.collection(db, 'metalPrices');
+      firestore.onSnapshot(pricesRef, (snapshot) => {
         const prices = snapshot.docs.map(doc => ({
           id: doc.id,
           metalName: doc.data().metal || doc.data().metalType || doc.data().metalName || '',
@@ -57,9 +58,9 @@ function subscribeToMetalPrices(callback: (prices: any[]) => void) {
       }, (error) => {
         console.error("Error loading metal prices in shared subscription:", error);
       });
-    } catch (e) {
-      console.warn("Firebase not initialized or available for metal rates:", e);
-    }
+    }).catch(e => {
+      console.warn("Firebase lazy init notice for metal rates:", e);
+    });
   }
 
   return () => {
@@ -674,22 +675,27 @@ export function BannerSlider({
   const startXRef = useRef(0);
   const autoPlayRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Defer hero video mount until after load + idle to guarantee image LCP paint first
+  // Hero video player mounted ONLY after first real user interaction
   useEffect(() => {
     if (typeof window === 'undefined') return;
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     const isDataSaver = (navigator as any)?.connection?.saveData === true;
-    const isSlowConn = (navigator as any)?.connection?.effectiveType === '2g' || (navigator as any)?.connection?.effectiveType === 'slow-2g';
-    if (isDataSaver || isSlowConn) return;
+    if (isDataSaver) return;
 
-    const timer = setTimeout(() => {
-      if ('requestIdleCallback' in window) {
-        (window as any).requestIdleCallback(() => setCanPlayVideo(true), { timeout: 2000 });
-      } else {
-        setCanPlayVideo(true);
-      }
-    }, 1500);
+    const enableVideo = () => {
+      setCanPlayVideo(true);
+    };
 
-    return () => clearTimeout(timer);
+    const options = { once: true, passive: true };
+    window.addEventListener('pointerdown', enableVideo, options);
+    window.addEventListener('keydown', enableVideo, options);
+    window.addEventListener('scroll', enableVideo, options);
+
+    return () => {
+      window.removeEventListener('pointerdown', enableVideo);
+      window.removeEventListener('keydown', enableVideo);
+      window.removeEventListener('scroll', enableVideo);
+    };
   }, []);
 
   // Responsive break observer

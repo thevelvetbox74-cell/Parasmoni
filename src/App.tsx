@@ -32,7 +32,6 @@ function ConditionalFooter(): React.JSX.Element | null {
   );
 }
 import { BottomNavigation } from './components/BottomNavigation';
-import { MobileSplashVideo } from './components/MobileSplashVideo';
 import { OfflineIndicator } from './components/OfflineIndicator';
 import { MetalPriceBar } from './components/ShowroomComponents';
 import { mockMetalPrices } from './data/mockData';
@@ -157,7 +156,6 @@ export default function App(): React.JSX.Element {
               path="/*"
               element={
                 <>
-                  <MobileSplashVideo />
                   <OfflineIndicator />
                   <div className="hidden lg:block min-h-[33px]">
                     <MetalPriceBar prices={metalPrices} />
