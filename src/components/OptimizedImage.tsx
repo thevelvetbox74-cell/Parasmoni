@@ -41,7 +41,7 @@ export function OptimizedImage({
   className = '',
   wrapperClassName = '',
   objectFit = 'cover',
-  fallbackSrc = 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&q=70&w=800',
+  fallbackSrc = 'https://ik.imagekit.io/ugm0ru2xm/parasmoni/branding/JEWLLERS___GRAND_BROTHERS__6__5ekGzNryJ.png?tr=w-800,q-75,f-auto',
   style,
   referrerPolicy = 'no-referrer',
   draggable,

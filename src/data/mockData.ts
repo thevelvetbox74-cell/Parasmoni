@@ -5,6 +5,8 @@
 
 import { Product, Banner, MetalPrice, Collection, StoreLocation } from '../components/ShowroomComponents';
 
+const BRAND_IMAGE = "https://ik.imagekit.io/ugm0ru2xm/parasmoni/branding/JEWLLERS___GRAND_BROTHERS__6__5ekGzNryJ.png";
+
 export const mockMetalPrices: MetalPrice[] = [
   { metal: "Gold (22K 916)", pricePerGram: 6850, change: 0.35, unit: "1g" },
   { metal: "Gold (24K)", pricePerGram: 7470, change: 0.42, unit: "1g" },
@@ -17,7 +19,7 @@ export const mockBanners: Banner[] = [
     id: "banner-1",
     title: "Heritage Sovereign Bridal Gold",
     subtitle: "Purity unmatched since 1974. Explore traditional Kolkata filigree and heavy bridal chokers handcrafted by master artisans.",
-    image: "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&q=80&w=1200",
+    image: BRAND_IMAGE,
     buttonText: "EXPLORE BRIDAL MASTERPIECES",
     buttonLink: "/jewellery?category=bridal"
   },
@@ -25,7 +27,7 @@ export const mockBanners: Banner[] = [
     id: "banner-2",
     title: "IGI Certified Solitaires & Polki",
     subtitle: "Every diamond has a soul. Discover brilliant-cut solitaires and hand-set royal Polki crafted for family legacy.",
-    image: "https://images.unsplash.com/photo-1601121141461-9d6647bca1ed?auto=format&fit=crop&q=80&w=1200",
+    image: BRAND_IMAGE,
     buttonText: "VIEW SOLITAIRE RINGS",
     buttonLink: "/jewellery?category=solitaires"
   },
@@ -33,7 +35,7 @@ export const mockBanners: Banner[] = [
     id: "banner-3",
     title: "Kolkata Nakashi & Antique Bangles",
     subtitle: "A testament to Bengali goldsmith craftsmanship. Elevate your presence with heavy temple kadas and intricate nakashi work.",
-    image: "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&q=80&w=1200",
+    image: BRAND_IMAGE,
     buttonText: "VIEW ANTIQUE CUFFS",
     buttonLink: "/jewellery?category=bangles"
   }
@@ -44,28 +46,28 @@ export const mockCollections: Collection[] = [
     id: "col-1",
     name: "Royal Kundan & Polki",
     description: "Sovereign-grade hand-set gemstones surrounded by fine 22K gold foil, honoring royal Mughal heritage.",
-    imageUrl: "https://images.unsplash.com/photo-1601121141461-9d6647bca1ed?auto=format&fit=crop&q=80&w=600",
+    imageUrl: BRAND_IMAGE,
     slug: "kundan"
   },
   {
     id: "col-2",
     name: "Heritage Nakashi Filigree",
     description: "Intricate gold wirework and embossed deity figures hammered by legacy Kolkata artisans.",
-    imageUrl: "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&q=80&w=600",
+    imageUrl: BRAND_IMAGE,
     slug: "heritage"
   },
   {
     id: "col-3",
     name: "IGI Certified Solitaires",
     description: "Rare, color-graded diamonds selected with optical precision for lifetime milestones.",
-    imageUrl: "https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&q=80&w=600",
+    imageUrl: BRAND_IMAGE,
     slug: "solitaires"
   },
   {
     id: "col-4",
     name: "Heavy Bridal Kadas",
     description: "Ornate gold bangles with internal hinges, featuring lion-head (Makar) and peacock carvings.",
-    imageUrl: "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&q=80&w=600",
+    imageUrl: BRAND_IMAGE,
     slug: "bangles"
   }
 ];
@@ -80,7 +82,7 @@ export const mockProducts: Product[] = [
     collection: "Heritage Nakashi Filigree",
     metalType: "22K Gold",
     approxWeight: "64.20g",
-    imageUrl: "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&q=80&w=600",
+    imageUrl: BRAND_IMAGE,
     isPopular: true
   },
   {
@@ -92,7 +94,7 @@ export const mockProducts: Product[] = [
     collection: "Royal Kundan & Polki",
     metalType: "22K Gold & Polki",
     approxWeight: "32.80g",
-    imageUrl: "https://images.unsplash.com/photo-1635767798638-3e25273a8236?auto=format&fit=crop&q=80&w=600",
+    imageUrl: BRAND_IMAGE,
     isPopular: true
   },
   {
@@ -104,7 +106,7 @@ export const mockProducts: Product[] = [
     collection: "IGI Certified Solitaires",
     metalType: "18K Diamond",
     approxWeight: "4.50g",
-    imageUrl: "https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&q=80&w=600",
+    imageUrl: BRAND_IMAGE,
     isPopular: true
   },
   {
@@ -116,7 +118,7 @@ export const mockProducts: Product[] = [
     collection: "Heavy Bridal Kadas",
     metalType: "22K Gold",
     approxWeight: "48.10g",
-    imageUrl: "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&q=80&w=600",
+    imageUrl: BRAND_IMAGE,
     isPopular: false
   },
   {
@@ -128,7 +130,7 @@ export const mockProducts: Product[] = [
     collection: "Heritage Nakashi Filigree",
     metalType: "22K Gold",
     approxWeight: "84.50g",
-    imageUrl: "https://images.unsplash.com/photo-1601121141461-9d6647bca1ed?auto=format&fit=crop&q=80&w=600",
+    imageUrl: BRAND_IMAGE,
     isPopular: true
   },
   {
@@ -140,7 +142,7 @@ export const mockProducts: Product[] = [
     collection: "Royal Kundan & Polki",
     metalType: "22K Gold",
     approxWeight: "18.60g",
-    imageUrl: "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&q=80&w=600",
+    imageUrl: BRAND_IMAGE,
     isPopular: false
   }
 ];
@@ -154,7 +156,7 @@ export const mockStores: StoreLocation[] = [
     whatsapp: "+91 9876543210",
     hours: "Mon - Sat: 11:30 AM - 8:00 PM | Sun: Closed",
     mapUrl: "https://maps.google.com",
-    imageUrl: "https://images.unsplash.com/photo-1569058242253-92a9c755a0ec?auto=format&fit=crop&q=80&w=600"
+    imageUrl: BRAND_IMAGE
   },
   {
     id: "store-2",
@@ -164,6 +166,6 @@ export const mockStores: StoreLocation[] = [
     whatsapp: "+91 9876543211",
     hours: "Mon - Sat: 11:30 AM - 8:00 PM | Sun: Closed",
     mapUrl: "https://maps.google.com",
-    imageUrl: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&q=80&w=600"
+    imageUrl: BRAND_IMAGE
   }
 ];
