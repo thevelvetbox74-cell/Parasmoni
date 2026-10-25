@@ -7,7 +7,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { ikUrl } from '../src/utils/imagekit.shared.mjs';
+import { resizeImageUrl } from '../src/utils/imageUrl.shared.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -49,7 +49,7 @@ async function generateSnapshot() {
       const name = fields.name?.stringValue || fields.title?.stringValue || `Category ${idx + 1}`;
       const slug = fields.slug?.stringValue || name.toLowerCase().replace(/\s+/g, '-');
       const rawImageUrl = fields.imageUrl?.stringValue || fields.image?.stringValue || '';
-      const transformedUrl = ikUrl(rawImageUrl, 240, 55);
+      const transformedUrl = resizeImageUrl(rawImageUrl, 240, 55);
       return {
         id: doc.name.split('/').pop(),
         name,

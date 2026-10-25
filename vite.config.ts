@@ -21,12 +21,27 @@ function inlineBuiltCss(): Plugin {
   };
 }
 
+function verifyImageUrlsPlugin(): Plugin {
+  return {
+    name: 'verify-image-urls',
+    enforce: 'post',
+    transformIndexHtml(html) {
+      if (html.includes('images.unsplash.com') && html.includes(',f-auto')) {
+        console.warn('[Vite Build Warning] Erroneous ,f-auto detected on Unsplash URL in HTML shell. Cleaning...');
+        return html.replace(/(https:\/\/images\.unsplash\.com\/[^"'\s]+),f-auto/g, '$1');
+      }
+      return html;
+    }
+  };
+}
+
 export default defineConfig(() => {
   return {
     plugins: [
       react(), 
       tailwindcss(),
       inlineBuiltCss(),
+      verifyImageUrlsPlugin(),
       VitePWA({
         registerType: 'autoUpdate',
         includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'icon.svg'],
