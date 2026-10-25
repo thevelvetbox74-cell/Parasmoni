@@ -25,6 +25,7 @@ import { OptimizedImage } from './OptimizedImage';
 import { calculateProductPrice } from '../utils/calculateProductPrice';
 import { isProductWishlisted, toggleWishlist } from '../utils/wishlistHelper';
 import { ikUrl, ikSrcSet } from '../utils/imagekit';
+import Img from './Img';
 import { cacheHeroBannerUrl } from '../utils/cacheHelper';
 import { cacheHeroSlide } from '../data/heroFallback';
 import { getLazyFirebase } from '../utils/lazyFirebase';
@@ -932,19 +933,12 @@ export function BannerSlider({
                 {hasVideo ? (
                   <div className="w-full h-full relative">
                     {/* Instant Poster <img> for zero-CLS and immediate LCP */}
-                    <img
-                      src={displayImage}
-                      srcSet={displaySrcSet}
-                      sizes={isActive ? (isMobile ? "100vw" : "(min-width:1024px) 70vw, 100vw") : undefined}
+                    <Img
+                      src={(isMobile && banner.mobileImage) ? banner.mobileImage : (banner.desktopImage || banner.image)}
                       alt={banner.title || 'Parasmoni Jewellery Hero Banner'}
+                      role="hero"
+                      priority={isActive && index === virtualIndex}
                       className="w-full h-full object-cover"
-                      draggable={false}
-                      loading={isActive ? "eager" : "lazy"}
-                      fetchPriority={isActive ? "high" : "low"}
-                      decoding="async"
-                      width={1200}
-                      height={isMobile ? 771 : 467}
-                      style={{ aspectRatio: isMobile ? '14/9' : '18/7' }}
                     />
                     {canPlayVideo && (
                       <video
@@ -964,22 +958,14 @@ export function BannerSlider({
                     )}
                   </div>
                 ) : (
-                  <img
-                    src={displayImage}
-                    srcSet={displaySrcSet}
-                    sizes={isActive ? (isMobile ? "100vw" : "(min-width:1024px) 70vw, 100vw") : undefined}
+                  <Img
+                    src={(isMobile && banner.mobileImage) ? banner.mobileImage : (banner.desktopImage || banner.image)}
                     alt={banner.title || 'Parasmoni Jewellery Hero Banner'}
+                    role="hero"
+                    priority={isActive && index === virtualIndex}
                     className={`w-full h-full object-cover transition-transform duration-[6000ms] ease-out ${
                       isActive ? 'scale-102' : 'scale-100'
                     }`}
-                    draggable={false}
-                    loading={isActive ? "eager" : "lazy"}
-                    fetchPriority={isActive ? "high" : "low"}
-                    decoding="async"
-                    referrerPolicy="no-referrer"
-                    width={1200}
-                    height={isMobile ? 771 : 467}
-                    style={{ aspectRatio: isMobile ? '14/9' : '18/7' }}
                   />
                 )}
                 

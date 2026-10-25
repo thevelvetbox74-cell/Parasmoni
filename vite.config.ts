@@ -160,25 +160,20 @@ export default defineConfig(() => {
     build: {
       target: 'es2020',
       minify: 'esbuild',
-      cssCodeSplit: false,
+      cssCodeSplit: true,
       sourcemap: false,
       chunkSizeWarningLimit: 600,
       rollupOptions: {
         output: {
           manualChunks: (id) => {
-            if (id.includes('node_modules')) {
-              if (id.includes('firebase')) {
-                return 'firebase';
-              }
-              if (id.includes('react-router-dom') || id.includes('/react/') || id.includes('/react-dom/')) {
-                return 'react-vendor';
-              }
-              if (id.includes('framer-motion') || id.includes('/motion/')) {
-                return 'vendor-motion';
-              }
-              if (id.includes('lucide-react')) {
-                return 'vendor-icons';
-              }
+            if (id.includes('/node_modules/react/') || id.includes('/node_modules/react-dom/') || id.includes('/node_modules/scheduler/')) {
+              return 'react-vendor';
+            }
+            if (id.includes('/node_modules/react-router/') || id.includes('/node_modules/react-router-dom/')) {
+              return 'router-vendor';
+            }
+            if (id.includes('/node_modules/firebase/')) {
+              return 'firebase-vendor';
             }
           }
         }

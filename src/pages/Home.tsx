@@ -65,6 +65,8 @@ import { useWebsiteSettings } from '../context/WebsiteSettingsContext';
 import { PageSEOHead } from '../components/PageSEOHead';
 import { SectionHeader } from '../components/SectionHeader';
 import { getLazyFirebase } from '../utils/lazyFirebase';
+import Img from '../components/Img';
+import { fetchCollectionRest, fetchDocumentRest } from '../lib/firestoreRest';
 
 const DEFAULT_CATEGORIES_MOCK = [
   {
@@ -963,36 +965,17 @@ export function Home({
   }, [isBuilder, sectionsOverride, pageId]);
 
   useEffect(() => {
-    let unsubs: (() => void)[] = [];
+    let isMounted = true;
 
-    getLazyFirebase().then(fb => {
-      if (!fb) {
-        setBanners(mockBanners);
-        setMetalPrices(mockMetalPrices);
-        setCollections(mockCollections);
-        setCategories(DEFAULT_CATEGORIES_MOCK);
-        setFeaturedProducts(mockProducts.filter(p => p.isPopular));
-        setNewArrivalProducts(mockProducts.filter(p => !p.isPopular));
-        setStores(mockStores);
-        setTestimonials(defaultMockTestimonials);
-        setLastUpdatedPrice('Live Demo Backup');
-        setFallbackActive(true);
-        setLoadingTestimonials(false);
-        return;
-      }
-
-      const { db, firestore } = fb;
-
-      // 1. Live Banner Stream
-      const bannersRef = firestore.collection(db, 'banners');
-      const bannersQuery = firestore.query(bannersRef, firestore.where('status', '==', 'active'));
-      const unsubBanners = firestore.onSnapshot(bannersQuery, (snapshot) => {
-        try {
+    const loadDataViaRest = async () => {
+      try {
+        // 1. Banners via REST API
+        const bannersDocs = await fetchCollectionRest('banners').catch(() => null);
+        if (isMounted && bannersDocs && bannersDocs.length > 0) {
           const now = new Date();
-          const items = snapshot.docs.map(doc => {
-            const data = doc.data();
-            return {
-              id: doc.id,
+          const items = bannersDocs
+            .map((data: any) => ({
+              id: data.id,
               title: data.title || '',
               subtitle: data.subtitle || '',
               image: data.imageUrl || data.image || '',
@@ -1001,323 +984,203 @@ export function Home({
               displayOrder: typeof data.displayOrder === 'number' ? data.displayOrder : 99,
               startDate: data.startDate ? new Date(data.startDate) : null,
               endDate: data.endDate ? new Date(data.endDate) : null,
-            };
-          })
-          .filter(b => {
-            if (b.startDate && b.startDate > now) return false;
-            if (b.endDate && b.endDate < now) return false;
-            return true;
-          })
-          .sort((a, b) => a.displayOrder - b.displayOrder);
-
-          if (items.length > 0) {
-            setBanners(items);
-            setCachedData('home_banners', items);
-          } else {
-            setBanners(mockBanners);
-          }
-          setLoadingBanners(false);
-        } catch (err) {
-          handleFirestoreError(err, OperationType.LIST, 'banners');
-          setBanners(mockBanners);
-          setLoadingBanners(false);
-        }
-      }, (error) => {
-        handleFirestoreError(error, OperationType.LIST, 'banners');
-        setBanners(mockBanners);
-        setLoadingBanners(false);
-      });
-      unsubs.push(unsubBanners);
-
-      // 2. Live Metal Rates Stream
-      const pricesRef = firestore.collection(db, 'metalPrices');
-      const unsubPrices = firestore.onSnapshot(pricesRef, (snapshot) => {
-        try {
-          if (snapshot.empty) {
-            setMetalPrices(mockMetalPrices);
-            setLastUpdatedPrice('Pre-loaded Market Rates');
-            setLoadingPrices(false);
-            return;
-          }
-
-          const items = snapshot.docs
-            .map(doc => {
-              const data = doc.data();
-              let updateTimeStr = '';
-              if (data.updatedAt) {
-                const upVal = data.updatedAt;
-                if (upVal instanceof firestore.Timestamp) {
-                  updateTimeStr = upVal.toDate().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) + ', ' + upVal.toDate().toLocaleDateString('en-IN');
-                } else {
-                  const parsedDate = new Date(upVal);
-                  updateTimeStr = isNaN(parsedDate.getTime()) ? '' : parsedDate.toLocaleTimeString('en-IN') + ', ' + parsedDate.toLocaleDateString('en-IN');
-                }
-              }
-              return {
-                id: doc.id,
-                metal: data.metal || data.metalType || data.metalName || '',
-                pricePerGram: Number(data.pricePerGram || data.ratePerGram || data.price || 0),
-                change: Number(data.change || 0),
-                unit: data.unit || '1g',
-                status: data.status || 'active',
-                displayOrder: typeof data.displayOrder === 'number' ? data.displayOrder : 9999,
-                updateTimeStr
-              };
+              status: data.status || 'active',
+            }))
+            .filter((b: any) => {
+              if (b.status !== 'active') return false;
+              if (b.startDate && new Date(b.startDate) > now) return false;
+              if (b.endDate && new Date(b.endDate) < now) return false;
+              return true;
             })
-            .filter(p => p.status === 'active');
-
-          items.sort((a, b) => a.displayOrder - b.displayOrder);
-
-          const timestamps = items.map(item => item.updateTimeStr).filter(Boolean);
-          if (timestamps.length > 0) {
-            setLastUpdatedPrice(timestamps[0]);
-          } else {
-            setLastUpdatedPrice(new Date().toLocaleTimeString('en-IN') + ', ' + new Date().toLocaleDateString('en-IN'));
-          }
-
-          setMetalPrices(items);
-          setCachedData('home_metal_prices', items);
-          setLoadingPrices(false);
-        } catch (err) {
-          handleFirestoreError(err, OperationType.LIST, 'metalPrices');
-          setMetalPrices(mockMetalPrices);
-          setLoadingPrices(false);
-        }
-      }, (error) => {
-        handleFirestoreError(error, OperationType.LIST, 'metalPrices');
-        setMetalPrices(mockMetalPrices);
-        setLoadingPrices(false);
-      });
-      unsubs.push(unsubPrices);
-
-      // 3. Fetch Active Collections (getDocs)
-      const fetchCollections = async () => {
-        try {
-          const collectionsRef = firestore.collection(db, 'collections');
-          const snapshot = await firestore.getDocs(collectionsRef);
-          let items = snapshot.docs.map(doc => {
-            const data = doc.data();
-            return {
-              id: doc.id,
-              name: data.name || '',
-              description: data.description || '',
-              imageUrl: data.imageUrl || data.coverImageUrl || '',
-              slug: data.slug || '',
-              displayOrder: typeof data.displayOrder === 'number' ? data.displayOrder : (typeof data.order === 'number' ? data.order : 99),
-              status: data.status || (data.isActive ? 'active' : 'inactive')
-            };
-          })
-          .filter(c => c.status === 'active')
-          .sort((a, b) => a.displayOrder - b.displayOrder);
+            .sort((a: any, b: any) => a.displayOrder - b.displayOrder);
 
           if (items.length > 0) {
-            setCollections(items);
-            setCachedData('home_collections', items);
-          } else {
-            setCollections(mockCollections);
+            setBanners(prev => {
+              const prevSig = prev.map(p => p.id + p.image).join('|');
+              const newSig = items.map(p => p.id + p.image).join('|');
+              return prevSig !== newSig ? items : prev;
+            });
+            setCachedData('home_banners', items);
           }
-          setLoadingCollections(false);
-        } catch (err) {
-          handleFirestoreError(err, OperationType.LIST, 'collections');
-          setCollections(mockCollections);
-          setLoadingCollections(false);
         }
-      };
-      fetchCollections();
 
-      // 4. Fetch All Published Products
-      const fetchAllProducts = async () => {
-        try {
-          const productsRef = firestore.collection(db, 'products');
-          const q = firestore.query(
-            productsRef, 
-            firestore.where('status', '==', 'published'),
-            firestore.limit(24)
-          );
-          const snapshot = await firestore.getDocs(q);
-          const items = snapshot.docs.map(doc => {
-            const data = doc.data();
-            return {
-              ...data,
-              id: doc.id,
-              name: data.name || data.productName || '',
-              sku: data.sku || data.productCode || '',
-              description: data.description || '',
-              category: data.category || data.categoryId || '',
-              collection: data.collection || data.collectionId || '',
-              metalType: data.metalType || data.purity || '',
-              approxWeight: data.approxWeight || (data.grossWeight ? `${data.grossWeight}g` : ''),
-              imageUrl: data.imageUrl || data.thumbnailUrl || (data.images && data.images[0]) || '',
-              featured: data.featured === true,
-              newArrival: data.newArrival === true,
-              isPopular: data.featured === true,
-              badgeLabel: data.badgeLabel || '',
-              badgeColor: data.badgeColor || '#927230',
-              rating: data.rating !== undefined && data.rating !== null ? Number(data.rating) : null,
-              reviewCount: data.reviewCount !== undefined && data.reviewCount !== null ? Number(data.reviewCount) : null,
-              price: data.price !== undefined && data.price !== null ? Number(data.price) : 0,
-              mrp: data.mrp !== undefined && data.mrp !== null ? Number(data.mrp) : null,
-              priceVisibility: data.priceVisibility !== undefined ? data.priceVisibility : true
-            };
-          });
+        // 2. Metal Prices via REST API
+        const pricesDocs = await fetchCollectionRest('metalPrices').catch(() => null);
+        if (isMounted && pricesDocs && pricesDocs.length > 0) {
+          const items = pricesDocs.map((data: any) => ({
+            id: data.id,
+            metal: data.metal || data.metalType || data.metalName || '',
+            pricePerGram: Number(data.pricePerGram || data.ratePerGram || data.price || 0),
+            change: Number(data.change || 0),
+            unit: data.unit || '1g',
+            status: data.status || 'active',
+            displayOrder: typeof data.displayOrder === 'number' ? data.displayOrder : 9999
+          })).filter((p: any) => p.status === 'active')
+            .sort((a: any, b: any) => a.displayOrder - b.displayOrder);
+
+          if (items.length > 0) {
+            setMetalPrices(prev => {
+              const prevSig = prev.map(p => p.id + p.pricePerGram).join('|');
+              const newSig = items.map(p => p.id + p.pricePerGram).join('|');
+              return prevSig !== newSig ? items : prev;
+            });
+            setCachedData('home_metal_prices', items);
+          }
+        }
+
+        // 3. Collections via REST API
+        const collectionsDocs = await fetchCollectionRest('collections').catch(() => null);
+        if (isMounted && collectionsDocs && collectionsDocs.length > 0) {
+          const items = collectionsDocs.map((data: any) => ({
+            id: data.id,
+            name: data.name || '',
+            description: data.description || '',
+            imageUrl: data.imageUrl || data.coverImageUrl || '',
+            slug: data.slug || '',
+            displayOrder: typeof data.displayOrder === 'number' ? data.displayOrder : 99,
+            status: data.status || (data.isActive ? 'active' : 'inactive')
+          })).filter((c: any) => c.status === 'active')
+            .sort((a: any, b: any) => a.displayOrder - b.displayOrder);
+
+          if (items.length > 0) {
+            setCollections(prev => {
+              const prevSig = prev.map(c => c.id + c.imageUrl).join('|');
+              const newSig = items.map(c => c.id + c.imageUrl).join('|');
+              return prevSig !== newSig ? items : prev;
+            });
+            setCachedData('home_collections', items);
+          }
+        }
+
+        // 4. Categories via REST API
+        const categoriesDocs = await fetchCollectionRest('categories').catch(() => null);
+        if (isMounted && categoriesDocs && categoriesDocs.length > 0) {
+          const items = categoriesDocs.map((data: any) => ({
+            id: data.id,
+            name: data.name || '',
+            slug: data.slug || '',
+            imageUrl: data.imageUrl || data.coverImageUrl || '',
+            displayOrder: typeof data.displayOrder === 'number' ? data.displayOrder : 99,
+            status: data.status || (data.isActive ? 'active' : 'inactive'),
+            offerTag: data.offerTag || '',
+            customTitle: data.customTitle || '',
+            customSubtitle: data.customSubtitle || ''
+          })).filter((c: any) => c.status === 'active')
+            .sort((a: any, b: any) => a.displayOrder - b.displayOrder);
+
+          if (items.length > 0) {
+            setCategories(prev => {
+              const prevSig = prev.map(c => c.id + c.imageUrl).join('|');
+              const newSig = items.map(c => c.id + c.imageUrl).join('|');
+              return prevSig !== newSig ? items : prev;
+            });
+            setCachedData('home_categories', items);
+          }
+        }
+
+        // 5. Products via REST API
+        const productsDocs = await fetchCollectionRest('products').catch(() => null);
+        if (isMounted && productsDocs && productsDocs.length > 0) {
+          const items = productsDocs.map((data: any) => ({
+            ...data,
+            id: data.id,
+            name: data.name || data.productName || '',
+            sku: data.sku || data.productCode || '',
+            description: data.description || '',
+            category: data.category || data.categoryId || '',
+            collection: data.collection || data.collectionId || '',
+            metalType: data.metalType || data.purity || '',
+            approxWeight: data.approxWeight || (data.grossWeight ? `${data.grossWeight}g` : ''),
+            imageUrl: data.imageUrl || data.thumbnailUrl || (data.images && data.images[0]) || '',
+            featured: data.featured === true,
+            newArrival: data.newArrival === true,
+            isPopular: data.featured === true,
+            badgeLabel: data.badgeLabel || '',
+            badgeColor: data.badgeColor || '#927230',
+            price: data.price !== undefined && data.price !== null ? Number(data.price) : 0,
+            priceVisibility: data.priceVisibility !== undefined ? data.priceVisibility : true,
+            status: data.status || 'published'
+          })).filter((p: any) => p.status === 'published');
 
           if (items.length > 0) {
             setAllProducts(items);
-            const featured = items.filter(p => p.featured);
-            const newArr = items.filter(p => p.newArrival);
-            setFeaturedProducts(featured);
-            setNewArrivalProducts(newArr);
-            setCachedData('home_featured', featured);
-            setCachedData('home_new_arrivals', newArr);
-          } else {
-            setAllProducts(mockProducts);
-            setFeaturedProducts(mockProducts.filter(p => p.isPopular));
-            setNewArrivalProducts(mockProducts.filter(p => !p.isPopular));
+            const featured = items.filter((p: any) => p.featured);
+            const newArr = items.filter((p: any) => p.newArrival);
+            setFeaturedProducts(featured.length > 0 ? featured : items.slice(0, 4));
+            setNewArrivalProducts(newArr.length > 0 ? newArr : items.slice(4, 8));
           }
+        }
+
+        // 6. Stores via REST API
+        const storesDocs = await fetchCollectionRest('stores').catch(() => null);
+        if (isMounted && storesDocs && storesDocs.length > 0) {
+          const items = storesDocs.map((data: any) => ({
+            id: data.id,
+            name: data.name || '',
+            address: data.address || '',
+            phone: data.phone || '',
+            whatsapp: data.whatsapp || data.whatsappNumber || '',
+            hours: data.hours || data.workingHours || '',
+            mapUrl: data.mapUrl || '',
+            imageUrl: data.imageUrl || '',
+            status: data.status || (data.isActive ? 'active' : 'inactive')
+          })).filter((s: any) => s.status === 'active');
+
+          if (items.length > 0) {
+            setStores(prev => {
+              const prevSig = prev.map(s => s.id + s.imageUrl).join('|');
+              const newSig = items.map(s => s.id + s.imageUrl).join('|');
+              return prevSig !== newSig ? items : prev;
+            });
+            setCachedData('home_stores', items);
+          }
+        }
+
+        // 7. Testimonials via REST API
+        const testimonialsDocs = await fetchCollectionRest('testimonials').catch(() => null);
+        if (isMounted && testimonialsDocs && testimonialsDocs.length > 0) {
+          const items = testimonialsDocs.map((data: any) => ({
+            id: data.id,
+            reviewerName: data.reviewerName || data.name || '',
+            reviewerLocation: data.reviewerLocation || data.location || '',
+            reviewerPhotoUrl: data.reviewerPhotoUrl || data.photoUrl || '',
+            rating: Number(data.rating || 5),
+            reviewText: data.reviewText || data.text || '',
+            verifiedBadge: data.verifiedBadge !== false,
+            status: data.status || 'active',
+            displayOrder: typeof data.displayOrder === 'number' ? data.displayOrder : 99
+          })).filter((t: any) => t.status === 'active')
+            .sort((a: any, b: any) => a.displayOrder - b.displayOrder);
+
+          if (items.length > 0) {
+            setTestimonials(prev => {
+              const prevSig = prev.map(t => t.id + t.reviewerPhotoUrl).join('|');
+              const newSig = items.map(t => t.id + t.reviewerPhotoUrl).join('|');
+              return prevSig !== newSig ? items : prev;
+            });
+            setCachedData('home_testimonials', items);
+          }
+        }
+      } catch (err) {
+        console.warn('REST API fetch notice:', err);
+      } finally {
+        if (isMounted) {
+          setLoadingBanners(false);
+          setLoadingPrices(false);
+          setLoadingCollections(false);
+          setLoadingCategories(false);
           setLoadingFeatured(false);
           setLoadingNewArrivals(false);
-        } catch (err) {
-          handleFirestoreError(err, OperationType.LIST, 'products');
-          setAllProducts(mockProducts);
-          setFeaturedProducts(mockProducts.filter(p => p.isPopular));
-          setNewArrivalProducts(mockProducts.filter(p => !p.isPopular));
-          setLoadingFeatured(false);
-          setLoadingNewArrivals(false);
-        }
-      };
-      fetchAllProducts();
-
-      // 5. Fetch Active Stores
-      const fetchStores = async () => {
-        try {
-          const storesRef = firestore.collection(db, 'stores');
-          const snapshot = await firestore.getDocs(storesRef);
-          const items = snapshot.docs.map(doc => {
-            const data = doc.data();
-            return {
-              id: doc.id,
-              name: data.name || '',
-              address: data.address || '',
-              phone: data.phone || '',
-              whatsapp: data.whatsapp || data.whatsappNumber || '',
-              hours: data.hours || data.workingHours || '',
-              openingTime: data.openingTime || '',
-              closingTime: data.closingTime || '',
-              weeklyOff: data.weeklyOff || '',
-              mapUrl: data.mapUrl || data.mapEmbedUrl || '',
-              imageUrl: data.imageUrl || '',
-              status: data.status || (data.isActive ? 'active' : 'inactive')
-            };
-          })
-          .filter(s => s.status === 'active');
-
-          if (items.length > 0) {
-            setStores(items);
-          } else {
-            setStores(mockStores);
-          }
           setLoadingStores(false);
-        } catch (err) {
-          handleFirestoreError(err, OperationType.LIST, 'stores');
-          setStores(mockStores);
-          setLoadingStores(false);
-        }
-      };
-      fetchStores();
-
-      // 6. Live Categories Stream
-      const categoriesRef = firestore.collection(db, 'categories');
-      const unsubCategories = firestore.onSnapshot(categoriesRef, (snapshot) => {
-        try {
-          if (snapshot.empty) {
-            setCategories(DEFAULT_CATEGORIES_MOCK);
-            setLoadingCategories(false);
-            return;
-          }
-          
-          const items = snapshot.docs.map(doc => {
-            const data = doc.data();
-            return {
-              id: doc.id,
-              name: data.name || '',
-              slug: data.slug || '',
-              imageUrl: data.imageUrl || data.coverImageUrl || '',
-              displayOrder: typeof data.displayOrder === 'number' ? data.displayOrder : (typeof data.order === 'number' ? data.order : 99),
-              status: data.status || (data.isActive ? 'active' : 'inactive'),
-              offerTag: data.offerTag || '',
-              customTitle: data.customTitle || '',
-              customSubtitle: data.customSubtitle || '',
-              fontStyle: data.fontStyle || 'serif',
-              textColor: data.textColor || '#ffffff',
-              subtitleColor: data.subtitleColor || '#fecdd3',
-              offerTagColor: data.offerTagColor || '#ffffff',
-              offerTagBgColor: data.offerTagBgColor || '#e11d48',
-              overlayShadeColor: data.overlayShadeColor || '#000000'
-            };
-          })
-          .filter(c => c.status === 'active')
-          .sort((a, b) => a.displayOrder - b.displayOrder);
-
-          if (items.length > 0) {
-            setCategories(items);
-          } else {
-            setCategories(DEFAULT_CATEGORIES_MOCK);
-          }
-          setLoadingCategories(false);
-        } catch (err) {
-          handleFirestoreError(err, OperationType.LIST, 'categories');
-          setCategories(DEFAULT_CATEGORIES_MOCK);
-          setLoadingCategories(false);
-        }
-      }, (error) => {
-        handleFirestoreError(error, OperationType.LIST, 'categories');
-        setCategories(DEFAULT_CATEGORIES_MOCK);
-        setLoadingCategories(false);
-      });
-      unsubs.push(unsubCategories);
-
-      // 7. Live Testimonials Stream
-      const testimonialsRef = firestore.collection(db, 'testimonials');
-      const unsubTestimonials = firestore.onSnapshot(testimonialsRef, (snapshot) => {
-        try {
-          const items = snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-          }))
-          .filter((t: any) => t.status === 'active')
-          .sort((a: any, b: any) => (a.displayOrder || 1) - (b.displayOrder || 1));
-
-          if (items.length > 0) {
-            setTestimonials(items);
-          } else {
-            setTestimonials(defaultMockTestimonials);
-          }
-          setLoadingTestimonials(false);
-        } catch (err) {
-          handleFirestoreError(err, OperationType.LIST, 'testimonials');
-          setTestimonials(defaultMockTestimonials);
           setLoadingTestimonials(false);
         }
-      }, (error) => {
-        handleFirestoreError(error, OperationType.LIST, 'testimonials');
-        setTestimonials(defaultMockTestimonials);
-        setLoadingTestimonials(false);
-      });
-      unsubs.push(unsubTestimonials);
-    }).catch(() => {
-      setBanners(mockBanners);
-      setMetalPrices(mockMetalPrices);
-      setCollections(mockCollections);
-      setCategories(DEFAULT_CATEGORIES_MOCK);
-      setFeaturedProducts(mockProducts.filter(p => p.isPopular));
-      setNewArrivalProducts(mockProducts.filter(p => !p.isPopular));
-      setStores(mockStores);
-      setTestimonials(defaultMockTestimonials);
-      setLoadingTestimonials(false);
-    });
+      }
+    };
+
+    loadDataViaRest();
 
     return () => {
-      unsubs.forEach(fn => fn());
+      isMounted = false;
     };
   }, []);
 
@@ -1823,16 +1686,11 @@ function GoldRateCapsulePill({ metalPrices }: { metalPrices: any[] }): React.JSX
                                 );
                               }
                               return (
-                                <img
-                                  src={ikUrl(cat.imageUrl, 200, 60) || cat.imageUrl}
+                                <Img
+                                  src={cat.imageUrl}
                                   alt={cat.customTitle || cat.name}
-                                  referrerPolicy="no-referrer"
-                                  loading={catIdx < 4 ? 'eager' : 'lazy'}
-                                  fetchPriority={catIdx < 4 ? 'high' : 'auto'}
-                                  decoding="async"
-                                  width={100}
-                                  height={100}
-                                  style={{ aspectRatio: '1/1' }}
+                                  role="tile"
+                                  priority={catIdx < 4}
                                   className="w-full h-full object-cover rounded-2xl"
                                 />
                               );
@@ -1922,15 +1780,10 @@ function GoldRateCapsulePill({ metalPrices }: { metalPrices: any[] }): React.JSX
                               );
                             }
                             return (
-                              <img
-                                src={ikUrl(cat.imageUrl, 480, 65) || cat.imageUrl}
+                              <Img
+                                src={cat.imageUrl}
                                 alt={cat.name}
-                                referrerPolicy="no-referrer"
-                                loading="lazy"
-                                decoding="async"
-                                width={240}
-                                height={320}
-                                style={{ aspectRatio: settings.categoryShowcaseLayout === 'single' ? '3/4' : '4/3' }}
+                                role="tile"
                                 className="w-full h-full object-cover group-hover/tile:scale-105 transition-transform duration-500"
                               />
                             );
