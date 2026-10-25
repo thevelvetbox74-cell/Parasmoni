@@ -18,7 +18,7 @@ export interface HeroSlideData {
   buttonLink: string;
 }
 
-export const HERO_FALLBACK_IMAGE = 'https://ik.imagekit.io/ugm0ru2xm/parasmoni/branding/JEWLLERS___GRAND_BROTHERS__6__5ekGzNryJ.png';
+export const HERO_FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&q=80&w=1200';
 
 export const defaultHeroSlide: HeroSlideData = {
   id: 'hero-slide-default',
@@ -26,7 +26,7 @@ export const defaultHeroSlide: HeroSlideData = {
   subtitle: 'Purity unmatched since 1974. Explore traditional Kolkata filigree and heavy bridal chokers handcrafted by master artisans.',
   image: HERO_FALLBACK_IMAGE,
   desktopImage: HERO_FALLBACK_IMAGE,
-  mobileImage: HERO_FALLBACK_IMAGE,
+  mobileImage: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&q=80&w=768',
   alt: 'Parasmoni Jewellers Heritage Sovereign Bridal Gold Masterpiece',
   buttonText: 'EXPLORE BRIDAL MASTERPIECES',
   buttonLink: '/catalog'

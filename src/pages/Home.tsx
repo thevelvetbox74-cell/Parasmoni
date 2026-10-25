@@ -66,14 +66,12 @@ import { PageSEOHead } from '../components/PageSEOHead';
 import { SectionHeader } from '../components/SectionHeader';
 import { getLazyFirebase } from '../utils/lazyFirebase';
 
-const BRAND_IMAGE = "https://ik.imagekit.io/ugm0ru2xm/parasmoni/branding/JEWLLERS___GRAND_BROTHERS__6__5ekGzNryJ.png";
-
 const DEFAULT_CATEGORIES_MOCK = [
   {
     id: 'cat-necklaces',
     name: 'Necklaces',
     slug: 'necklaces',
-    imageUrl: BRAND_IMAGE,
+    imageUrl: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&q=80&w=600',
     displayOrder: 1,
     status: 'active'
   },
@@ -81,7 +79,7 @@ const DEFAULT_CATEGORIES_MOCK = [
     id: 'cat-earrings',
     name: 'Earrings',
     slug: 'earrings',
-    imageUrl: BRAND_IMAGE,
+    imageUrl: 'https://images.unsplash.com/photo-1635767798638-3e25273a8236?auto=format&fit=crop&q=80&w=600',
     displayOrder: 2,
     status: 'active'
   },
@@ -89,7 +87,7 @@ const DEFAULT_CATEGORIES_MOCK = [
     id: 'cat-rings',
     name: 'Rings',
     slug: 'rings',
-    imageUrl: BRAND_IMAGE,
+    imageUrl: 'https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&q=80&w=600',
     displayOrder: 3,
     status: 'active'
   },
@@ -97,7 +95,7 @@ const DEFAULT_CATEGORIES_MOCK = [
     id: 'cat-bangles',
     name: 'Bangles',
     slug: 'bangles',
-    imageUrl: BRAND_IMAGE,
+    imageUrl: 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&q=80&w=600',
     displayOrder: 4,
     status: 'active'
   },
@@ -105,7 +103,7 @@ const DEFAULT_CATEGORIES_MOCK = [
     id: 'cat-bracelets',
     name: 'Bracelets',
     slug: 'bracelets',
-    imageUrl: BRAND_IMAGE,
+    imageUrl: 'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?auto=format&fit=crop&q=80&w=600',
     displayOrder: 5,
     status: 'active'
   },
@@ -113,7 +111,7 @@ const DEFAULT_CATEGORIES_MOCK = [
     id: 'cat-mangalsutra',
     name: 'Mangalsutra',
     slug: 'mangalsutra',
-    imageUrl: BRAND_IMAGE,
+    imageUrl: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&q=80&w=600',
     displayOrder: 6,
     status: 'active'
   }
@@ -124,7 +122,7 @@ const defaultMockTestimonials = [
     id: 'mock-test-1',
     reviewerName: 'Ananya Sharma',
     reviewerLocation: 'Bengaluru',
-    reviewerPhotoUrl: BRAND_IMAGE,
+    reviewerPhotoUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=120',
     rating: 5,
     reviewText: '"The packaging of Parasmoni is genuinely breathtaking! The Royal Mayura bangle arrived with the BIS hallmark certificate. Shines even brighter than my gold jewelry."',
     verifiedBadge: true,
@@ -136,7 +134,7 @@ const defaultMockTestimonials = [
   {
     id: 'mock-photo-1',
     type: 'photo',
-    reviewerPhotoUrl: BRAND_IMAGE,
+    reviewerPhotoUrl: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&q=80&w=600',
     reviewText: 'Wearing our hand-carved heritage choker set from Parasmoni at the reception. Unmatched elegance!',
     displayOrder: 2,
     status: 'active'
@@ -145,7 +143,7 @@ const defaultMockTestimonials = [
     id: 'mock-test-2',
     reviewerName: 'Rajesh Mukherjee',
     reviewerLocation: 'Kolkata',
-    reviewerPhotoUrl: BRAND_IMAGE,
+    reviewerPhotoUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=120',
     rating: 5,
     reviewText: '"Excellent craftsmanship and perfect transparency. Visited their Bowbazar showroom for my daughter\'s wedding set. Recommended for traditional gold wirework and filigree masterpieces."',
     verifiedBadge: true,
@@ -157,7 +155,7 @@ const defaultMockTestimonials = [
   {
     id: 'mock-photo-2',
     type: 'photo',
-    reviewerPhotoUrl: BRAND_IMAGE,
+    reviewerPhotoUrl: 'https://images.unsplash.com/photo-1601121141461-9d6647bca1ed?auto=format&fit=crop&q=80&w=600',
     reviewText: 'Classic 22k filigree ring detail from our wedding trousseau.',
     displayOrder: 4,
     status: 'active'
@@ -166,7 +164,7 @@ const defaultMockTestimonials = [
     id: 'mock-test-3',
     reviewerName: 'Priya Sen',
     reviewerLocation: 'Mumbai',
-    reviewerPhotoUrl: BRAND_IMAGE,
+    reviewerPhotoUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=120',
     rating: 5,
     reviewText: '"Parasmoni has been our family jeweller for three generations. Their design uniqueness and the weight transparency are what keep us coming back every Dhanteras."',
     verifiedBadge: true,
@@ -177,7 +175,7 @@ const defaultMockTestimonials = [
   {
     id: 'mock-photo-3',
     type: 'photo',
-    reviewerPhotoUrl: BRAND_IMAGE,
+    reviewerPhotoUrl: 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&q=80&w=600',
     reviewText: 'Stunning Nakashi antique earrings from Parasmoni. Captured under the showroom lights!',
     displayOrder: 6,
     status: 'active'
@@ -349,8 +347,8 @@ const AboutCollectionSection = ({ content = {} }: { content: any }) => {
   const badgeBorder = content.subtitleStyle?.borderColor || 'rgba(181, 139, 55, 0.3)';
   const archBorderColor = content.archBorderColor || '#b58b37';
 
-  const image1 = content.mediaUrl || content.image1 || BRAND_IMAGE;
-  const image2 = content.mediaUrl2 || content.image2 || BRAND_IMAGE;
+  const image1 = content.mediaUrl || content.image1 || "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&q=80&w=600";
+  const image2 = content.mediaUrl2 || content.image2 || "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&q=80&w=300";
 
   const bullets = content.bullets || [];
   const bulletIconColor = content.bulletStyle?.iconColor || '#d4af37';
