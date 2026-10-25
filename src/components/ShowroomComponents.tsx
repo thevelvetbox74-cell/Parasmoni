@@ -25,7 +25,6 @@ import { OptimizedImage } from './OptimizedImage';
 import { calculateProductPrice } from '../utils/calculateProductPrice';
 import { isProductWishlisted, toggleWishlist } from '../utils/wishlistHelper';
 import { ikUrl, ikSrcSet } from '../utils/imagekit';
-import Img from './Img';
 import { cacheHeroBannerUrl } from '../utils/cacheHelper';
 import { cacheHeroSlide } from '../data/heroFallback';
 import { getLazyFirebase } from '../utils/lazyFirebase';
@@ -389,7 +388,7 @@ export const ProductCard = React.memo(function ProductCard({
           />
         ) : (
           <OptimizedImage 
-            src={optimizedUrl || "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&q=70&w=400"} 
+            src={optimizedUrl || "https://ik.imagekit.io/ugm0ru2xm/parasmoni/branding/JEWLLERS___GRAND_BROTHERS__6__5ekGzNryJ.png?tr=w-400,q-75,f-auto"} 
             alt={product.name}
             width={400}
             height={400}
@@ -830,7 +829,7 @@ export function BannerSlider({
 
   // Get properly transformed, ultra-high-definition ImageKit responsive URLs
   const getBannerImage = (banner: Banner, index: number) => {
-    const rawImage = (isMobile && banner.mobileImage) ? banner.mobileImage : (banner.desktopImage || banner.image) || 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&q=80&w=1200';
+    const rawImage = (isMobile && banner.mobileImage) ? banner.mobileImage : (banner.desktopImage || banner.image) || 'https://ik.imagekit.io/ugm0ru2xm/parasmoni/branding/JEWLLERS___GRAND_BROTHERS__6__5ekGzNryJ.png';
     if (index === virtualIndex) {
       return isMobile ? ikUrl(rawImage, 720, 60) : ikUrl(rawImage, 1200, 70);
     }
@@ -839,7 +838,7 @@ export function BannerSlider({
 
   const getBannerSrcSet = (banner: Banner, index: number) => {
     if (index !== virtualIndex) return undefined;
-    const rawImage = (isMobile && banner.mobileImage) ? banner.mobileImage : (banner.desktopImage || banner.image) || 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&q=80&w=1200';
+    const rawImage = (isMobile && banner.mobileImage) ? banner.mobileImage : (banner.desktopImage || banner.image) || 'https://ik.imagekit.io/ugm0ru2xm/parasmoni/branding/JEWLLERS___GRAND_BROTHERS__6__5ekGzNryJ.png';
     return isMobile
       ? ikSrcSet(rawImage, [480, 720, 1080], 60)
       : ikSrcSet(rawImage, [800, 1200, 1600], 70);
@@ -933,12 +932,19 @@ export function BannerSlider({
                 {hasVideo ? (
                   <div className="w-full h-full relative">
                     {/* Instant Poster <img> for zero-CLS and immediate LCP */}
-                    <Img
-                      src={(isMobile && banner.mobileImage) ? banner.mobileImage : (banner.desktopImage || banner.image)}
+                    <img
+                      src={displayImage}
+                      srcSet={displaySrcSet}
+                      sizes={isActive ? (isMobile ? "100vw" : "(min-width:1024px) 70vw, 100vw") : undefined}
                       alt={banner.title || 'Parasmoni Jewellery Hero Banner'}
-                      role="hero"
-                      priority={isActive && index === virtualIndex}
                       className="w-full h-full object-cover"
+                      draggable={false}
+                      loading={isActive ? "eager" : "lazy"}
+                      fetchPriority={isActive ? "high" : "low"}
+                      decoding="async"
+                      width={1200}
+                      height={isMobile ? 771 : 467}
+                      style={{ aspectRatio: isMobile ? '14/9' : '18/7' }}
                     />
                     {canPlayVideo && (
                       <video
@@ -958,14 +964,22 @@ export function BannerSlider({
                     )}
                   </div>
                 ) : (
-                  <Img
-                    src={(isMobile && banner.mobileImage) ? banner.mobileImage : (banner.desktopImage || banner.image)}
+                  <img
+                    src={displayImage}
+                    srcSet={displaySrcSet}
+                    sizes={isActive ? (isMobile ? "100vw" : "(min-width:1024px) 70vw, 100vw") : undefined}
                     alt={banner.title || 'Parasmoni Jewellery Hero Banner'}
-                    role="hero"
-                    priority={isActive && index === virtualIndex}
                     className={`w-full h-full object-cover transition-transform duration-[6000ms] ease-out ${
                       isActive ? 'scale-102' : 'scale-100'
                     }`}
+                    draggable={false}
+                    loading={isActive ? "eager" : "lazy"}
+                    fetchPriority={isActive ? "high" : "low"}
+                    decoding="async"
+                    referrerPolicy="no-referrer"
+                    width={1200}
+                    height={isMobile ? 771 : 467}
+                    style={{ aspectRatio: isMobile ? '14/9' : '18/7' }}
                   />
                 )}
                 

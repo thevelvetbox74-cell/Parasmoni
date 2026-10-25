@@ -1,8 +1,9 @@
 /**
  * Shared Image URL Transformation Utility (ESM)
- * Robust URL manipulation for ImageKit, Unsplash, and generic hosts.
- * Always rewrites ImageKit and Unsplash URLs with exact role dimensions and quality.
- * Preserves percent-encoded filenames (e.g., Bengali characters) and extra query parameters.
+ * Correctly transforms URLs based on domain host:
+ * - ik.imagekit.io / imagekit.io -> tr=w-X,q-Y,f-auto
+ * - images.unsplash.com -> ?auto=format&fit=crop&q=Y&w=X (NO f-auto)
+ * - data:, blob:, videos -> unchanged
  */
 
 export function isImageKitUrl(url) {
@@ -16,7 +17,7 @@ export function isUnsplashUrl(url) {
 }
 
 /**
- * Transforms an image URL with exact width, quality, and host-correct parameter rules.
+ * Cleanly resizes an image URL for ImageKit or Unsplash with correct domain-specific query parameters.
  * @param {string} [url]
  * @param {number} [width=800]
  * @param {number} [quality=65]
@@ -40,7 +41,7 @@ export function resizeImageUrl(url, width = 800, quality = 65) {
   const w = width && width > 0 ? Math.round(width) : 800;
   const q = quality && quality > 0 ? Math.round(quality) : 65;
 
-  // Unsplash Host Rule: auto=format, fit=crop, q=Q, w=W
+  // Unsplash handling: strictly use auto=format&fit=crop&q=Y&w=X
   if (isUnsplashUrl(trimmed)) {
     try {
       const urlObj = new URL(trimmed);
@@ -55,17 +56,18 @@ export function resizeImageUrl(url, width = 800, quality = 65) {
     }
   }
 
-  // ImageKit Host Rule: tr=w-W,q-Q,f-auto
+  // ImageKit handling: strictly use tr=w-X,q-Y,f-auto
   if (isImageKitUrl(trimmed)) {
     try {
-      const cleanUrl = trimmed.replace(/\/tr:[^/]+\//g, '/');
-      const urlObj = new URL(cleanUrl);
+      const urlObj = new URL(trimmed);
       urlObj.searchParams.delete('tr');
+      let pathname = urlObj.pathname.replace(/\/tr:[^/]+\//g, '/');
+      urlObj.pathname = pathname;
       urlObj.searchParams.set('tr', `w-${w},q-${q},f-auto`);
       return urlObj.toString();
     } catch (e) {
-      const cleanBase = baseUrl.replace(/\/tr:[^/]+\//g, '/');
-      return `${cleanBase}?tr=w-${w},q-${q},f-auto`;
+      const cleanUrl = baseUrl.replace(/\/tr:[^/]+\//g, '/');
+      return `${cleanUrl}?tr=w-${w},q-${q},f-auto`;
     }
   }
 
@@ -73,13 +75,13 @@ export function resizeImageUrl(url, width = 800, quality = 65) {
 }
 
 /**
- * Builds responsive srcset string using domain-correct rules.
+ * Generates responsive srcset string with domain-aware parameters.
  * @param {string} [url]
  * @param {number[]} [widths=[480, 720, 1080]]
  * @param {number} [quality=65]
  * @returns {string}
  */
-export function buildSrcSet(url, widths = [480, 720, 1080], quality = 65) {
+export function resizeSrcSet(url, widths = [480, 720, 1080], quality = 65) {
   if (!url || typeof url !== 'string' || !widths || widths.length === 0) return '';
   const trimmed = url.trim();
   if (!trimmed) return '';
@@ -88,5 +90,3 @@ export function buildSrcSet(url, widths = [480, 720, 1080], quality = 65) {
     .map((w) => `${resizeImageUrl(trimmed, w, quality)} ${w}w`)
     .join(', ');
 }
-
-export const resizeSrcSet = buildSrcSet;
