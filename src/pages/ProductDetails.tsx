@@ -667,18 +667,16 @@ Product Link: ${currentUrl}`;
               {/* Thumbnails Rail */}
               {galleryImages.length > 1 && (
                 <div 
-                  className="flex sm:flex-col lg:flex-col gap-2.5 lg:gap-3 overflow-x-auto sm:overflow-y-auto lg:overflow-y-auto w-full sm:w-20 lg:w-[92px] shrink-0 scrollbar-none py-1 sm:py-0 max-h-[520px] lg:max-h-[clamp(420px,calc(100vh-235px),720px)]"
-                  style={{
-                    height: 'clamp(420px, calc(100vh - 235px), 720px)'
-                  }}
+                  className="flex flex-row sm:flex-col lg:flex-col gap-2.5 lg:gap-3 overflow-x-auto sm:overflow-y-auto lg:overflow-y-auto w-full sm:w-20 lg:w-[92px] shrink-0 scrollbar-none py-1 sm:py-0 h-auto sm:max-h-[520px] lg:h-[clamp(420px,calc(100vh-235px),720px)] lg:max-h-[clamp(420px,calc(100vh-235px),720px)]"
                 >
                   {galleryImages.map((imgUrl: string, idx: number) => {
                     const isActive = idx === activeImageIndex;
                     return (
                       <button
                         key={idx}
+                        type="button"
                         onClick={() => setActiveImageIndex(idx)}
-                        className={`relative aspect-square w-16 sm:w-full lg:w-[92px] lg:h-[92px] rounded-2xl overflow-hidden border-2 transition-all cursor-pointer bg-stone-100 shrink-0 ${
+                        className={`relative aspect-square w-16 h-16 sm:w-20 sm:h-20 lg:w-[92px] lg:h-[92px] rounded-2xl overflow-hidden border-2 transition-all cursor-pointer bg-stone-100 shrink-0 ${
                           isActive ? 'border-[#6B1F2A] ring-2 ring-[#6B1F2A]/20 shadow-sm' : 'border-stone-200 hover:border-stone-400'
                         }`}
                       >
@@ -690,7 +688,7 @@ Product Link: ${currentUrl}`;
                           aspectRatio="1/1"
                           quality={75}
                           widths={[120, 200]}
-                          sizes="92px"
+                          sizes="(max-width: 640px) 64px, (max-width: 1024px) 80px, 92px"
                           className="w-full h-full object-cover"
                         />
                       </button>
