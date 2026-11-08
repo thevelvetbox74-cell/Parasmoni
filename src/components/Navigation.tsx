@@ -214,7 +214,7 @@ export function Navigation({
   };
 
   return (
-    <header className="bg-brand-red-600 border-b border-brand-red-700/50 font-sans sticky top-0 z-50 shadow-sm text-white w-full max-w-full" id="main-navigation">
+    <nav className="bg-brand-red-600 border-b border-brand-red-700/50 font-sans shadow-sm text-white w-full max-w-full relative" id="main-navigation">
       {/* Search Dropdown / Overlay */}
       {searchBarOpen && (
         <div className="bg-stone-50 border-b border-stone-200 py-4 px-6 animate-fade-in-up" id="header-search-bar">
@@ -451,9 +451,9 @@ export function Navigation({
             />
 
             {/* Panel Container (Pop-over on desktop, modal bottom drawer on mobile) */}
-            <div className="fixed inset-x-0 bottom-0 max-h-[90vh] md:max-h-none md:absolute md:top-full md:bottom-auto md:right-8 md:left-auto md:w-96 md:mt-2 bg-white rounded-t-3xl md:rounded-lg shadow-2xl border border-stone-200 z-[99995] flex flex-col overflow-hidden text-stone-800 animate-fade-in-up" id="store-locator-popover">
+            <div className="fixed inset-x-0 bottom-0 max-h-[85vh] md:max-h-none md:absolute md:top-full md:bottom-auto md:right-8 md:left-auto md:w-96 md:mt-2 bg-white rounded-t-3xl md:rounded-lg shadow-2xl border border-stone-200 z-[99995] flex flex-col overflow-hidden text-stone-800 animate-fade-in-up" id="store-locator-popover">
               {/* Drag Pill for Mobile Sheet UI */}
-              <div className="pt-2 pb-1 bg-stone-50 md:hidden flex justify-center">
+              <div className="pt-2 pb-1 bg-stone-50 md:hidden flex justify-center shrink-0">
                 <div className="w-10 h-1 bg-stone-300 rounded-full" />
               </div>
 
@@ -484,7 +484,7 @@ export function Navigation({
               </div>
 
               {/* Content Area with smooth touch scrolling and generous bottom padding */}
-              <div className="flex-1 overflow-y-auto p-4 space-y-4 max-h-[75vh] md:max-h-[440px] pb-28 md:pb-6 touch-pan-y scrollbar-thin">
+              <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 space-y-4 max-h-[70vh] md:max-h-[440px] pb-32 md:pb-6 touch-pan-y scrollbar-thin -webkit-overflow-scrolling-touch">
                 {loadingStores ? (
                   <div className="py-12 text-center">
                     <div className="w-6 h-6 border-2 border-brand-red-600 border-t-transparent rounded-full animate-spin mx-auto" />
@@ -709,7 +709,7 @@ export function Navigation({
           </div>
         </div>
       )}
-    </header>
+    </nav>
   );
 }
 

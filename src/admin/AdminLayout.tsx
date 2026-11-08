@@ -55,7 +55,9 @@ import {
   FileText,
   Paintbrush,
   Monitor,
-  RefreshCw
+  RefreshCw,
+  Sun,
+  Moon
 } from 'lucide-react';
 
 interface SidebarItem {
@@ -69,6 +71,12 @@ export function AdminLayout({ children }: { children: React.ReactNode }): React.
   const { user, adminProfile, loading, isAdmin } = useAuth();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [adminTheme, setAdminTheme] = useState<'light' | 'dark'>(() => {
+    if (typeof localStorage !== 'undefined') {
+      return (localStorage.getItem('admin_theme') as 'light' | 'dark') || 'light';
+    }
+    return 'light';
+  });
 
   // If loading, show elegant full-screen spinner
   if (loading) {
@@ -235,17 +243,17 @@ export function AdminLayout({ children }: { children: React.ReactNode }): React.
   const adminRoleLabel = adminProfile?.role === 'super_admin' ? 'Super Admin' : 'Editor';
 
   return (
-    <div className="h-screen w-full bg-[#FAF7F2] text-stone-800 flex flex-col md:flex-row font-sans selection:bg-rose-100 overflow-hidden" id="admin-portal-dashboard">
+    <div className={`h-screen w-full ${adminTheme === 'dark' ? 'bg-stone-950 text-stone-100' : 'bg-[#FAF7F2] text-stone-800'} flex flex-col md:flex-row font-sans selection:bg-rose-100 overflow-hidden`} id="admin-portal-dashboard">
       
       {/* SECTION 1: Responsive Sidebar Navigation (collapsible desktop left panel) */}
       <aside 
-        className={`fixed inset-y-0 left-0 z-40 w-72 bg-white border-r border-stone-200/60 flex flex-col h-full shrink-0 transition-transform duration-300 transform md:translate-x-0 md:static overflow-hidden ${
+        className={`fixed inset-y-0 left-0 z-40 w-72 ${adminTheme === 'dark' ? 'bg-stone-900 border-stone-800 text-stone-100' : 'bg-white border-stone-200/60 text-stone-800'} border-r flex flex-col h-full shrink-0 transition-transform duration-300 transform md:translate-x-0 md:static overflow-hidden ${
           mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
         id="admin-sidebar-nav"
       >
         {/* Sidebar Brand Header */}
-        <div className="p-5 border-b border-stone-100 flex items-center justify-between shrink-0 bg-white">
+        <div className={`p-5 border-b ${adminTheme === 'dark' ? 'border-stone-800 bg-stone-900' : 'border-stone-100 bg-white'} flex items-center justify-between shrink-0`}>
           <div className="flex items-center gap-2.5">
             <div className="h-9 w-9 bg-amber-50 border border-amber-200/50 rounded-lg flex items-center justify-center text-[#B8860B] shadow-xs">
               <Gem className="w-5 h-5" />
@@ -264,7 +272,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }): React.
         </div>
 
         {/* Sidebar Nav Items Container */}
-        <nav className="flex-1 min-h-0 p-4 overflow-y-auto space-y-1 bg-[#FAF9F6]" id="admin-nav-items-track">
+        <nav className={`flex-1 min-h-0 p-4 overflow-y-auto space-y-1 ${adminTheme === 'dark' ? 'bg-stone-900 text-stone-200' : 'bg-[#FAF9F6] text-stone-800'}`} id="admin-nav-items-track">
           <span className="text-[10px] text-stone-400 font-bold uppercase tracking-widest px-3 block mb-3">SHOWROOM CMS</span>
           {navigationItems.map((item) => {
             const Icon = item.icon;
@@ -282,7 +290,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }): React.
                   group flex items-center gap-3 px-3 py-2.5 rounded-lg text-[11px] font-bold tracking-wider uppercase transition-all duration-200 cursor-pointer ${
                     isActive 
                       ? 'bg-amber-50/60 text-[#6B1F2A] border-l-4 border-[#6B1F2A] shadow-xs font-bold' 
-                      : 'text-stone-500 hover:text-stone-800 hover:bg-stone-50'
+                      : adminTheme === 'dark' ? 'text-stone-300 hover:text-white hover:bg-stone-800' : 'text-stone-500 hover:text-stone-800 hover:bg-stone-50'
                   }
                 `}
                 id={`nav-item-${item.label.toLowerCase().replace(/[^a-z0-9]/g, '-')}`}
@@ -295,17 +303,17 @@ export function AdminLayout({ children }: { children: React.ReactNode }): React.
         </nav>
 
         {/* Sidebar Footer (Admin User Info & Direct Logout) */}
-        <div className="p-4 border-t border-stone-200/60 bg-white flex items-center gap-3 shrink-0">
+        <div className={`p-4 border-t ${adminTheme === 'dark' ? 'border-stone-800 bg-stone-900 text-stone-200' : 'border-stone-200/60 bg-white text-stone-800'} flex items-center gap-3 shrink-0`}>
           <div className="w-9 h-9 rounded-full bg-[#6B1F2A] border border-[#B8860B]/20 flex items-center justify-center text-[#FAF7F2] font-serif font-bold text-sm shrink-0 select-none shadow-xs">
             A
           </div>
           <div className="flex-1 min-w-0">
-            <span className="block text-xs text-stone-800 font-bold truncate">ADMIN</span>
+            <span className={`block text-xs ${adminTheme === 'dark' ? 'text-stone-100' : 'text-stone-800'} font-bold truncate`}>ADMIN</span>
             <span className="block text-[9px] text-[#B8860B] font-bold uppercase tracking-widest leading-none mt-0.5">SUPER ADMIN</span>
           </div>
           <button
             onClick={handleLogout}
-            className="p-1.5 hover:bg-stone-50 rounded-lg text-stone-400 hover:text-[#6B1F2A] cursor-pointer transition-colors"
+            className={`p-1.5 rounded-lg text-stone-400 ${adminTheme === 'dark' ? 'hover:bg-stone-800 hover:text-rose-400' : 'hover:bg-stone-50 hover:text-[#6B1F2A]'} cursor-pointer transition-colors`}
             title="Log out of console"
             id="admin-sidebar-logout"
           >
@@ -329,20 +337,20 @@ export function AdminLayout({ children }: { children: React.ReactNode }): React.
         <div className="flex-1 min-w-0 h-full flex flex-col overflow-hidden relative" id="admin-main-viewport">
           
           {/* SECTION 2A: Admin Header (Dynamic status and mobile menu trigger) */}
-          <header className="h-16 bg-white border-b border-stone-200/60 px-4 sm:px-6 flex items-center justify-between z-10 shrink-0" id="admin-header-bar">
+          <header className={`h-16 ${adminTheme === 'dark' ? 'bg-stone-900 border-stone-800 text-stone-100' : 'bg-white border-stone-200/60 text-stone-800'} border-b px-4 sm:px-6 flex items-center justify-between z-10 shrink-0`} id="admin-header-bar">
             
             {/* Mobile hamburger menu and active path label */}
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setMobileMenuOpen(true)}
-                className="md:hidden text-stone-600 hover:text-[#6B1F2A] p-2 border border-stone-200 rounded-lg cursor-pointer transition-all"
+                className={`md:hidden ${adminTheme === 'dark' ? 'text-stone-300 border-stone-700 bg-stone-800' : 'text-stone-600 border-stone-200 bg-white'} p-2 border rounded-lg cursor-pointer transition-all`}
                 id="mobile-nav-toggle"
               >
                 <Menu className="w-5 h-5" />
               </button>
               <div className="hidden sm:block">
                 <span className="text-[9px] text-stone-400 uppercase tracking-widest font-bold block leading-none">SHOWROOM CONSOLE</span>
-                <div className="flex items-center gap-1 text-xs text-stone-800 font-bold font-mono mt-1">
+                <div className={`flex items-center gap-1 text-xs ${adminTheme === 'dark' ? 'text-stone-200' : 'text-stone-800'} font-bold font-mono mt-1`}>
                   <span>Core</span>
                   <ChevronRight className="w-3 h-3 text-stone-400" />
                   <span className="text-[#B8860B] uppercase font-bold">{activeNav.label === 'Dashboard' ? 'DASHBOARD' : activeNav.label.toUpperCase()}</span>
@@ -363,27 +371,55 @@ export function AdminLayout({ children }: { children: React.ReactNode }): React.
               </div>
 
               {/* Notification bell icon with a red dot indicator */}
-              <button className="relative p-2 text-stone-400 hover:text-[#6B1F2A] transition-colors cursor-pointer rounded-full hover:bg-stone-50" title="Notifications">
+              <button className={`relative p-2 text-stone-400 ${adminTheme === 'dark' ? 'hover:bg-stone-800 hover:text-white' : 'hover:bg-stone-50 hover:text-[#6B1F2A]'} transition-colors cursor-pointer rounded-full`} title="Notifications">
                 <Bell className="w-4 h-4" />
                 <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-rose-500 border border-white" />
               </button>
 
               {/* Device button with icon */}
-              <button className="inline-flex items-center gap-1 px-3 py-1.5 border border-stone-200 hover:border-stone-300 hover:bg-stone-50 text-stone-600 text-[10px] font-bold tracking-wider uppercase rounded-full transition-all duration-200 cursor-pointer">
+              <button className={`inline-flex items-center gap-1 px-3 py-1.5 border ${adminTheme === 'dark' ? 'border-stone-700 bg-stone-800 text-stone-300 hover:bg-stone-750' : 'border-stone-200 bg-white text-stone-600 hover:bg-stone-50'} text-[10px] font-bold tracking-wider uppercase rounded-full transition-all duration-200 cursor-pointer`}>
                 <Monitor className="w-3.5 h-3.5" />
                 <span>Device</span>
               </button>
 
               {/* Remix button with icon */}
-              <button className="inline-flex items-center gap-1 px-3 py-1.5 border border-stone-200 hover:border-stone-300 hover:bg-stone-50 text-stone-600 text-[10px] font-bold tracking-wider uppercase rounded-full transition-all duration-200 cursor-pointer">
+              <button className={`inline-flex items-center gap-1 px-3 py-1.5 border ${adminTheme === 'dark' ? 'border-stone-700 bg-stone-800 text-stone-300 hover:bg-stone-750' : 'border-stone-200 bg-white text-stone-600 hover:bg-stone-50'} text-[10px] font-bold tracking-wider uppercase rounded-full transition-all duration-200 cursor-pointer`}>
                 <RefreshCw className="w-3.5 h-3.5" />
                 <span>Remix</span>
+              </button>
+
+              {/* White / Dark Mode Toggle Button */}
+              <button
+                onClick={() => {
+                  const next = adminTheme === 'light' ? 'dark' : 'light';
+                  setAdminTheme(next);
+                  localStorage.setItem('admin_theme', next);
+                }}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 border text-[10px] font-bold tracking-wider uppercase rounded-full transition-all duration-200 cursor-pointer shadow-2xs ${
+                  adminTheme === 'dark'
+                    ? 'border-stone-700 bg-stone-800 text-amber-400 hover:bg-stone-750'
+                    : 'border-stone-200 bg-white text-stone-700 hover:border-amber-500 hover:text-amber-700'
+                }`}
+                title="Toggle Admin Panel Dark / White Mode"
+                id="admin-theme-toggle-btn"
+              >
+                {adminTheme === 'dark' ? (
+                  <>
+                    <Sun className="w-3.5 h-3.5 text-amber-400" />
+                    <span>White Mode</span>
+                  </>
+                ) : (
+                  <>
+                    <Moon className="w-3.5 h-3.5 text-stone-700" />
+                    <span>Dark Mode</span>
+                  </>
+                )}
               </button>
 
               {/* Quick Logout Button */}
               <button
                 onClick={handleLogout}
-                className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 border border-stone-200 hover:border-[#6B1F2A] hover:bg-rose-50/50 text-stone-600 hover:text-[#6B1F2A] text-[10px] font-bold tracking-wider uppercase rounded-full transition-all duration-200 cursor-pointer ml-1"
+                className={`hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 border ${adminTheme === 'dark' ? 'border-stone-700 bg-stone-800 text-stone-300 hover:bg-rose-950 hover:text-rose-400' : 'border-stone-200 bg-white text-stone-600 hover:border-[#6B1F2A] hover:bg-rose-50/50 hover:text-[#6B1F2A]'} text-[10px] font-bold tracking-wider uppercase rounded-full transition-all duration-200 cursor-pointer ml-1`}
                 id="admin-header-logout"
               >
                 <LogOut className="w-3.5 h-3.5" />
@@ -394,7 +430,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }): React.
           </header>
 
           {/* SECTION 2B: Main CMS Content Workspace Wrapper */}
-          <main className="flex-1 min-h-0 p-4 sm:p-8 overflow-y-auto overscroll-y-contain bg-[#FAF7F2]" id="admin-workspace-core">
+          <main className={`flex-1 min-h-0 p-4 sm:p-8 overflow-y-auto overscroll-y-contain ${adminTheme === 'dark' ? 'bg-stone-950 text-stone-100' : 'bg-[#FAF7F2] text-stone-800'}`} id="admin-workspace-core">
             
             {/* Breadcrumb section header */}
             <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">

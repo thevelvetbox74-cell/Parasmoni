@@ -1053,23 +1053,23 @@ export function AdminStorefront(): React.JSX.Element {
     navGlobalFontWeight !== savedNavGlobalFontWeight;
 
   return (
-    <div className="w-full h-full flex flex-col overflow-hidden bg-stone-900 text-stone-100 font-sans" id="storefront-page-builder">
+    <div className="w-full h-full flex flex-col overflow-hidden bg-[#FAF7F2] text-stone-800 font-sans" id="storefront-page-builder">
       {/* 1. Control Top-Bar */}
-      <div className="h-14 bg-stone-950 border-b border-stone-800/80 px-6 flex items-center justify-between z-20 shrink-0" id="storefront-editor-topbar">
+      <div className="h-14 bg-white border-b border-stone-200 px-6 flex items-center justify-between z-20 shrink-0 shadow-2xs" id="storefront-editor-topbar">
         
         {/* Left: App Identity & Page Selector */}
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2.5">
-            <div className="h-8 w-8 bg-amber-600/10 border border-amber-600/30 rounded flex items-center justify-center text-amber-500">
+            <div className="h-8 w-8 bg-amber-50 border border-amber-200 rounded flex items-center justify-center text-amber-600 shadow-2xs">
               <Store className="w-4 h-4" />
             </div>
             <div>
-              <h1 className="text-xs font-bold uppercase tracking-widest text-stone-100 leading-tight">Storefront Builder</h1>
-              <p className="text-[9px] text-amber-500/90 font-mono font-medium">LIVE VISUAL CANVAS</p>
+              <h1 className="text-xs font-bold uppercase tracking-widest text-stone-900 leading-tight">Storefront Builder</h1>
+              <p className="text-[9px] text-amber-700 font-mono font-medium">LIVE VISUAL CANVAS</p>
             </div>
           </div>
 
-          <div className="w-px h-6 bg-stone-800" />
+          <div className="w-px h-6 bg-stone-200" />
 
           {/* Page Selector Dropdown */}
           <div className="flex items-center gap-2">
@@ -1078,11 +1078,11 @@ export function AdminStorefront(): React.JSX.Element {
               <select
                 value={activePageId}
                 onChange={(e) => handlePageSwitch(e.target.value)}
-                className="bg-stone-900 border border-stone-700 hover:border-amber-500/80 text-stone-100 text-xs font-semibold py-1.5 pl-3 pr-8 rounded-lg focus:outline-none focus:border-amber-500 transition-colors cursor-pointer appearance-none"
+                className="bg-stone-50 border border-stone-200 hover:border-amber-500 text-stone-800 text-xs font-semibold py-1.5 pl-3 pr-8 rounded-lg focus:outline-none focus:border-amber-500 transition-colors cursor-pointer appearance-none shadow-2xs"
                 id="select-page-dropdown"
               >
                 {availablePages.map((p) => (
-                  <option key={p.id} value={p.id} className="bg-stone-900 text-stone-100">
+                  <option key={p.id} value={p.id} className="bg-white text-stone-800">
                     {p.name || p.title || p.id} ({p.id === 'home' ? '/' : `/pages/${p.slug || p.id}`})
                   </option>
                 ))}
@@ -1093,24 +1093,24 @@ export function AdminStorefront(): React.JSX.Element {
         </div>
 
         {/* Center: Device Viewport Simulation Switcher */}
-        <div className="hidden md:flex items-center bg-stone-900 border border-stone-800 rounded-lg p-1">
+        <div className="hidden md:flex items-center bg-stone-100 border border-stone-200 rounded-lg p-1 shadow-2xs">
           <button 
             onClick={() => setEditorMode('desktop')}
-            className={`p-1.5 rounded transition-all cursor-pointer ${editorMode === 'desktop' ? 'bg-amber-600 text-stone-950 shadow-sm' : 'text-stone-400 hover:text-stone-200'}`}
+            className={`p-1.5 rounded transition-all cursor-pointer ${editorMode === 'desktop' ? 'bg-amber-600 text-white shadow-sm' : 'text-stone-600 hover:text-stone-900'}`}
             title="Desktop 100% Canvas"
           >
             <Laptop className="w-3.5 h-3.5" />
           </button>
           <button 
             onClick={() => setEditorMode('tablet')}
-            className={`p-1.5 rounded transition-all cursor-pointer ${editorMode === 'tablet' ? 'bg-amber-600 text-stone-950 shadow-sm' : 'text-stone-400 hover:text-stone-200'}`}
+            className={`p-1.5 rounded transition-all cursor-pointer ${editorMode === 'tablet' ? 'bg-amber-600 text-white shadow-sm' : 'text-stone-600 hover:text-stone-900'}`}
             title="Tablet 768px View"
           >
             <Tablet className="w-3.5 h-3.5" />
           </button>
           <button 
             onClick={() => setEditorMode('mobile')}
-            className={`p-1.5 rounded transition-all cursor-pointer ${editorMode === 'mobile' ? 'bg-amber-600 text-stone-950 shadow-sm' : 'text-stone-400 hover:text-stone-200'}`}
+            className={`p-1.5 rounded transition-all cursor-pointer ${editorMode === 'mobile' ? 'bg-amber-600 text-white shadow-sm' : 'text-stone-600 hover:text-stone-900'}`}
             title="Mobile 375px View"
           >
             <Smartphone className="w-3.5 h-3.5" />
@@ -1122,11 +1122,11 @@ export function AdminStorefront(): React.JSX.Element {
           {/* SEO Modal Trigger Button */}
           <button
             onClick={() => setSeoDrawerOpen(true)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-stone-900 border border-stone-700 hover:border-amber-500/70 text-stone-200 hover:text-amber-400 text-xs font-semibold rounded-lg transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-stone-50 border border-stone-200 hover:border-amber-500 text-stone-700 hover:text-amber-700 text-xs font-semibold rounded-lg transition-colors cursor-pointer shadow-2xs"
             id="topbar-seo-settings-btn"
             title="Configure Search Engine & Social OG Cards"
           >
-            <Globe className="w-3.5 h-3.5 text-amber-500" />
+            <Globe className="w-3.5 h-3.5 text-amber-600" />
             <span className="hidden sm:inline">SEO Settings</span>
           </button>
 
@@ -1135,10 +1135,10 @@ export function AdminStorefront(): React.JSX.Element {
             href={liveUrl}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-stone-900 border border-stone-800 hover:border-stone-700 text-stone-300 hover:text-stone-100 text-xs font-medium rounded-lg transition-colors"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-stone-50 border border-stone-200 hover:border-stone-300 text-stone-700 hover:text-stone-900 text-xs font-medium rounded-lg transition-colors shadow-2xs"
             title="Open Live Public Page in New Tab"
           >
-            <ExternalLink className="w-3.5 h-3.5 text-stone-400" />
+            <ExternalLink className="w-3.5 h-3.5 text-stone-500" />
             <span className="hidden sm:inline">View Live</span>
           </a>
 
@@ -1146,7 +1146,7 @@ export function AdminStorefront(): React.JSX.Element {
           <button 
             onClick={triggerSave}
             disabled={saveStatus === 'saving'}
-            className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-amber-600 hover:bg-amber-500 text-stone-950 text-xs font-bold uppercase tracking-wider rounded-lg transition-all shadow-md active:scale-95 cursor-pointer disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold uppercase tracking-wider rounded-lg transition-all shadow-md active:scale-95 cursor-pointer disabled:opacity-50"
             id="topbar-save-btn"
           >
             {saveStatus === 'saving' ? (
@@ -1170,7 +1170,7 @@ export function AdminStorefront(): React.JSX.Element {
       </div>
 
       {/* 2. Interactive Workspace & Section Canvas Area */}
-      <div className="flex-1 min-h-0 flex flex-col relative overflow-hidden bg-stone-950" id="storefront-canvas-layout">
+      <div className="flex-1 min-h-0 flex flex-col relative overflow-hidden bg-stone-100" id="storefront-canvas-layout">
         
         {/* Main Canvas Scroll Area */}
         <div 

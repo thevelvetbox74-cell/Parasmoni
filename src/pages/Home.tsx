@@ -65,8 +65,9 @@ import { useWebsiteSettings } from '../context/WebsiteSettingsContext';
 import { PageSEOHead } from '../components/PageSEOHead';
 import { SectionHeader } from '../components/SectionHeader';
 import { getLazyFirebase } from '../utils/lazyFirebase';
+import { WHITE_PLACEHOLDER_SVG } from '../components/FlowerTickSpinner';
 
-const BRAND_IMAGE = "https://ik.imagekit.io/ugm0ru2xm/parasmoni/branding/JEWLLERS___GRAND_BROTHERS__6__5ekGzNryJ.png";
+const BRAND_IMAGE = WHITE_PLACEHOLDER_SVG;
 
 const DEFAULT_CATEGORIES_MOCK = [
   {

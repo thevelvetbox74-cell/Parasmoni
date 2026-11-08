@@ -6,6 +6,7 @@
 
 import React, { useState } from 'react';
 import { ikUrl, ikSrcSet } from '../utils/imagekit';
+import { FlowerTickSpinner, WHITE_PLACEHOLDER_SVG } from './FlowerTickSpinner';
 
 export interface OptimizedImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   src: string;
@@ -41,7 +42,7 @@ export function OptimizedImage({
   className = '',
   wrapperClassName = '',
   objectFit = 'cover',
-  fallbackSrc = 'https://ik.imagekit.io/ugm0ru2xm/parasmoni/branding/JEWLLERS___GRAND_BROTHERS__6__5ekGzNryJ.png?tr=w-800,q-75,f-auto',
+  fallbackSrc = WHITE_PLACEHOLDER_SVG,
   style,
   referrerPolicy = 'no-referrer',
   draggable,
@@ -78,9 +79,16 @@ export function OptimizedImage({
 
   return (
     <div 
-      className={`overflow-hidden bg-stone-100 ${wrapperClassName}`} 
+      className={`relative overflow-hidden bg-[#faf8f5] flex items-center justify-center ${wrapperClassName}`} 
       style={wrapperStyle}
     >
+      {/* Centered Flower Tick Loading Spinner while image is fetching */}
+      {!hasLoaded && !priority && (
+        <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none bg-[#faf8f5]">
+          <FlowerTickSpinner size="md" />
+        </div>
+      )}
+
       <img
         src={optimizedPrimaryUrl}
         srcSet={responsiveSrcSet || undefined}

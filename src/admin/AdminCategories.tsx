@@ -633,14 +633,14 @@ export function AdminCategories(): React.JSX.Element {
                 return (
                   <div 
                     key={c.id} 
-                    className={`bg-stone-900 border transition-all rounded p-4 flex gap-4 items-center justify-between ${
-                      isInactive ? 'border-stone-800/50 bg-stone-900/40 opacity-70' : 'border-stone-800 hover:border-stone-700 bg-stone-900/80'
+                    className={`bg-white border transition-all rounded p-4 flex gap-4 items-center justify-between shadow-2xs ${
+                      isInactive ? 'border-stone-200 bg-stone-50/70 opacity-80' : 'border-stone-200 hover:border-amber-500/50 bg-white'
                     }`}
                     id={`category-card-${c.id}`}
                   >
                     {/* Category Cover */}
                     <div className="flex gap-4 items-center flex-1 min-w-0">
-                      <div className="relative w-16 h-16 bg-stone-950 border border-stone-800 rounded overflow-hidden shrink-0">
+                      <div className="relative w-16 h-16 bg-stone-100 border border-stone-200 rounded overflow-hidden shrink-0">
                         {c.imageUrl ? (
                           <img 
                             src={c.imageUrl} 
@@ -649,34 +649,34 @@ export function AdminCategories(): React.JSX.Element {
                             referrerPolicy="no-referrer"
                           />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center text-stone-700">
+                          <div className="w-full h-full flex items-center justify-center text-stone-400">
                             <Tag className="w-6 h-6" />
                           </div>
                         )}
-                        <span className="absolute bottom-1 right-1 px-1 py-0.5 rounded bg-black/80 text-[8px] font-mono font-bold text-amber-500 border border-stone-850">
+                        <span className="absolute bottom-1 right-1 px-1 py-0.5 rounded bg-stone-950/80 text-[8px] font-mono font-bold text-amber-500 border border-stone-200">
                           #{c.displayOrder}
                         </span>
                       </div>
 
                       <div className="space-y-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <h4 className="font-serif font-bold text-stone-100 text-xs truncate">{c.name}</h4>
+                          <h4 className="font-serif font-bold text-stone-900 text-xs truncate">{c.name}</h4>
                           <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold uppercase border ${
                             isInactive 
-                              ? 'bg-stone-950 text-stone-500 border-stone-800' 
-                              : 'bg-emerald-500/5 text-emerald-400 border-emerald-500/10'
+                              ? 'bg-stone-100 text-stone-500 border-stone-200' 
+                              : 'bg-emerald-50 text-emerald-700 border-emerald-200'
                           }`}>
                             {c.status}
                           </span>
                         </div>
-                        <p className="text-stone-400 text-[10px] leading-relaxed line-clamp-1">{c.description || 'No description provided.'}</p>
+                        <p className="text-stone-600 text-[10px] leading-relaxed line-clamp-1">{c.description || 'No description provided.'}</p>
                         <div className="flex flex-col gap-0.5">
                           <span className="text-[9px] text-stone-500 font-mono flex items-center gap-1">
-                            <LinkIcon className="w-3 h-3 text-stone-600" />
+                            <LinkIcon className="w-3 h-3 text-stone-400" />
                             <span>/category/{c.slug}</span>
                           </span>
                           {c.linkedCollectionSlug && (
-                            <span className="text-[9px] text-amber-500/90 font-mono flex items-center gap-1">
+                            <span className="text-[9px] text-amber-600 font-mono flex items-center gap-1">
                               <Sparkles className="w-3 h-3 text-amber-600" />
                               <span>Linked: /collections/{c.linkedCollectionSlug}</span>
                             </span>

@@ -524,56 +524,56 @@ export function AdminPages(): React.JSX.Element {
     <div className="space-y-6" id="admin-pages-manager">
       {/* 1. Statistics Header Overview */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4" id="pages-stats-grid">
-        <div className="p-4 bg-stone-900 border border-stone-800 rounded-xl shadow-xs">
+        <div className="p-4 bg-white border border-stone-200 rounded-xl shadow-2xs">
           <span className="block text-[10px] text-stone-500 font-bold uppercase tracking-wider">Total Storefront Pages</span>
           <div className="flex items-baseline gap-2 mt-1">
-            <span className="text-2xl font-bold text-stone-100">{pages.length}</span>
-            <span className="text-xs text-stone-400">custom layouts</span>
+            <span className="text-2xl font-bold text-stone-900">{pages.length}</span>
+            <span className="text-xs text-stone-500">custom layouts</span>
           </div>
         </div>
-        <div className="p-4 bg-stone-900 border border-stone-800 rounded-xl shadow-xs">
+        <div className="p-4 bg-white border border-stone-200 rounded-xl shadow-2xs">
           <span className="block text-[10px] text-stone-500 font-bold uppercase tracking-wider">Published Live</span>
           <div className="flex items-baseline gap-2 mt-1">
-            <span className="text-2xl font-bold text-emerald-500">{pages.filter(p => p.status === 'published').length}</span>
-            <span className="text-xs text-stone-400">active online</span>
+            <span className="text-2xl font-bold text-emerald-600">{pages.filter(p => p.status === 'published').length}</span>
+            <span className="text-xs text-stone-500">active online</span>
           </div>
         </div>
-        <div className="p-4 bg-stone-900 border border-stone-800 rounded-xl shadow-xs">
+        <div className="p-4 bg-white border border-stone-200 rounded-xl shadow-2xs">
           <span className="block text-[10px] text-stone-500 font-bold uppercase tracking-wider">Pending Drafts</span>
           <div className="flex items-baseline gap-2 mt-1">
-            <span className="text-2xl font-bold text-amber-500">{pages.filter(p => p.status === 'draft').length}</span>
+            <span className="text-2xl font-bold text-amber-600">{pages.filter(p => p.status === 'draft').length}</span>
             <span className="text-xs text-stone-500">in builder sandbox</span>
           </div>
         </div>
-        <div className="p-4 bg-stone-900 border border-stone-800 rounded-xl shadow-xs">
+        <div className="p-4 bg-white border border-stone-200 rounded-xl shadow-2xs">
           <span className="block text-[10px] text-stone-500 font-bold uppercase tracking-wider">SEO Cards Configured</span>
           <div className="flex items-baseline gap-2 mt-1">
-            <span className="text-2xl font-bold text-amber-400">
+            <span className="text-2xl font-bold text-amber-700">
               {pages.filter(p => p.seo?.title && p.seo?.description).length} / {pages.length}
             </span>
-            <span className="text-xs text-stone-400">with Google snippets</span>
+            <span className="text-xs text-stone-500">with Google snippets</span>
           </div>
         </div>
       </div>
 
       {/* 2. Page List Actions Toolbar */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-stone-900 p-4 border border-stone-800 rounded-xl">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-white p-4 border border-stone-200 rounded-xl shadow-2xs">
         {/* Search Input */}
         <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-500 w-4 h-4" />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400 w-4 h-4" />
           <input 
             type="text"
             placeholder="Search pages by name, slug, or id..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-stone-950 border border-stone-800 rounded-lg text-xs text-stone-200 placeholder-stone-500 focus:outline-none focus:border-amber-500 transition-all font-mono"
+            className="w-full pl-10 pr-4 py-2 bg-stone-50 border border-stone-200 rounded-lg text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:border-amber-600 transition-all font-mono shadow-2xs"
           />
         </div>
 
         {/* Create Page Button */}
         <button 
           onClick={() => setIsAddModalOpen(true)}
-          className="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-amber-600 hover:bg-amber-500 text-stone-950 text-xs font-bold uppercase tracking-wider rounded-lg cursor-pointer transition-all shadow-md active:scale-95 shrink-0"
+          className="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold uppercase tracking-wider rounded-lg cursor-pointer transition-all shadow-sm active:scale-95 shrink-0"
           id="btn-add-new-page"
         >
           <Plus className="w-4 h-4 stroke-[2.5]" />
@@ -582,11 +582,11 @@ export function AdminPages(): React.JSX.Element {
       </div>
 
       {/* 3. Pages Listing Table */}
-      <div className="bg-stone-950 border border-stone-800 rounded-xl overflow-hidden shadow-lg">
+      <div className="bg-white border border-stone-200 rounded-xl overflow-hidden shadow-2xs">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-stone-800 bg-stone-900/70 text-[10px] font-bold uppercase tracking-wider text-stone-400">
+              <tr className="border-b border-stone-200 bg-stone-50 text-[10px] font-bold uppercase tracking-wider text-stone-600">
                 <th className="p-4 pl-6">Page Name & Identifier</th>
                 <th className="p-4">Route Path</th>
                 <th className="p-4">Sections</th>
@@ -595,11 +595,11 @@ export function AdminPages(): React.JSX.Element {
                 <th className="p-4 text-right pr-6">Visual Builder & Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-stone-800/60 text-xs text-stone-300">
+            <tbody className="divide-y divide-stone-100 text-xs text-stone-800">
               {loading ? (
                 <tr>
                   <td colSpan={6} className="p-12 text-center text-stone-500">
-                    <div className="w-6 h-6 border-2 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+                    <div className="w-6 h-6 border-2 border-amber-600 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
                     <span>Synchronizing showroom pages...</span>
                   </td>
                 </tr>
@@ -611,24 +611,24 @@ export function AdminPages(): React.JSX.Element {
                   const sectionCount = page.sections?.length || 0;
 
                   return (
-                    <tr key={page.id} className="hover:bg-stone-900/30 transition-colors group">
+                    <tr key={page.id} className="hover:bg-stone-50 transition-colors group">
                       {/* Title & info */}
                       <td className="p-4 pl-6">
                         <div className="flex items-center gap-3">
                           <div className={`h-9 w-9 rounded-lg border flex items-center justify-center shrink-0 ${
                             isHome 
-                              ? 'bg-amber-500/10 border-amber-500/30 text-amber-500' 
-                              : 'bg-stone-900 border-stone-800 text-stone-400'
+                              ? 'bg-amber-50 border-amber-200 text-amber-600' 
+                              : 'bg-stone-100 border-stone-200 text-stone-600'
                           }`}>
                             {isHome ? <Sparkles className="w-4 h-4" /> : <FileText className="w-4 h-4" />}
                           </div>
                           <div>
                             <div className="flex items-center gap-2">
-                              <span className="font-bold text-stone-100 text-sm">
+                              <span className="font-bold text-stone-900 text-sm">
                                 {page.name || page.title}
                               </span>
                               {isHome && (
-                                <span className="inline-flex items-center gap-1 text-[9px] font-mono px-2 py-0.5 rounded bg-amber-500/15 border border-amber-500/30 text-amber-400 font-bold uppercase">
+                                <span className="inline-flex items-center gap-1 text-[9px] font-mono px-2 py-0.5 rounded bg-amber-50 border border-amber-200 text-amber-700 font-bold uppercase">
                                   <Lock className="w-2.5 h-2.5" />
                                   Core Root
                                 </span>
@@ -647,17 +647,17 @@ export function AdminPages(): React.JSX.Element {
                           href={publicUrl}
                           target="_blank"
                           rel="noreferrer"
-                          className="inline-flex items-center gap-1 font-mono bg-stone-900 hover:bg-stone-850 px-2.5 py-1 rounded text-stone-300 hover:text-amber-400 border border-stone-800 text-[11px] transition-colors group/link"
+                          className="inline-flex items-center gap-1 font-mono bg-stone-50 hover:bg-stone-100 px-2.5 py-1 rounded text-stone-700 hover:text-amber-700 border border-stone-200 text-[11px] transition-colors group/link shadow-2xs"
                         >
                           <span>{publicUrl}</span>
-                          <ExternalLink className="w-3 h-3 text-stone-500 group-hover/link:text-amber-400" />
+                          <ExternalLink className="w-3 h-3 text-stone-400 group-hover/link:text-amber-600" />
                         </a>
                       </td>
 
                       {/* Sections Count */}
                       <td className="p-4">
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-stone-900 border border-stone-800 text-stone-300 font-mono text-[11px]">
-                          <Layers className="w-3 h-3 text-stone-500" />
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-stone-50 border border-stone-200 text-stone-700 font-mono text-[11px] shadow-2xs">
+                          <Layers className="w-3 h-3 text-stone-400" />
                           <span>{sectionCount} {sectionCount === 1 ? 'Section' : 'Sections'}</span>
                         </span>
                       </td>
@@ -670,8 +670,8 @@ export function AdminPages(): React.JSX.Element {
                         >
                           {hasSeo ? (
                             <div className="space-y-0.5">
-                              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-400 group-hover/seo:underline">
-                                <CheckCircle2 className="w-3 h-3 text-emerald-500" />
+                              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 group-hover/seo:underline">
+                                <CheckCircle2 className="w-3 h-3 text-emerald-600" />
                                 <span>Configured</span>
                               </span>
                               <span className="block text-[10px] text-stone-500 line-clamp-1 max-w-[200px]">
@@ -679,7 +679,7 @@ export function AdminPages(): React.JSX.Element {
                               </span>
                             </div>
                           ) : (
-                            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded group-hover/seo:bg-amber-500/20 transition-colors">
+                            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded group-hover/seo:bg-amber-100 transition-colors shadow-2xs">
                               <Globe className="w-3 h-3" />
                               <span>Edit Google SEO</span>
                             </span>
@@ -691,14 +691,14 @@ export function AdminPages(): React.JSX.Element {
                       <td className="p-4">
                         <button
                           onClick={() => handleToggleStatus(page)}
-                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer ${
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer shadow-2xs ${
                             page.status === 'published'
-                              ? 'bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/25'
-                              : 'bg-stone-800 border border-stone-700 text-stone-400 hover:bg-stone-750'
+                              ? 'bg-emerald-50 border border-emerald-200 text-emerald-700 hover:bg-emerald-100'
+                              : 'bg-stone-100 border border-stone-200 text-stone-600 hover:bg-stone-200'
                           }`}
                           title="Click to toggle Published / Draft state"
                         >
-                          <span className={`w-1.5 h-1.5 rounded-full ${page.status === 'published' ? 'bg-emerald-400 animate-pulse' : 'bg-stone-500'}`} />
+                          <span className={`w-1.5 h-1.5 rounded-full ${page.status === 'published' ? 'bg-emerald-600 animate-pulse' : 'bg-stone-400'}`} />
                           <span>{page.status === 'published' ? 'Published' : 'Draft'}</span>
                         </button>
                       </td>
@@ -708,7 +708,7 @@ export function AdminPages(): React.JSX.Element {
                         {/* 1. Open Storefront visual builder scoped to this specific page */}
                         <Link 
                           to={`/admin/storefront?pageId=${page.id}`}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-stone-950 font-bold text-xs uppercase tracking-wider transition-all shadow-sm active:scale-95"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs uppercase tracking-wider transition-all shadow-xs active:scale-95"
                           title="Open Storefront Visual Editor"
                         >
                           <Edit className="w-3.5 h-3.5" />
@@ -718,7 +718,7 @@ export function AdminPages(): React.JSX.Element {
                         {/* 2. SEO drawer button */}
                         <button 
                           onClick={() => setSelectedSeoPage(page)}
-                          className="inline-flex items-center justify-center h-8 w-8 rounded-lg hover:bg-stone-800 text-stone-400 hover:text-amber-400 bg-stone-900 border border-stone-800 transition-colors cursor-pointer"
+                          className="inline-flex items-center justify-center h-8 w-8 rounded-lg hover:bg-stone-100 text-stone-600 hover:text-amber-700 bg-stone-50 border border-stone-200 transition-colors cursor-pointer shadow-2xs"
                           title="Configure Page SEO & Social Card"
                         >
                           <Globe className="w-4 h-4" />
@@ -729,7 +729,7 @@ export function AdminPages(): React.JSX.Element {
                           href={publicUrl}
                           target="_blank"
                           rel="noreferrer"
-                          className="inline-flex items-center justify-center h-8 w-8 rounded-lg hover:bg-stone-800 text-stone-400 hover:text-stone-200 bg-stone-900 border border-stone-800 transition-colors"
+                          className="inline-flex items-center justify-center h-8 w-8 rounded-lg hover:bg-stone-100 text-stone-600 hover:text-stone-900 bg-stone-50 border border-stone-200 transition-colors shadow-2xs"
                           title="View Live Web Page"
                         >
                           <ArrowUpRight className="w-4 h-4" />
@@ -739,7 +739,7 @@ export function AdminPages(): React.JSX.Element {
                         {isHome ? (
                           <button
                             disabled
-                            className="inline-flex items-center justify-center h-8 w-8 rounded-lg text-stone-700 bg-stone-900 border border-stone-800/40 cursor-not-allowed opacity-40"
+                            className="inline-flex items-center justify-center h-8 w-8 rounded-lg text-stone-400 bg-stone-100 border border-stone-200 cursor-not-allowed opacity-50"
                             title="Home page cannot be deleted (required core root)"
                           >
                             <Lock className="w-3.5 h-3.5" />
@@ -747,7 +747,7 @@ export function AdminPages(): React.JSX.Element {
                         ) : (
                           <button 
                             onClick={() => setPageToDelete(page)}
-                            className="inline-flex items-center justify-center h-8 w-8 rounded-lg hover:bg-red-950 hover:text-red-400 text-stone-500 bg-stone-900 border border-stone-800 hover:border-red-900 transition-colors cursor-pointer"
+                            className="inline-flex items-center justify-center h-8 w-8 rounded-lg hover:bg-red-50 hover:text-red-600 text-stone-500 bg-stone-50 border border-stone-200 hover:border-red-200 transition-colors cursor-pointer shadow-2xs"
                             title="Delete custom page"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -771,22 +771,22 @@ export function AdminPages(): React.JSX.Element {
 
       {/* 4. Add New Page Modal */}
       {isAddModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-950/80 backdrop-blur-xs p-4 animate-fade-in" id="add-page-modal-overlay">
-          <div className="w-full max-w-lg bg-stone-900 border border-stone-800 rounded-2xl shadow-2xl overflow-hidden animate-scale-up" id="add-page-modal">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-950/60 backdrop-blur-xs p-4 animate-fade-in" id="add-page-modal-overlay">
+          <div className="w-full max-w-lg bg-white border border-stone-200 rounded-2xl shadow-2xl overflow-hidden animate-scale-up" id="add-page-modal">
             {/* Header */}
-            <div className="p-5 border-b border-stone-800 flex items-center justify-between bg-stone-950">
+            <div className="p-5 border-b border-stone-200 flex items-center justify-between bg-stone-50">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/25 flex items-center justify-center text-amber-500">
+                <div className="w-8 h-8 rounded-lg bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600 shadow-2xs">
                   <Plus className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold uppercase tracking-wider text-stone-100">Create New Showroom Page</h3>
-                  <p className="text-[10px] text-stone-400">Launches into the Visual Storefront Builder</p>
+                  <h3 className="text-sm font-bold uppercase tracking-wider text-stone-900">Create New Showroom Page</h3>
+                  <p className="text-[10px] text-stone-500">Launches into the Visual Storefront Builder</p>
                 </div>
               </div>
               <button 
                 onClick={() => setIsAddModalOpen(false)}
-                className="p-1.5 text-stone-400 hover:text-stone-100 hover:bg-stone-800 rounded-lg transition-colors cursor-pointer"
+                className="p-1.5 text-stone-500 hover:text-stone-900 hover:bg-stone-200 rounded-lg transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -796,7 +796,7 @@ export function AdminPages(): React.JSX.Element {
             <form onSubmit={handleCreatePage} className="p-6 space-y-5">
               {/* Page Name */}
               <div className="space-y-1.5">
-                <label className="text-xs font-bold uppercase tracking-wider text-stone-200 block">
+                <label className="text-xs font-bold uppercase tracking-wider text-stone-700 block">
                   Page Name / Title *
                 </label>
                 <input 

@@ -18,7 +18,9 @@ export interface HeroSlideData {
   buttonLink: string;
 }
 
-export const HERO_FALLBACK_IMAGE = 'https://ik.imagekit.io/ugm0ru2xm/parasmoni/branding/JEWLLERS___GRAND_BROTHERS__6__5ekGzNryJ.png';
+import { WHITE_PLACEHOLDER_SVG } from '../components/FlowerTickSpinner';
+
+export const HERO_FALLBACK_IMAGE = WHITE_PLACEHOLDER_SVG;
 
 export const defaultHeroSlide: HeroSlideData = {
   id: 'hero-slide-default',

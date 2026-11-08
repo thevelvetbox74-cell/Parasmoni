@@ -357,7 +357,7 @@ function ProductDetailsInner(): React.JSX.Element {
           // Load related products
           const related = mockProducts
             .filter(p => p.id !== normalized.id)
-            .slice(0, 4);
+            .slice(0, 6);
           setRelatedProducts(related);
         } else {
           setProduct(null);
@@ -653,39 +653,44 @@ Product Link: ${currentUrl}`;
   }
 
   return (
-    <div className="min-h-screen bg-[#FAF7F2] py-3 sm:py-6 px-3 sm:px-6 lg:px-8 font-sans antialiased pb-28 md:pb-12" id={`product-details-${product.id}`}>
-      <div className="w-full max-w-7xl mx-auto">
+    <div className="min-h-screen bg-[#FAF7F2] pt-[60px] lg:pt-[64px] pb-28 md:pb-16 font-sans antialiased" id={`product-details-${product.id}`}>
+      <div className="w-full max-w-[1560px] 2xl:max-w-[1760px] mx-auto px-4 sm:px-6 lg:px-[clamp(24px,4vw,72px)] space-y-14">
         
-        {/* Core Product Layout Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-start">
+        {/* Core Product Layout Grid (2 Columns on Desktop) */}
+        <div className="grid grid-cols-1 lg:grid-cols-[max-content_minmax(0,1fr)] gap-6 lg:gap-[clamp(32px,3vw,56px)] items-start">
           
-          {/* LEFT COLUMN: Unchanged Image Gallery */}
-          <div className="lg:col-span-6 space-y-4 lg:sticky lg:top-20 lg:self-start w-full">
+          {/* LEFT COLUMN: Gallery + Action Buttons (Sticky on Desktop) */}
+          <div className="w-full lg:w-max lg:sticky lg:top-[150px] lg:self-start space-y-4">
             
-            <div className="flex flex-col-reverse sm:flex-row gap-3 sm:gap-4 items-start w-full">
+            <div className="flex flex-col-reverse sm:flex-row lg:flex-row gap-3 sm:gap-4 lg:gap-4 items-start w-full">
               
-              {/* Thumbnails */}
+              {/* Thumbnails Rail */}
               {galleryImages.length > 1 && (
-                <div className="flex sm:flex-col gap-2.5 overflow-x-auto sm:overflow-y-auto max-h-[520px] w-full sm:w-20 shrink-0 scrollbar-none py-1 sm:py-0">
+                <div 
+                  className="flex sm:flex-col lg:flex-col gap-2.5 lg:gap-3 overflow-x-auto sm:overflow-y-auto lg:overflow-y-auto w-full sm:w-20 lg:w-[92px] shrink-0 scrollbar-none py-1 sm:py-0 max-h-[520px] lg:max-h-[clamp(420px,calc(100vh-235px),720px)]"
+                  style={{
+                    height: 'clamp(420px, calc(100vh - 235px), 720px)'
+                  }}
+                >
                   {galleryImages.map((imgUrl: string, idx: number) => {
                     const isActive = idx === activeImageIndex;
                     return (
                       <button
                         key={idx}
                         onClick={() => setActiveImageIndex(idx)}
-                        className={`relative aspect-square w-16 sm:w-full rounded-2xl overflow-hidden border-2 transition-all cursor-pointer bg-stone-100 shrink-0 ${
+                        className={`relative aspect-square w-16 sm:w-full lg:w-[92px] lg:h-[92px] rounded-2xl overflow-hidden border-2 transition-all cursor-pointer bg-stone-100 shrink-0 ${
                           isActive ? 'border-[#6B1F2A] ring-2 ring-[#6B1F2A]/20 shadow-sm' : 'border-stone-200 hover:border-stone-400'
                         }`}
                       >
                         <OptimizedImage 
                           src={imgUrl} 
                           alt={`${productName} thumbnail ${idx + 1}`}
-                          width={80}
-                          height={80}
+                          width={92}
+                          height={92}
                           aspectRatio="1/1"
                           quality={75}
                           widths={[120, 200]}
-                          sizes="80px"
+                          sizes="92px"
                           className="w-full h-full object-cover"
                         />
                       </button>
@@ -695,7 +700,9 @@ Product Link: ${currentUrl}`;
               )}
 
               {/* Main Image Showcase */}
-              <div className="relative aspect-square w-full bg-white rounded-3xl overflow-hidden border border-stone-200/80 shadow-xs flex-1">
+              <div 
+                className="relative aspect-square w-full lg:w-[clamp(420px,calc(100vh-235px),720px)] lg:h-[clamp(420px,calc(100vh-235px),720px)] bg-white rounded-3xl overflow-hidden border border-stone-200/80 shadow-xs flex-1 shrink-0 flex items-center justify-center"
+              >
                 {activeMainImage && (activeMainImage.toLowerCase().split('?')[0].endsWith('.mp4') || activeMainImage.toLowerCase().split('?')[0].endsWith('.mov') || activeMainImage.toLowerCase().split('?')[0].endsWith('.webm')) ? (
                   <video 
                     src={activeMainImage} 
@@ -717,7 +724,7 @@ Product Link: ${currentUrl}`;
                     widths={[640, 960, 1280]}
                     objectFit="contain"
                     sizes="(max-width: 1024px) 100vw, 50vw"
-                    className="p-2"
+                    className="p-3 w-full h-full object-contain"
                   />
                 )}
 
@@ -733,26 +740,58 @@ Product Link: ${currentUrl}`;
 
             </div>
 
+            {/* Desktop-only Action Buttons Row (Directly below main image, perfectly aligned) */}
+            <div 
+              className={`hidden lg:flex items-center gap-3 ${
+                galleryImages.length > 1 ? 'lg:ml-[108px]' : 'lg:ml-0'
+              }`}
+              style={{
+                width: 'clamp(420px, calc(100vh - 235px), 720px)'
+              }}
+            >
+              {/* WHATSAPP / SHOWROOM ENQUIRY BUTTON */}
+              <a
+                href={getWhatsAppEnquiryUrl()}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-[1.4] h-[52px] flex items-center justify-center gap-2 bg-[#6B1F2A] hover:bg-[#521720] text-white text-xs font-bold uppercase tracking-wider px-5 rounded-2xl shadow-md transition-transform active:scale-98 cursor-pointer"
+                id={`desktop-whatsapp-btn-${product.id}`}
+              >
+                <MessageCircle className="w-4 h-4 fill-white text-[#6B1F2A]" />
+                <span>INQUIRE / BOOK VISIT</span>
+              </a>
+
+              {/* CALL SHOWROOM BUTTON */}
+              <a
+                href={`tel:${settings.contactNumber || '+913322419876'}`}
+                className="flex-1 h-[52px] flex items-center justify-center gap-2 bg-white hover:bg-stone-50 border-2 border-stone-900 text-stone-900 text-xs font-bold uppercase tracking-wider px-5 rounded-2xl shadow-xs transition-transform active:scale-98 cursor-pointer"
+                id={`desktop-call-btn-${product.id}`}
+              >
+                <Phone className="w-4 h-4 text-stone-900" />
+                <span>CALL SHOWROOM DESK</span>
+              </a>
+            </div>
+
           </div>
 
-          {/* RIGHT COLUMN: Giva & Mia App Style Optimized Details Section */}
-          <div className="lg:col-span-6 space-y-5 w-full">
+          {/* RIGHT COLUMN: Product Details (Fills All Remaining Space) */}
+          <div className="w-full space-y-5">
             
             {/* 1. App-Header Card: Title, Design ID & Rating */}
-            <div className="bg-white border border-stone-200/80 rounded-3xl p-5 shadow-xs space-y-3">
+            <div className="bg-white border border-stone-200/80 rounded-3xl p-5 lg:p-6 shadow-xs space-y-3.5 w-full">
               <div className="flex items-start justify-between gap-3">
-                <div>
+                <div className="w-full">
                   <span className="text-[10px] font-sans font-bold uppercase tracking-widest text-[#6B1F2A] bg-[#6B1F2A]/10 px-2.5 py-0.5 rounded-full border border-[#6B1F2A]/20 inline-block mb-1.5">
                     22K BIS Hallmarked
                   </span>
-                  <h1 className="font-sans font-bold text-xl sm:text-2xl text-stone-900 tracking-tight leading-snug">
+                  <h1 className="font-sans font-bold text-xl sm:text-2xl lg:text-[clamp(26px,2.2vw,34px)] text-stone-900 tracking-tight leading-snug">
                     {productName}
                   </h1>
                 </div>
               </div>
 
               {/* Design ID & Verified Rating Summary */}
-              <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-stone-100 text-xs">
+              <div className="flex flex-wrap items-center justify-between gap-2 pt-2.5 border-t border-stone-100 text-xs">
                 <div className="flex items-center gap-1.5 font-sans text-stone-600">
                   <span className="text-[10px] uppercase font-bold text-stone-400 tracking-wider">DESIGN ID:</span>
                   <span className="bg-stone-100 text-stone-800 px-2 py-0.5 rounded-md font-semibold border border-stone-200 text-[11px] font-sans">
@@ -770,8 +809,8 @@ Product Link: ${currentUrl}`;
               </div>
             </div>
 
-            {/* 2. Transparent Pricing Card (Giva/Mia Style with Live Breakdown Toggle) */}
-            <div className="bg-gradient-to-br from-white via-amber-50/30 to-white border border-amber-200/80 rounded-3xl p-5 shadow-xs space-y-3">
+            {/* 2. Transparent Pricing Card with Live Breakdown Toggle */}
+            <div className="bg-gradient-to-br from-white via-amber-50/30 to-white border border-amber-200/80 rounded-3xl p-5 lg:p-6 shadow-xs space-y-3.5 w-full">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-sans font-bold uppercase tracking-wider text-amber-800">
                   Estimated Showroom Price
@@ -788,15 +827,15 @@ Product Link: ${currentUrl}`;
               </div>
 
               <div className="flex items-baseline gap-2.5">
-                <span className="text-2xl sm:text-3xl font-sans font-bold text-stone-900 tracking-tight tabular-nums">
+                <span className="text-2xl sm:text-3xl lg:text-[clamp(32px,2.6vw,42px)] font-sans font-bold text-stone-900 tracking-tight tabular-nums">
                   ₹{formattedPrice}
                 </span>
-                <span className="text-[10px] text-stone-500 font-sans">
+                <span className="text-[10px] sm:text-xs text-stone-500 font-sans">
                   (Incl. Tax & Live Gold Bullion Rate)
                 </span>
               </div>
 
-              {/* Price Breakup Drawer (Giva/Mia Style) */}
+              {/* Price Breakup Drawer */}
               {showPriceBreakdown && (
                 <div className="pt-3 border-t border-amber-200/60 space-y-2 text-xs font-sans animate-in fade-in duration-200">
                   <div className="grid grid-cols-2 gap-2 text-[11px] text-stone-700 bg-white p-3 rounded-2xl border border-stone-200/80 shadow-2xs font-sans">
@@ -821,37 +860,37 @@ Product Link: ${currentUrl}`;
               )}
             </div>
 
-            {/* 3. Giva & Mia Style 4-Grid Service & Trust Pillars */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-              <div className="bg-white border border-stone-200/80 rounded-2xl p-3 text-center space-y-1 shadow-2xs">
+            {/* 3. 4-Grid Service & Trust Pillars (1 row of 4 equal-width cards on desktop) */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 gap-3 w-full">
+              <div className="bg-white border border-stone-200/80 rounded-2xl p-3.5 text-center space-y-1 shadow-2xs">
                 <ShieldCheck className="w-5 h-5 text-[#6B1F2A] mx-auto" />
                 <h4 className="text-[10px] font-sans font-bold text-stone-900 uppercase">100% BIS Hallmarked</h4>
                 <p className="text-[9px] text-stone-500 font-sans">Verified Pure Gold</p>
               </div>
 
-              <div className="bg-white border border-stone-200/80 rounded-2xl p-3 text-center space-y-1 shadow-2xs">
+              <div className="bg-white border border-stone-200/80 rounded-2xl p-3.5 text-center space-y-1 shadow-2xs">
                 <RotateCcw className="w-5 h-5 text-[#6B1F2A] mx-auto" />
                 <h4 className="text-[10px] font-sans font-bold text-stone-900 uppercase">Lifetime Exchange</h4>
                 <p className="text-[9px] text-stone-500 font-sans">100% Metal Value</p>
               </div>
 
-              <div className="bg-white border border-stone-200/80 rounded-2xl p-3 text-center space-y-1 shadow-2xs">
+              <div className="bg-white border border-stone-200/80 rounded-2xl p-3.5 text-center space-y-1 shadow-2xs">
                 <Truck className="w-5 h-5 text-[#6B1F2A] mx-auto" />
                 <h4 className="text-[10px] font-sans font-bold text-stone-900 uppercase">Insured Pick-Up</h4>
                 <p className="text-[9px] text-stone-500 font-sans">Safe Showroom Visit</p>
               </div>
 
-              <div className="bg-white border border-stone-200/80 rounded-2xl p-3 text-center space-y-1 shadow-2xs">
+              <div className="bg-white border border-stone-200/80 rounded-2xl p-3.5 text-center space-y-1 shadow-2xs">
                 <Award className="w-5 h-5 text-[#6B1F2A] mx-auto" />
                 <h4 className="text-[10px] font-sans font-bold text-stone-900 uppercase">Legacy Since 1974</h4>
                 <p className="text-[9px] text-stone-500 font-sans">50+ Yrs Trust</p>
               </div>
             </div>
 
-            {/* 4. Giva / Mia Style Interactive Accordion Sections */}
-            <div className="bg-white border border-stone-200/80 rounded-3xl divide-y divide-stone-100 overflow-hidden shadow-xs">
+            {/* 4. Interactive Accordion Sections */}
+            <div className="bg-white border border-stone-200/80 rounded-3xl divide-y divide-stone-100 overflow-hidden shadow-xs w-full">
               
-              {/* Accordion 1: Product Specifications Table */}
+              {/* Accordion 1: Product Specifications & Weight (24px column gap) */}
               <div>
                 <button
                   type="button"
@@ -867,7 +906,7 @@ Product Link: ${currentUrl}`;
 
                 {openAccordion === 'specs' && (
                   <div className="px-5 pb-5 pt-1 animate-in fade-in duration-200">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs bg-stone-50 p-3.5 rounded-2xl border border-stone-200/80">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-xs bg-stone-50 p-4 rounded-2xl border border-stone-200/80">
                       {specificationsList.map((spec, idx) => {
                         const IconComponent = spec.icon;
                         return (
@@ -965,130 +1004,135 @@ Product Link: ${currentUrl}`;
 
             </div>
 
-            {/* 5. Giva / Mia Style Primary Action Deck (Showroom Enquiry + Call) */}
-            <div className="space-y-3 pt-2">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3" id="app-action-deck">
-                {/* WHATSAPP / SHOWROOM ENQUIRY BUTTON */}
-                <a
-                  href={getWhatsAppEnquiryUrl()}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full flex items-center justify-center gap-2 bg-[#6B1F2A] hover:bg-[#521720] text-white text-xs font-bold uppercase tracking-wider py-3.5 px-5 rounded-2xl shadow-md transition-transform active:scale-98 cursor-pointer"
-                  id={`whatsapp-btn-${product.id}`}
-                >
-                  <MessageCircle className="w-4 h-4 fill-white text-[#6B1F2A]" />
-                  <span>INQUIRE / BOOK VISIT</span>
-                </a>
+            {/* 5. Mobile/Tablet Action Deck (Hidden on desktop because buttons sit directly under image) */}
+            <div className="flex lg:hidden flex-col sm:flex-row gap-3 pt-2" id="app-action-deck">
+              {/* WHATSAPP / SHOWROOM ENQUIRY BUTTON */}
+              <a
+                href={getWhatsAppEnquiryUrl()}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full flex items-center justify-center gap-2 bg-[#6B1F2A] hover:bg-[#521720] text-white text-xs font-bold uppercase tracking-wider py-3.5 px-5 rounded-2xl shadow-md transition-transform active:scale-98 cursor-pointer"
+                id={`whatsapp-btn-${product.id}`}
+              >
+                <MessageCircle className="w-4 h-4 fill-white text-[#6B1F2A]" />
+                <span>INQUIRE / BOOK VISIT</span>
+              </a>
 
-                {/* CALL SHOWROOM BUTTON */}
-                <a
-                  href={`tel:${settings.contactNumber || '+913322419876'}`}
-                  className="w-full flex items-center justify-center gap-2 bg-stone-900 hover:bg-stone-800 text-white text-xs font-bold uppercase tracking-wider py-3.5 px-5 rounded-2xl shadow-md transition-transform active:scale-98 cursor-pointer"
-                  id={`call-btn-${product.id}`}
-                >
-                  <Phone className="w-4 h-4 text-white" />
-                  <span>CALL SHOWROOM DESK</span>
-                </a>
-              </div>
+              {/* CALL SHOWROOM BUTTON */}
+              <a
+                href={`tel:${settings.contactNumber || '+913322419876'}`}
+                className="w-full flex items-center justify-center gap-2 bg-stone-900 hover:bg-stone-800 text-white text-xs font-bold uppercase tracking-wider py-3.5 px-5 rounded-2xl shadow-md transition-transform active:scale-98 cursor-pointer"
+                id={`call-btn-${product.id}`}
+              >
+                <Phone className="w-4 h-4 text-white" />
+                <span>CALL SHOWROOM DESK</span>
+              </a>
             </div>
-
-            {/* 6. Ratings & Reviews Section */}
-            <div className="bg-white border border-stone-200/80 rounded-3xl p-5 shadow-xs space-y-4">
-              <div className="flex items-center justify-between border-b border-stone-100 pb-3">
-                <h3 className="font-sans font-bold text-xs uppercase tracking-wider text-stone-900">
-                  CUSTOMER REVIEWS & RATINGS
-                </h3>
-
-                <button
-                  type="button"
-                  onClick={() => setShowReviewModal(true)}
-                  className="text-[11px] font-bold text-[#6B1F2A] hover:underline flex items-center gap-1 cursor-pointer font-sans"
-                >
-                  <span>Write Review</span>
-                  <Sparkles className="w-3 h-3" />
-                </button>
-              </div>
-
-              <div className="flex items-center gap-4 bg-stone-50 p-4 rounded-2xl border border-stone-200/60 font-sans">
-                <div className="text-center shrink-0 pr-4 border-r border-stone-200">
-                  <span className="text-3xl font-sans font-extrabold text-stone-900 block leading-none tabular-nums">{ratingVal}</span>
-                  <div className="flex items-center justify-center text-amber-500 my-1">
-                    {[1, 2, 3, 4, 5].map((s) => (
-                      <Star key={s} className="w-3 h-3 fill-amber-500 text-amber-500" />
-                    ))}
-                  </div>
-                  <span className="text-[10px] text-stone-500 font-sans">{reviewCount} Verified Ratings</span>
-                </div>
-
-                <div className="flex-1 space-y-1.5 text-[10px] font-sans">
-                  <div className="flex items-center gap-2">
-                    <span className="w-8 text-stone-500">5 ★</span>
-                    <div className="flex-1 h-1.5 bg-stone-200 rounded-full overflow-hidden">
-                      <div className="h-full bg-amber-500 rounded-full w-[85%]" />
-                    </div>
-                    <span className="w-6 text-stone-400 tabular-nums">85%</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="w-8 text-stone-500">4 ★</span>
-                    <div className="flex-1 h-1.5 bg-stone-200 rounded-full overflow-hidden">
-                      <div className="h-full bg-amber-500 rounded-full w-[12%]" />
-                    </div>
-                    <span className="w-6 text-stone-400 tabular-nums">12%</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="w-8 text-stone-500">3 ★</span>
-                    <div className="flex-1 h-1.5 bg-stone-200 rounded-full overflow-hidden">
-                      <div className="h-full bg-amber-500 rounded-full w-[3%]" />
-                    </div>
-                    <span className="w-6 text-stone-400 tabular-nums">3%</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* 7. Matching Related Products Carousel */}
-            {relatedProducts.length > 0 && (
-              <div className="space-y-3 pt-2 font-sans">
-                <div className="flex items-center justify-between">
-                  <h3 className="font-sans font-bold text-xs uppercase tracking-wider text-stone-900">
-                    MATCHING RECOMMENDATIONS
-                  </h3>
-                  <Link to="/catalog" className="text-[10px] font-bold text-[#6B1F2A] hover:underline">
-                    View All →
-                  </Link>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  {relatedProducts.slice(0, 2).map((relP) => (
-                    <Link
-                      key={relP.id}
-                      to={`/product/${relP.slug || relP.id}`}
-                      className="bg-white border border-stone-200/80 rounded-2xl p-2.5 shadow-2xs group hover:shadow-md transition-all block font-sans"
-                    >
-                      <div className="aspect-square rounded-xl bg-stone-100 overflow-hidden mb-2">
-                        <OptimizedImage 
-                          src={relP.imageUrl} 
-                          alt={relP.name}
-                          widths={[240, 360, 480]}
-                          sizes="(max-width: 768px) 50vw, 20vw"
-                          quality={70}
-                          loading="lazy"
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
-                      </div>
-                      <h4 className="font-medium text-stone-900 text-xs truncate">{relP.name}</h4>
-                      <p className="text-[10px] text-[#6B1F2A] font-bold font-sans tabular-nums mt-0.5">
-                        ₹{Number(relP.price || 125000).toLocaleString('en-IN')}
-                      </p>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            )}
 
           </div>
 
         </div>
+
+        {/* =========================================================================
+            FULL-WIDTH SECTIONS BELOW THE MAIN GRID (56px Vertical Rhythm)
+            ========================================================================= */}
+
+        {/* 6. Ratings & Reviews Section - Full Width */}
+        <div className="bg-white border border-stone-200/80 rounded-3xl p-6 lg:p-8 shadow-xs space-y-6 w-full">
+          <div className="flex items-center justify-between border-b border-stone-100 pb-4">
+            <h3 className="font-sans font-bold text-xs sm:text-sm uppercase tracking-wider text-stone-900">
+              CUSTOMER REVIEWS & RATINGS
+            </h3>
+
+            <button
+              type="button"
+              onClick={() => setShowReviewModal(true)}
+              className="text-xs font-bold text-[#6B1F2A] hover:underline flex items-center gap-1.5 cursor-pointer font-sans"
+            >
+              <span>Write Review</span>
+              <Sparkles className="w-3.5 h-3.5" />
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+            {/* Rating Summary Block */}
+            <div className="lg:col-span-4 bg-stone-50 p-6 rounded-2xl border border-stone-200/60 font-sans text-center flex flex-col items-center justify-center gap-2">
+              <span className="text-4xl font-sans font-extrabold text-stone-900 block leading-none tabular-nums">{ratingVal}</span>
+              <div className="flex items-center justify-center text-amber-500 my-1">
+                {[1, 2, 3, 4, 5].map((s) => (
+                  <Star key={s} className="w-4 h-4 fill-amber-500 text-amber-500" />
+                ))}
+              </div>
+              <span className="text-xs text-stone-500 font-sans">{reviewCount} Verified Ratings</span>
+            </div>
+
+            {/* Rating Distribution Bars */}
+            <div className="lg:col-span-8 space-y-2.5 bg-stone-50 p-6 rounded-2xl border border-stone-200/60 font-sans">
+              <div className="flex items-center gap-3 text-xs">
+                <span className="w-8 text-stone-500 font-medium">5 ★</span>
+                <div className="flex-1 h-2 bg-stone-200 rounded-full overflow-hidden">
+                  <div className="h-full bg-amber-500 rounded-full w-[85%]" />
+                </div>
+                <span className="w-8 text-stone-400 tabular-nums text-right">85%</span>
+              </div>
+              <div className="flex items-center gap-3 text-xs">
+                <span className="w-8 text-stone-500 font-medium">4 ★</span>
+                <div className="flex-1 h-2 bg-stone-200 rounded-full overflow-hidden">
+                  <div className="h-full bg-amber-500 rounded-full w-[12%]" />
+                </div>
+                <span className="w-8 text-stone-400 tabular-nums text-right">12%</span>
+              </div>
+              <div className="flex items-center gap-3 text-xs">
+                <span className="w-8 text-stone-500 font-medium">3 ★</span>
+                <div className="flex-1 h-2 bg-stone-200 rounded-full overflow-hidden">
+                  <div className="h-full bg-amber-500 rounded-full w-[3%]" />
+                </div>
+                <span className="w-8 text-stone-400 tabular-nums text-right">3%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 7. Matching Recommendations Row - Full Width */}
+        {relatedProducts.length > 0 && (
+          <div className="space-y-4 pt-2 font-sans w-full">
+            <div className="flex items-center justify-between">
+              <h3 className="font-sans font-bold text-xs sm:text-sm uppercase tracking-wider text-stone-900">
+                MATCHING RECOMMENDATIONS
+              </h3>
+              <Link to="/catalog" className="text-xs font-bold text-[#6B1F2A] hover:underline">
+                View All →
+              </Link>
+            </div>
+
+            {/* Responsive Grid: 4 cols at 1024-1279, 5 cols at 1280-1679, 6 cols at >=1680 */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-5">
+              {relatedProducts.map((relP) => (
+                <Link
+                  key={relP.id}
+                  to={`/product/${relP.slug || relP.id}`}
+                  className="bg-white border border-stone-200/80 rounded-2xl p-3 shadow-2xs group hover:shadow-md transition-all block font-sans"
+                >
+                  <div className="aspect-square rounded-xl bg-stone-100 overflow-hidden mb-2.5">
+                    <OptimizedImage 
+                      src={relP.imageUrl} 
+                      alt={relP.name}
+                      widths={[240, 360, 480]}
+                      sizes="(max-width: 768px) 50vw, (max-width: 1280px) 25vw, 16vw"
+                      quality={75}
+                      loading="lazy"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                  </div>
+                  <h4 className="font-medium text-stone-900 text-xs sm:text-sm truncate">{relP.name}</h4>
+                  <p className="text-xs text-[#6B1F2A] font-bold font-sans tabular-nums mt-1">
+                    ₹{Number(relP.price || 125000).toLocaleString('en-IN')}
+                  </p>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
 
       </div>
 

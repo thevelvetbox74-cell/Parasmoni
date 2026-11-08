@@ -4,8 +4,9 @@
  */
 
 import { Product, Banner, MetalPrice, Collection, StoreLocation } from '../components/ShowroomComponents';
+import { WHITE_PLACEHOLDER_SVG } from '../components/FlowerTickSpinner';
 
-const BRAND_IMAGE = "https://ik.imagekit.io/ugm0ru2xm/parasmoni/branding/JEWLLERS___GRAND_BROTHERS__6__5ekGzNryJ.png";
+const BRAND_PLACEHOLDER = WHITE_PLACEHOLDER_SVG;
 
 export const mockMetalPrices: MetalPrice[] = [
   { metal: "Gold (22K 916)", pricePerGram: 6850, change: 0.35, unit: "1g" },
@@ -19,7 +20,7 @@ export const mockBanners: Banner[] = [
     id: "banner-1",
     title: "Heritage Sovereign Bridal Gold",
     subtitle: "Purity unmatched since 1974. Explore traditional Kolkata filigree and heavy bridal chokers handcrafted by master artisans.",
-    image: BRAND_IMAGE,
+    image: BRAND_PLACEHOLDER,
     buttonText: "EXPLORE BRIDAL MASTERPIECES",
     buttonLink: "/jewellery?category=bridal"
   },
@@ -27,7 +28,7 @@ export const mockBanners: Banner[] = [
     id: "banner-2",
     title: "IGI Certified Solitaires & Polki",
     subtitle: "Every diamond has a soul. Discover brilliant-cut solitaires and hand-set royal Polki crafted for family legacy.",
-    image: BRAND_IMAGE,
+    image: BRAND_PLACEHOLDER,
     buttonText: "VIEW SOLITAIRE RINGS",
     buttonLink: "/jewellery?category=solitaires"
   },
@@ -35,7 +36,7 @@ export const mockBanners: Banner[] = [
     id: "banner-3",
     title: "Kolkata Nakashi & Antique Bangles",
     subtitle: "A testament to Bengali goldsmith craftsmanship. Elevate your presence with heavy temple kadas and intricate nakashi work.",
-    image: BRAND_IMAGE,
+    image: BRAND_PLACEHOLDER,
     buttonText: "VIEW ANTIQUE CUFFS",
     buttonLink: "/jewellery?category=bangles"
   }
@@ -46,28 +47,28 @@ export const mockCollections: Collection[] = [
     id: "col-1",
     name: "Royal Kundan & Polki",
     description: "Sovereign-grade hand-set gemstones surrounded by fine 22K gold foil, honoring royal Mughal heritage.",
-    imageUrl: BRAND_IMAGE,
+    imageUrl: BRAND_PLACEHOLDER,
     slug: "kundan"
   },
   {
     id: "col-2",
     name: "Heritage Nakashi Filigree",
     description: "Intricate gold wirework and embossed deity figures hammered by legacy Kolkata artisans.",
-    imageUrl: BRAND_IMAGE,
+    imageUrl: BRAND_PLACEHOLDER,
     slug: "heritage"
   },
   {
     id: "col-3",
     name: "IGI Certified Solitaires",
     description: "Rare, color-graded diamonds selected with optical precision for lifetime milestones.",
-    imageUrl: BRAND_IMAGE,
+    imageUrl: BRAND_PLACEHOLDER,
     slug: "solitaires"
   },
   {
     id: "col-4",
     name: "Heavy Bridal Kadas",
     description: "Ornate gold bangles with internal hinges, featuring lion-head (Makar) and peacock carvings.",
-    imageUrl: BRAND_IMAGE,
+    imageUrl: BRAND_PLACEHOLDER,
     slug: "bangles"
   }
 ];
@@ -82,7 +83,7 @@ export const mockProducts: Product[] = [
     collection: "Heritage Nakashi Filigree",
     metalType: "22K Gold",
     approxWeight: "64.20g",
-    imageUrl: BRAND_IMAGE,
+    imageUrl: BRAND_PLACEHOLDER,
     isPopular: true
   },
   {
@@ -94,7 +95,7 @@ export const mockProducts: Product[] = [
     collection: "Royal Kundan & Polki",
     metalType: "22K Gold & Polki",
     approxWeight: "32.80g",
-    imageUrl: BRAND_IMAGE,
+    imageUrl: BRAND_PLACEHOLDER,
     isPopular: true
   },
   {
@@ -106,7 +107,7 @@ export const mockProducts: Product[] = [
     collection: "IGI Certified Solitaires",
     metalType: "18K Diamond",
     approxWeight: "4.50g",
-    imageUrl: BRAND_IMAGE,
+    imageUrl: BRAND_PLACEHOLDER,
     isPopular: true
   },
   {
@@ -118,7 +119,7 @@ export const mockProducts: Product[] = [
     collection: "Heavy Bridal Kadas",
     metalType: "22K Gold",
     approxWeight: "48.10g",
-    imageUrl: BRAND_IMAGE,
+    imageUrl: BRAND_PLACEHOLDER,
     isPopular: false
   },
   {
@@ -130,7 +131,7 @@ export const mockProducts: Product[] = [
     collection: "Heritage Nakashi Filigree",
     metalType: "22K Gold",
     approxWeight: "84.50g",
-    imageUrl: BRAND_IMAGE,
+    imageUrl: BRAND_PLACEHOLDER,
     isPopular: true
   },
   {
@@ -142,7 +143,7 @@ export const mockProducts: Product[] = [
     collection: "Royal Kundan & Polki",
     metalType: "22K Gold",
     approxWeight: "18.60g",
-    imageUrl: BRAND_IMAGE,
+    imageUrl: BRAND_PLACEHOLDER,
     isPopular: false
   }
 ];
@@ -156,7 +157,7 @@ export const mockStores: StoreLocation[] = [
     whatsapp: "+91 9876543210",
     hours: "Mon - Sat: 11:30 AM - 8:00 PM | Sun: Closed",
     mapUrl: "https://maps.google.com",
-    imageUrl: BRAND_IMAGE
+    imageUrl: BRAND_PLACEHOLDER
   },
   {
     id: "store-2",
@@ -166,6 +167,6 @@ export const mockStores: StoreLocation[] = [
     whatsapp: "+91 9876543211",
     hours: "Mon - Sat: 11:30 AM - 8:00 PM | Sun: Closed",
     mapUrl: "https://maps.google.com",
-    imageUrl: BRAND_IMAGE
+    imageUrl: BRAND_PLACEHOLDER
   }
 ];

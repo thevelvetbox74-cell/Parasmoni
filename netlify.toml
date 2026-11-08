@@ -1,5 +1,5 @@
 [build]
-  command = "node scripts/snapshot-home.mjs; vite build"
+  command = "node scripts/snapshot-home.mjs; vite build && node scripts/perf-guard.mjs"
   publish = "dist"
 
 [build.processing]

@@ -227,21 +227,29 @@
           </div>
         </header>
 
-        <!-- Static Hero Banner Container Matching BannerSlider -->
+        <!-- Static Hero Banner Container Matching BannerSlider (Clean White Container + Centered Flower Tick Spinner) -->
         <div id="static-hero-container" style="width: 100%; background-color: #ffffff; padding: 0 0 16px 0; overflow: hidden;">
-          <div class="static-hero-wrapper" style="width: 90%; max-width: 1300px; margin: 8px auto 0 auto; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); border: 1px solid rgba(231, 229, 228, 0.8); background-color: #1c0507;">
-            <img 
-              id="static-hero-img"
-              src="https://ik.imagekit.io/ugm0ru2xm/parasmoni/branding/JEWLLERS___GRAND_BROTHERS__6__5ekGzNryJ.png?tr=w-1200,q-75,f-auto" 
-              srcset="https://ik.imagekit.io/ugm0ru2xm/parasmoni/branding/JEWLLERS___GRAND_BROTHERS__6__5ekGzNryJ.png?tr=w-480,q-75,f-auto 480w, https://ik.imagekit.io/ugm0ru2xm/parasmoni/branding/JEWLLERS___GRAND_BROTHERS__6__5ekGzNryJ.png?tr=w-768,q-75,f-auto 768w, https://ik.imagekit.io/ugm0ru2xm/parasmoni/branding/JEWLLERS___GRAND_BROTHERS__6__5ekGzNryJ.png?tr=w-1080,q-75,f-auto 1080w, https://ik.imagekit.io/ugm0ru2xm/parasmoni/branding/JEWLLERS___GRAND_BROTHERS__6__5ekGzNryJ.png?tr=w-1440,q-75,f-auto 1440w, https://ik.imagekit.io/ugm0ru2xm/parasmoni/branding/JEWLLERS___GRAND_BROTHERS__6__5ekGzNryJ.png?tr=w-1920,q-75,f-auto 1920w"
-              sizes="100vw"
-              alt="Parasmoni Jewellers Sovereign Bridal Gold"
-              width="1200"
-              height="771"
-              fetchpriority="high"
-              decoding="async"
-              style="width: 100%; height: 100%; aspect-ratio: 14/9; object-fit: contain; display: block;"
-            />
+          <div class="static-hero-wrapper" style="width: 90%; max-width: 1300px; margin: 8px auto 0 auto; border-radius: 12px; overflow: hidden; border: 1px solid rgba(231, 229, 228, 0.8); background-color: #faf8f5; min-height: 220px; display: flex; align-items: center; justify-content: center; position: relative;">
+            <svg id="static-hero-spinner" style="width: 28px; height: 28px; color: #a8a29e; animation: spin 0.9s linear infinite;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <line x1="12" y1="3.2" x2="12" y2="6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" opacity="0.08" />
+              <line x1="12" y1="3.2" x2="12" y2="6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" transform="rotate(30 12 12)" opacity="0.16" />
+              <line x1="12" y1="3.2" x2="12" y2="6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" transform="rotate(60 12 12)" opacity="0.25" />
+              <line x1="12" y1="3.2" x2="12" y2="6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" transform="rotate(90 12 12)" opacity="0.33" />
+              <line x1="12" y1="3.2" x2="12" y2="6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" transform="rotate(120 12 12)" opacity="0.41" />
+              <line x1="12" y1="3.2" x2="12" y2="6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" transform="rotate(150 12 12)" opacity="0.5" />
+              <line x1="12" y1="3.2" x2="12" y2="6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" transform="rotate(180 12 12)" opacity="0.58" />
+              <line x1="12" y1="3.2" x2="12" y2="6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" transform="rotate(210 12 12)" opacity="0.66" />
+              <line x1="12" y1="3.2" x2="12" y2="6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" transform="rotate(240 12 12)" opacity="0.75" />
+              <line x1="12" y1="3.2" x2="12" y2="6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" transform="rotate(270 12 12)" opacity="0.83" />
+              <line x1="12" y1="3.2" x2="12" y2="6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" transform="rotate(300 12 12)" opacity="0.91" />
+              <line x1="12" y1="3.2" x2="12" y2="6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" transform="rotate(330 12 12)" opacity="1" />
+            </svg>
+            <style>
+              @keyframes spin {
+                from { transform: rotate(0deg); }
+                to { transform: rotate(360deg); }
+              }
+            </style>
           </div>
         </div>
 

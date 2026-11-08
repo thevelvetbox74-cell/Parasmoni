@@ -371,14 +371,14 @@ export function AdminBanners(): React.JSX.Element {
                 return (
                   <div 
                     key={b.id} 
-                    className={`bg-stone-900 border transition-all rounded p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 ${
-                      isInactive ? 'border-stone-800/50 bg-stone-900/40 opacity-70' : 'border-stone-800 hover:border-stone-700/80 bg-stone-900/80'
+                    className={`bg-white border transition-all rounded p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-2xs ${
+                      isInactive ? 'border-stone-200 bg-stone-50/70 opacity-80' : 'border-stone-200 hover:border-amber-500/50 bg-white'
                     }`}
                     id={`banner-row-${b.id}`}
                   >
                     {/* Cover Art and Info */}
                     <div className="flex gap-4 items-center flex-1 min-w-0">
-                      <div className="relative w-24 h-14 bg-stone-950 border border-stone-800 rounded overflow-hidden shrink-0">
+                      <div className="relative w-24 h-14 bg-stone-100 border border-stone-200 rounded overflow-hidden shrink-0">
                         {b.desktopImage ? (
                           <img 
                             src={b.desktopImage} 
@@ -387,35 +387,35 @@ export function AdminBanners(): React.JSX.Element {
                             referrerPolicy="no-referrer"
                           />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center text-stone-700">
+                          <div className="w-full h-full flex items-center justify-center text-stone-400">
                             <ImageIcon className="w-5 h-5" />
                           </div>
                         )}
-                        <span className="absolute bottom-1 right-1 px-1 py-0.5 rounded bg-black/80 text-[8px] font-mono font-bold text-amber-500 border border-stone-800/50">
+                        <span className="absolute bottom-1 right-1 px-1 py-0.5 rounded bg-stone-950/80 text-[8px] font-mono font-bold text-amber-500 border border-stone-200">
                           #{b.displayOrder}
                         </span>
                       </div>
 
                       <div className="space-y-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <h4 className="font-serif font-bold text-stone-100 text-sm truncate">{b.title || 'Untitled Banner'}</h4>
+                          <h4 className="font-serif font-bold text-stone-900 text-sm truncate">{b.title || 'Untitled Banner'}</h4>
                           <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold uppercase font-sans border ${
                             isInactive 
-                              ? 'bg-stone-950 text-stone-500 border-stone-800' 
-                              : 'bg-emerald-500/5 text-emerald-400 border-emerald-500/10'
+                              ? 'bg-stone-100 text-stone-500 border-stone-200' 
+                              : 'bg-emerald-50 text-emerald-700 border-emerald-200'
                           }`}>
                             {b.status}
                           </span>
                         </div>
-                        {b.subtitle && <p className="text-stone-400 text-[10px] leading-relaxed line-clamp-1">{b.subtitle}</p>}
+                        {b.subtitle && <p className="text-stone-600 text-[10px] leading-relaxed line-clamp-1">{b.subtitle}</p>}
                         <div className="flex gap-4 text-[9px] text-stone-500 font-mono">
                           <span className="flex items-center gap-1">
-                            <LinkIcon className="w-3 h-3 text-stone-600" />
+                            <LinkIcon className="w-3 h-3 text-stone-400" />
                             <span className="truncate max-w-xs">{b.buttonLink}</span>
                           </span>
                           {(b.startDate || b.endDate) && (
                             <span className="flex items-center gap-1">
-                              <Calendar className="w-3 h-3 text-stone-600" />
+                              <Calendar className="w-3 h-3 text-stone-400" />
                               <span>{b.startDate || 'Anytime'} to {b.endDate || 'Forever'}</span>
                             </span>
                           )}
@@ -427,20 +427,20 @@ export function AdminBanners(): React.JSX.Element {
                     <div className="flex items-center gap-3 shrink-0 self-end md:self-center">
                       
                       {/* Arrows */}
-                      <div className="flex items-center bg-stone-950 border border-stone-800/80 rounded p-0.5">
+                      <div className="flex items-center bg-stone-100 border border-stone-200 rounded p-0.5">
                         <button
                           onClick={() => moveOrder(index, 'up')}
                           disabled={index === 0}
-                          className="p-1 text-stone-400 hover:text-amber-500 disabled:opacity-30 disabled:hover:text-stone-400 transition-colors cursor-pointer"
+                          className="p-1 text-stone-600 hover:text-amber-600 disabled:opacity-30 disabled:hover:text-stone-400 transition-colors cursor-pointer"
                           title="Shift Sequence Up"
                         >
                           <ArrowUp className="w-3.5 h-3.5" />
                         </button>
-                        <div className="h-4 w-px bg-stone-800" />
+                        <div className="h-4 w-px bg-stone-200" />
                         <button
                           onClick={() => moveOrder(index, 'down')}
                           disabled={index === banners.length - 1}
-                          className="p-1 text-stone-400 hover:text-amber-500 disabled:opacity-30 disabled:hover:text-stone-400 transition-colors cursor-pointer"
+                          className="p-1 text-stone-600 hover:text-amber-600 disabled:opacity-30 disabled:hover:text-stone-400 transition-colors cursor-pointer"
                           title="Shift Sequence Down"
                         >
                           <ArrowDown className="w-3.5 h-3.5" />
@@ -452,8 +452,8 @@ export function AdminBanners(): React.JSX.Element {
                         onClick={() => toggleStatus(b)}
                         className={`p-1.5 rounded border text-xs transition-colors cursor-pointer ${
                           isInactive 
-                            ? 'border-stone-800 hover:border-stone-700 hover:bg-stone-900 text-stone-400 hover:text-stone-100' 
-                            : 'border-stone-800 hover:border-stone-700 hover:bg-stone-900 text-amber-500 hover:text-amber-400'
+                            ? 'border-stone-200 hover:border-stone-300 hover:bg-stone-50 text-stone-600' 
+                            : 'border-stone-200 hover:border-stone-300 hover:bg-stone-50 text-amber-600'
                         }`}
                         title={isInactive ? 'Enable Banner' : 'Disable Banner'}
                       >
@@ -463,7 +463,7 @@ export function AdminBanners(): React.JSX.Element {
                       {/* Edit */}
                       <button
                         onClick={() => startEdit(b)}
-                        className="p-1.5 bg-stone-950 border border-stone-800 hover:border-amber-500 hover:text-amber-400 rounded text-stone-300 transition-colors cursor-pointer"
+                        className="p-1.5 bg-stone-100 border border-stone-200 hover:border-amber-500 hover:text-amber-600 rounded text-stone-700 transition-colors cursor-pointer"
                         title="Edit Banner Properties"
                       >
                         <Edit className="w-4 h-4" />
@@ -472,7 +472,7 @@ export function AdminBanners(): React.JSX.Element {
                       {/* Delete */}
                       <button
                         onClick={() => handleDelete(b)}
-                        className="p-1.5 bg-stone-950 border border-stone-850 hover:border-red-900 hover:text-red-400 rounded text-stone-400 transition-colors cursor-pointer"
+                        className="p-1.5 bg-stone-100 border border-stone-200 hover:border-red-400 hover:text-red-600 rounded text-stone-500 transition-colors cursor-pointer"
                         title="Delete Banner Permanently"
                       >
                         <Trash2 className="w-4 h-4" />

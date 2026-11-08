@@ -34,6 +34,7 @@ function ConditionalFooter(): React.JSX.Element | null {
 import { BottomNavigation } from './components/BottomNavigation';
 import { OfflineIndicator } from './components/OfflineIndicator';
 import { MetalPriceBar } from './components/ShowroomComponents';
+import { DiwaliDecor, DiwaliTopGarland } from './components/DiwaliDecor';
 import { mockMetalPrices } from './data/mockData';
 import { Home } from './pages/Home';
 import { WebsiteSettingsProvider } from './context/WebsiteSettingsContext';
@@ -157,10 +158,14 @@ export default function App(): React.JSX.Element {
               element={
                 <>
                   <OfflineIndicator />
-                  <div className="hidden lg:block min-h-[33px]">
-                    <MetalPriceBar prices={metalPrices} />
-                  </div>
-                  <Navigation />
+                  {/* Unified Sticky Header Group: Black Ticker Bar + Red Navigation Bar + Hanging Toran Garland */}
+                  <header className="sticky top-0 z-50 w-full relative" id="site-header-group">
+                    <div className="hidden lg:block min-h-[33px]">
+                      <MetalPriceBar prices={metalPrices} />
+                    </div>
+                    <Navigation />
+                    <DiwaliTopGarland />
+                  </header>
                   <main id="main-content" tabIndex={-1} className="flex-1 pb-20 md:pb-0 outline-none">
                     <React.Suspense fallback={<div className="min-h-[70vh] bg-stone-50" />}>
                       <Routes>
@@ -187,6 +192,7 @@ export default function App(): React.JSX.Element {
                   </main>
                   <ConditionalFooter />
                   <BottomNavigation />
+                  <DiwaliDecor />
                 </>
               }
             />

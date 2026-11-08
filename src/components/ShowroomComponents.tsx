@@ -28,6 +28,7 @@ import { ikUrl, ikSrcSet } from '../utils/imagekit';
 import { cacheHeroBannerUrl } from '../utils/cacheHelper';
 import { cacheHeroSlide } from '../data/heroFallback';
 import { getLazyFirebase } from '../utils/lazyFirebase';
+import { WHITE_PLACEHOLDER_SVG } from './FlowerTickSpinner';
 
 // Global cache for metal prices to avoid duplicate listeners across many product cards
 let globalMetalPricesListeners: ((prices: any[]) => void)[] = [];
@@ -388,7 +389,7 @@ export const ProductCard = React.memo(function ProductCard({
           />
         ) : (
           <OptimizedImage 
-            src={optimizedUrl || "https://ik.imagekit.io/ugm0ru2xm/parasmoni/branding/JEWLLERS___GRAND_BROTHERS__6__5ekGzNryJ.png?tr=w-400,q-75,f-auto"} 
+            src={optimizedUrl || WHITE_PLACEHOLDER_SVG} 
             alt={product.name}
             width={400}
             height={400}
@@ -829,7 +830,7 @@ export function BannerSlider({
 
   // Get properly transformed, ultra-high-definition ImageKit responsive URLs
   const getBannerImage = (banner: Banner, index: number) => {
-    const rawImage = (isMobile && banner.mobileImage) ? banner.mobileImage : (banner.desktopImage || banner.image) || 'https://ik.imagekit.io/ugm0ru2xm/parasmoni/branding/JEWLLERS___GRAND_BROTHERS__6__5ekGzNryJ.png';
+    const rawImage = (isMobile && banner.mobileImage) ? banner.mobileImage : (banner.desktopImage || banner.image) || WHITE_PLACEHOLDER_SVG;
     if (index === virtualIndex) {
       return isMobile ? ikUrl(rawImage, 720, 60) : ikUrl(rawImage, 1200, 70);
     }
@@ -838,7 +839,7 @@ export function BannerSlider({
 
   const getBannerSrcSet = (banner: Banner, index: number) => {
     if (index !== virtualIndex) return undefined;
-    const rawImage = (isMobile && banner.mobileImage) ? banner.mobileImage : (banner.desktopImage || banner.image) || 'https://ik.imagekit.io/ugm0ru2xm/parasmoni/branding/JEWLLERS___GRAND_BROTHERS__6__5ekGzNryJ.png';
+    const rawImage = (isMobile && banner.mobileImage) ? banner.mobileImage : (banner.desktopImage || banner.image) || WHITE_PLACEHOLDER_SVG;
     return isMobile
       ? ikSrcSet(rawImage, [480, 720, 1080], 60)
       : ikSrcSet(rawImage, [800, 1200, 1600], 70);
